@@ -1,0 +1,111 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-437B7269-2439-4982-BB59-9BB433F87F4E.html
+
+Point Set
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Logic Tools
+
+- Point Set
+
+ Point Set
+
+ The Point Set module combines the data of other
+ modules into a point set, making it easier for the successors to obtain and transfer
+ data.
+
+ How To Use
+
+ The Point Set module supports point input by
+ subscription or coordinates. It can be integrated into a
+ Group module with the Loop
+ Enable on to collect point data. This module can also be used with
+ image generation modules to form a specified shape based on the point set output by
+ the Point Set module.
+
+ The figure below shows how to subscribe to the center points output by
+ two Circle Search modules and use the Point
+ Set module to output a point set containing these center points.
+
+ [img:GUID-CAE57DB0-6FD8-4845-AADD-D5330DAF2AAC-high.png] 
+ Figure 1 Point Set Usage
+ Example
+
+ Parameter Configuration
+
+ Point Input
+
+ Select from By Point and
+ By Coordinate to input the point
+ data of other modules, such as the center point and vertex. The maximum
+ number of points that can be added is limited to 64.
+
+ Loop Enable
+
+ When it is enabled, the point set obtained from each loop is
+ added to the output point set.
+
+ Module Result
+
+ Module Result of Point Set
+ is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Point Set
+
+ Point X
+
+ Float. The X coordinates of each point in the
+ output set.
+
+ Point Y
+
+ Float. The Y coordinates of each point in the
+ output set.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

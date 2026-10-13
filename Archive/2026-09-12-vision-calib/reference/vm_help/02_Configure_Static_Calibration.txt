@@ -1,0 +1,138 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-5F52CE25-A6F2-42DD-B717-8BF0244F04B6.html
+
+Configure Static Calibration
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Auxiliary Tool Guide
+
+- Calibration Configuration Guide
+
+- Configure Static Calibration
+
+ Configure Static Calibration
+
+ Static calibration is mainly realized through the CalibBoard
+ Calibration module.
+
+ In the Calibration Configuration Guide tool,
+ select Static Calibration and then click
+ Create to open the configuration window.
+
+- 
+ Complete Communication Configuration.
+
+- 
+ Click Config to the right of Equipment management, and you can open the
+ Communication Management window to
+ add and configure external communication devices.
+ 
+ Note 
+ Enable the selected communication device before you
+ start calibration.
+
+- 
+ In the drop-down list of Device
+ Selection, select the communication device to be
+ associated.
+ 
+ Note 
+ Only TCP or UDP devices are supported.
+
+- 
+ In the text box of Trigger Signal,
+ configure the string that controls the flow execution.
+
+- 
+ Determine whether to use the terminator. When the Use
+ terminator is checked, you need to select the end
+ character. Optional \r (enter), \n (newline), or \r\n (enter and new
+ line character).
+
+- 
+ Click Next Step to configure the Image
+ source. 
+
+- 
+ Click Config to the right of Camera Set, and you can open the Camera Set window to add and
+ configure the global camera.
+
+- 
+ Click Image source configuration to configure
+ the Image Source module.
+
+- 
+ Click Next Step to configure the Calibration
+ method.
+
+- 
+ Select the Calibration method. Now
+ only CalibBoard Calib is supported.
+
+- 
+ Click CalibBoard Calib to configure the CalibBoard Calibration module.
+
+- 
+ Click [img:GUID-7B669A6A-2CC9-4C39-8FB3-60D6CCCF048B-high.png] to view the added modules in the
+ calibration flow.
+
+- 
+ Switch to the Boot Mode and click Next
+ Step to open the Results view
+ window.
+
+- 
+ Check Start
+ Calibrate.
+
+- 
+ Send specific trigger signals through the selected external
+ communication device. Now the calibration starts and the signal content
+ and result state are displayed.
+ 
+ Note 
+ When sending the trigger signal, ensure that the
+ external communication device in the device list of Equipment
+ management
+ is enabled and can communicate properly.
+
+- 
+ Click Create Calibration File to save the
+ calibration file. Also the specific information is displayed in the
+ Calib Matrix.
+
+ [img:GUID-9E2B19EA-82A5-4B17-B54E-8997B68FD5A4-high.png] 
+ Figure 1 Results View of the
+ Static Calibration
+
+ After you complete the calibration, the generated calibration file can be
+ loaded in calibration modules and other related modules.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->

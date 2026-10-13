@@ -1,0 +1,188 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-579A0B6D-7A7D-455C-BA3D-36D9133666FA.html
+
+Coordinate Transform
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Coordinate Transform
+
+ Coordinate
+ Transform
+
+ The Coordinate Transform module can convert the
+ coordinate of a certain point into the coordinate of other points in the image through
+ calculation. This module is generally used with the Divide Image
+ module to transform the coordinates of a point from one of the divisions to the original
+ image (the image before division), and you can obtain the the coordinates of the points of
+ divisions in the original image .
+
+ This section contains:
+
+- 
+ How It Works
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How It Works
+
+ This module can calculate the coordinate P of the upper left corner of a
+ division in the original image by obtaining the center point coordinate, width and
+ height of the division in the original image, and then add the coordinate P to the
+ point coordinate that needs to be converted to obtain its coordinate in the original
+ image.
+
+ How To Use
+
+ This module should be used with the Image Source module, Divide Image module, Copy Fill module, and the Locating modules.
+
+ In the figure below, the Image Source module is
+ used to obtain the image, the Divide Image module is used to
+ split the original image into four 2*2 divisions, the Copy
+ Fill module is used to obtain the third division (the lower left
+ corner area of the original image), and the Edge Intersection
+ module extracts the edge intersection points of the divison as a feature point.
+ Finally, the Coordinate Transform module converts the feature
+ point coordinate on the division according to the division information, and
+ obtain
+ the coordinate of the feature point in the original image.
+
+ The output point coordinate of the Coordinate
+ Transform module is the same as that of the Edge
+ Intersection2 module. The difference is that the Edge
+ Intersection2 module extracts the coordinate of the edge
+ intersection point directly from the original image.
+
+ [img:GUID-343003E3-460A-43D4-89C6-27BB9FB0C910-high.png] 
+ Figure 1 Coordinate Transform
+ Application Example
+
+ Parameter Configuration
+
+ The module parameters are divided into Dicing
+ Info and Input Point.
+
+ Dicing Info
+
+ Determine whether to enable the Coordinate Transform and configure the following
+ parameters.
+
+ Coordinate Transform
+
+ This feature is enabled by default. When
+ disabled, the data of the input point and the output point
+ are the same.
+
+ Input Mode
+
+ Set the input method of the dicing
+ center. Optional by point or by coordinate.
+
+ Dicing Center 
+
+ Dicing Center Point X/Y
+
+ Subscribe to the dicing center point
+ from the Divide Image
+ module.
+
+ Dicing Image Width
+
+ Dicing Image Height
+
+ Subscribe to the width and height of
+ the division from the Divide
+ Image module.
+
+ Input Point
+
+ Set the input point coordinate.
+
+ Input Mode
+
+ Optional by point or by coordinate.
+
+ Point
+
+ Point X/Y
+
+ Enter or subscribe to the point coordinate from
+ the predecessor.
+
+ Module Result
+
+ Module Result of Coordinate
+ Transform is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ Dst Output Point
+
+ DstPointX
+
+ Float. The X coordinate of the point obtained by
+ rotating input point.
+
+ Note 
+ Pixel coordinate system is used.
+
+ DstPointY
+
+ Float. The Y coordinate of the point obtained by
+ rotating input point.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

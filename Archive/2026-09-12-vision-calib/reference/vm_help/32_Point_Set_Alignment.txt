@@ -1,0 +1,154 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-B915DB40-0CD2-4041-B3FD-4BCF06DF24B7.html
+
+Point Set Alignment
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Point Set Alignment
+
+ Point Set Alignment
+
+ The Point Set Alignment module has the similar
+ function with the Single Point Alignment module, which is to obtain
+ the offset from the object point to the target point. The difference is that
+ Single Point Alignment is based on the coordinates and angles of
+ a pair of points, while Point Set Alignment is based on a point set
+ formed by multiple point coordinates.
+
+ This section contains:
+
+- 
+ How It Works
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How It Works
+
+ The principle of this module is similar to How It Works in Single Point Alignment.
+ However, this module is based on a set of points.
+
+ How To Use
+
+ The module should be used with Image Source, Locating, and Calibration Transformation as the predecessors,
+ as shown in the figure below.
+
+ [img:GUID-839106B1-CE98-4857-A86F-4E61BF99BF5E-high.png] 
+ Figure 1 Point Set Alignment
+ Application Example
+
+ The Image Source module can provide images,
+ locating modules can provide multiple groups of feature points in the image
+ coordinate system, the Calibration Transformation module can
+ convert image coordinate points to physical coordinate points, and the
+ Point Set Alignment module is used to calculate the
+ offset from the running point to the teaching point in the physical coordinate
+ system.
+
+ Parameter Configuration
+
+ This part introduces the configuration of basic parameters. For the
+ result parameters, see Result Show.
+
+ Input Mode
+
+ Optional by point or by coordinate.
+
+ Demonstrate Point0-Unfixtured Point0
+
+ Set the point coordinate and angle of the run point alignment
+ to the demonstration point. You can enter the data
+ or
+ subscribe to the predecessor. 
+
+ Click [img:GUID-B6C1DF01-93C4-469A-8BA4-CB62088525C8-high.png] to add more pairs of
+ points. Note that you need to add at least 2 and up to 8 pairs of
+ points.
+
+ Point
+
+ PointX/Y
+
+ Set the alignment relationship of the point
+ coordinates.
+
+ Module Result
+
+ Module Result of Point Set
+ Alignment is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ DeltaX
+
+ Float. The offset value X from the origin of the image coordinate
+ system to the origin of the physical coordinate system of the mechanism, in
+ pixels.
+
+ DeltaY
+
+ Float. The offset value Y from the origin of the image
+ coordinate system to the origin of the physical coordinate system of the
+ mechanism, in pixels.
+
+ DeltaTheta
+
+ Float. The angle offset experienced when an image point moves
+ from a reference position (teaching point) to a target position (running
+ point), and the clockwise angle is positive.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

@@ -1,0 +1,127 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-1CE8579D-D518-4CDA-8D32-1E45CE360E76.html
+
+Calibration Board Generation
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Auxiliary Tool Guide
+
+- Calibration Board Generation
+
+ Calibration Board Generation
+
+ The Calibration Board Generation Tool is used to generate calibration
+ board images based on customized parameters. After obtaining the generated calibration board
+ images, you can modify or print them to further calibrate the camera as
+ necessary.
+
+ Ensure that you have collected all necessary information related to the use of a
+ calibration board, such as the working distance of the camera, accuracy requirements
+ of specific projects, and materials of the calibration board, among others. This can
+ help you generate calibration borad images that meet the specific requirements. 
+
+- 
+ On the
+ menu bar, go to Tools > Calibration Board Generation to open the tool window.
+
+- 
+ Enter a calibration board type and press Enter. 
+ 
+ Note 
+
+- 
+ For the specific differences between Hikrobot I
+ Calibration Board and Hikrobot II Calibration Board, refer to
+ CalibBoard Calibration.
+
+- 
+ The difference between the standard and extended
+ calibration board is that the standard type supports a maximum
+ of 255 rows and columns, while the extended type supports a
+ maximum of 1,000 rows and columns.
+
+- 
+ According to the prompts, enter the values of the following parameters: the
+ number of rows, the number of columns, the length of the grid, whether to
+ generate a CAD drawing, and whether to generate mark numbers. In the ideal
+ situations, the calibration board should cover the field of view of the camera. 
+ 
+ Note 
+ The values of calibration board parameters may vary depending on several
+ factors, such as the accuracy requirements of specific projects, the
+ quality and material of the calibration board, and the field of view of
+ the camera.
+
+- 
+ After entering the corresponding parameter values, press
+ Enter to generate the corresponding calibration board
+ drawing (in BMP format) and CAD drawing (in DXF format).
+ 
+ CAUTION
+
+ The calibration board drawing can only be generated when the number of
+ rows and columns of that calibration board is less than 50. Since the
+ drawing file is only for preview, do not print and use that drawing in
+ your projects.
+
+ [img:GUID-37DF8E54-57A8-4C07-A051-020DA9DDDA57-high.png] 
+ Figure 1 Calibration Board
+ Generation
+
+- 
+ Navigate to the installation path of the VM
+ Platform to obtain the generated drawings.
+ 
+ The generated calibration board drawing and CAD drawing (.dxf
+ format files) are saved under the VM Platform VM installation path:
+ .\Applications\Tools\CalibrationBoardGenerationTool.
+
+ Note 
+ These drawings cannot be directly used in your projects. To use them, you
+ need to fill the grids with colors first.
+
+ After obtaining the drawing of the calibration board, you need to manually fill the
+ grids with colors and adjust them as necessary.
+
+ Note 
+
+- 
+ When coloring the grids of the calibration board, you need to select
+ a proper color according to the light source, the material of the
+ calibration board and other related factors in your use case.
+
+- 
+ When processing the drawing, you need to ensure its aspect ratio is
+ not changed, the unit of grid is correct, and the drawing is not
+ rasterized. Then, you need to re-examine the calibration parameters
+ to ensure the calibration results are accurate and meet your
+ requirements.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->

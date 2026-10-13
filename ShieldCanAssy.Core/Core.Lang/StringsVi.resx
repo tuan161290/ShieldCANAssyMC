@@ -1,0 +1,3528 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Alarm.ActiveHeader" xml:space="preserve">
+    <value>ALARM ĐANG TÁC ĐỘNG</value>
+  </data>
+  <data name="Alarm.CausePrefix" xml:space="preserve">
+    <value>Nguyên nhân: </value>
+  </data>
+  <data name="Alarm.ColClearedAt" xml:space="preserve">
+    <value>Lúc hết</value>
+  </data>
+  <data name="Alarm.ColCode" xml:space="preserve">
+    <value>Mã</value>
+  </data>
+  <data name="Alarm.ColConditionActive" xml:space="preserve">
+    <value>Còn nguyên nhân</value>
+  </data>
+  <data name="Alarm.ColDetail" xml:space="preserve">
+    <value>Chi tiết</value>
+  </data>
+  <data name="Alarm.ColLevel" xml:space="preserve">
+    <value>Mức</value>
+  </data>
+  <data name="Alarm.ColMessage" xml:space="preserve">
+    <value>Nội dung</value>
+  </data>
+  <data name="Alarm.ColRaisedAt" xml:space="preserve">
+    <value>Lúc phát</value>
+  </data>
+  <data name="Alarm.ColRoot" xml:space="preserve">
+    <value>Gốc</value>
+  </data>
+  <data name="Alarm.ColSource" xml:space="preserve">
+    <value>Nguồn</value>
+  </data>
+  <data name="Alarm.ColTime" xml:space="preserve">
+    <value>Giờ</value>
+  </data>
+  <data name="Alarm.HistoryHeader" xml:space="preserve">
+    <value>LỊCH SỬ ALARM (TỚI 200 DÒNG GẦN NHẤT)</value>
+  </data>
+  <data name="Alarm.Mute" xml:space="preserve">
+    <value>Tắt còi</value>
+  </data>
+  <data name="Alarm.RemedyPrefix" xml:space="preserve">
+    <value>Xử lý: </value>
+  </data>
+  <data name="Auto.AlarmNotCleared" xml:space="preserve">
+    <value>còn alarm chưa xoá</value>
+  </data>
+  <data name="Auto.AlignBottomNozzle" xml:space="preserve">
+    <value>AlignBottom tay #{0}: {1}</value>
+  </data>
+  <data name="Auto.AlignBottomNozzleOnly" xml:space="preserve">
+    <value>AlignBottom tay #{0}</value>
+  </data>
+  <data name="Auto.AlignMoveFail" xml:space="preserve">
+    <value>không tới được vị trí soi tay #{0}</value>
+  </data>
+  <data name="Auto.AMovedSinceCapture" xml:space="preserve">
+    <value>trục {0} đã xoay sau lúc chụp ({1:0.00}° → {2:0.00}°)</value>
+  </data>
+  <data name="Auto.AMovedTwice" xml:space="preserve">
+    <value>{0} lần thứ hai liên tiếp — kiểm tra trục A của tay #{1}</value>
+  </data>
+  <data name="Auto.AssyRowAxisY2" xml:space="preserve">
+    <value>tray lắp ráp phải quét hàng bằng trục Y2 — Flow LocateTop cộng biến Y2 vào PoseY</value>
+  </data>
+  <data name="Auto.AssyTrayNotSeen" xml:space="preserve">
+    <value>Chưa thấy tray lắp ráp ở vị trí chờ — đặt tray rồi bấm lại Start 2</value>
+  </data>
+  <data name="Auto.AssyTrayNotTaught" xml:space="preserve">
+    <value>tray lắp ráp chưa teach</value>
+  </data>
+  <data name="Auto.CalibExpired" xml:space="preserve">
+    <value>lần hiệu chuẩn cũ nhất (kiểm tra top-down, phép thử vòng xoay, hand-eye) đã {0} ngày</value>
+  </data>
+  <data name="Auto.CalibNotReady" xml:space="preserve">
+    <value>hiệu chuẩn chưa sẵn sàng — {0}</value>
+  </data>
+  <data name="Auto.Cancelled" xml:space="preserve">
+    <value>bị huỷ</value>
+  </data>
+  <data name="Auto.CancelledWaitingTray" xml:space="preserve">
+    <value>bị huỷ khi đang chờ tray</value>
+  </data>
+  <data name="Auto.CannotReturnHalt" xml:space="preserve">
+    <value>tay #{0} soi hỏng mà không trả được về tray đầu vào ({1}) — lấy sản phẩm ra khỏi tay hút rồi bấm RESET</value>
+  </data>
+  <data name="Auto.CannotReturnReason" xml:space="preserve">
+    <value>tay #{0} soi hỏng, không trả được về tray đầu vào ({1})</value>
+  </data>
+  <data name="Auto.CheckNozzleNote" xml:space="preserve">
+    <value>xem tay hút: còn hàng thì bấm chạy là soi lại rồi đặt, hàng hỏng thì lấy ra</value>
+  </data>
+  <data name="Auto.ConsecutiveNgDetail" xml:space="preserve">
+    <value>{0} sản phẩm NG liên tiếp (ngưỡng {1})</value>
+  </data>
+  <data name="Auto.ConsecutiveNgHalt" xml:space="preserve">
+    <value>{0} NG liên tiếp — dừng để kiểm tra</value>
+  </data>
+  <data name="Auto.GuardSkipStreak" xml:space="preserve">
+    <value>{0} ô liên tiếp bị bỏ vì điểm đặt lệch lưới teach ({1}) — kiểm tra hand-eye, lưới teach và Flow LocateTop</value>
+  </data>
+  <data name="Auto.HaltAtStep" xml:space="preserve">
+    <value>Dừng chu trình ở bước {0}: {1}</value>
+  </data>
+  <data name="Auto.HaltNozzleIncident" xml:space="preserve">
+    <value>dừng vì sự cố với hàng trên tay hút ({0}) — xem tay hút rồi bấm chạy lại</value>
+  </data>
+  <data name="Auto.InputTrayInFail" xml:space="preserve">
+    <value>không đưa được tray đầu vào vào máy</value>
+  </data>
+  <data name="Auto.InputTrayNotIn" xml:space="preserve">
+    <value>tray đầu vào chưa vào máy</value>
+  </data>
+  <data name="Auto.InputTrayNotSeen" xml:space="preserve">
+    <value>Chưa thấy tray đầu vào ở vị trí chờ — đặt tray rồi bấm lại Start 1</value>
+  </data>
+  <data name="Auto.InputTrayNotTaught" xml:space="preserve">
+    <value>tray đầu vào chưa teach</value>
+  </data>
+  <data name="Auto.InvalidStep" xml:space="preserve">
+    <value>bước không hợp lệ: {0}</value>
+  </data>
+  <data name="Auto.KeyNotAuto" xml:space="preserve">
+    <value>chìa không ở vị trí AUTO</value>
+  </data>
+  <data name="Auto.NoAssyTray" xml:space="preserve">
+    <value>không có tray lắp ráp</value>
+  </data>
+  <data name="Auto.NoInputTray" xml:space="preserve">
+    <value>không có tray đầu vào</value>
+  </data>
+  <data name="Auto.NoModel" xml:space="preserve">
+    <value>chưa nạp model</value>
+  </data>
+  <data name="Auto.NoModelLoaded" xml:space="preserve">
+    <value>Chưa nạp model</value>
+  </data>
+  <data name="Auto.NotHomed" xml:space="preserve">
+    <value>chưa về gốc</value>
+  </data>
+  <data name="Auto.NozzleCellWhy" xml:space="preserve">
+    <value>tay #{0} ô {1}: {2}</value>
+  </data>
+  <data name="Auto.NozzleWhy" xml:space="preserve">
+    <value>tay #{0}: {1}</value>
+  </data>
+  <data name="Auto.PausedAtStep" xml:space="preserve">
+    <value>Đã dừng ở bước {0} — bấm START để chạy tiếp</value>
+  </data>
+  <data name="Auto.PickMoveFail" xml:space="preserve">
+    <value>không tới được ô hút ({0},{1})</value>
+  </data>
+  <data name="Auto.PickRetry" xml:space="preserve">
+    <value>tay #{0}, ô ({1},{2}), lần thử {3}/{4}</value>
+  </data>
+  <data name="Auto.PlaceMoveFail" xml:space="preserve">
+    <value>không tới được điểm đặt của tay #{0}</value>
+  </data>
+  <data name="Auto.PlaceStoppedAfterRelease" xml:space="preserve">
+    <value>bước đặt của tay #{0} dừng sau khi đã nhả hút</value>
+  </data>
+  <data name="Auto.RestartRescanNote" xml:space="preserve">
+    <value>chạy lại sẽ quét lại tray lắp ráp và soi lại sản phẩm trước khi đặt</value>
+  </data>
+  <data name="Auto.ReturnMoveFail" xml:space="preserve">
+    <value>không trả được sản phẩm về ô nguồn</value>
+  </data>
+  <data name="Auto.ReturnReleaseFailHalt" xml:space="preserve">
+    <value>không nhả được sản phẩm khi trả về ô nguồn ở tay #{0} — xem đầu hút, bấm RESET rồi chạy lại</value>
+  </data>
+  <data name="Auto.ReturnReleaseFailReason" xml:space="preserve">
+    <value>tay #{0} không nhả được sản phẩm khi trả về ô nguồn</value>
+  </data>
+  <data name="Auto.ReturnZDownFail" xml:space="preserve">
+    <value>không hạ được để trả sản phẩm</value>
+  </data>
+  <data name="Auto.ReturnZUpFail" xml:space="preserve">
+    <value>không nâng lên được sau khi trả sản phẩm</value>
+  </data>
+  <data name="Auto.Running" xml:space="preserve">
+    <value>Đang chạy tự động</value>
+  </data>
+  <data name="Auto.ScanLocateTop" xml:space="preserve">
+    <value>LocateTop (quét trước) ô {0}: {1}</value>
+  </data>
+  <data name="Auto.ScanMoveFail" xml:space="preserve">
+    <value>không tới được vị trí soi ô đích lúc quét trước ({0},{1})</value>
+  </data>
+  <data name="Auto.SolutionNotFound" xml:space="preserve">
+    <value>solution báo không tìm thấy</value>
+  </data>
+  <data name="Auto.SolutionNotLoaded" xml:space="preserve">
+    <value>chưa nạp solution vision</value>
+  </data>
+  <data name="Auto.SourceUnknown" xml:space="preserve">
+    <value>không rõ ô nguồn</value>
+  </data>
+  <data name="Auto.StillHoldingAfterReturn" xml:space="preserve">
+    <value>tay #{0} vẫn báo còn sản phẩm sau khi trả về ô nguồn</value>
+  </data>
+  <data name="Auto.StoppedAtStep" xml:space="preserve">
+    <value>Chu trình dừng ở bước {0}: {1}</value>
+  </data>
+  <data name="Auto.StopWhileWaitingTray" xml:space="preserve">
+    <value>operator bấm STOP khi đang chờ tray</value>
+  </data>
+  <data name="Auto.TopAnchorNotTaught" xml:space="preserve">
+    <value>chưa teach mốc CAM top-down của tray lắp ráp (trang Teaching)</value>
+  </data>
+  <data name="Auto.TrayAssy" xml:space="preserve">
+    <value>tray lắp ráp</value>
+  </data>
+  <data name="Auto.TrayBoth" xml:space="preserve">
+    <value>cả hai tray</value>
+  </data>
+  <data name="Auto.TrayInput" xml:space="preserve">
+    <value>tray đầu vào</value>
+  </data>
+  <data name="Auto.TrayToStandbyFail" xml:space="preserve">
+    <value>không đưa được {0} ra vị trí chờ</value>
+  </data>
+  <data name="Auto.UnexpectedError" xml:space="preserve">
+    <value>lỗi bất thường: {0}</value>
+  </data>
+  <data name="Auto.VisionNotConnected" xml:space="preserve">
+    <value>chưa kết nối vision</value>
+  </data>
+  <data name="Auto.VmHaltHolding" xml:space="preserve">
+    <value>sản phẩm vẫn trên tay; RESET rồi START sẽ chạy lại từ S00 (quét lại, soi lại)</value>
+  </data>
+  <data name="Auto.VmHaltRestart" xml:space="preserve">
+    <value>RESET rồi START sẽ chạy lại từ S00</value>
+  </data>
+  <data name="Auto.WaitAssy" xml:space="preserve">
+    <value>Chờ tray lắp ráp — đặt tray rồi bấm Start 2</value>
+  </data>
+  <data name="Auto.WaitAssyFull" xml:space="preserve">
+    <value>Đầy tray lắp ráp — thay tray rồi bấm Start 2</value>
+  </data>
+  <data name="Auto.WaitInput" xml:space="preserve">
+    <value>Chờ tray đầu vào — đặt tray rồi bấm Start 1</value>
+  </data>
+  <data name="Auto.WaitInputEmpty" xml:space="preserve">
+    <value>Hết tray đầu vào — thay tray rồi bấm Start 1</value>
+  </data>
+  <data name="Auto.ZAlignHeightFail" xml:space="preserve">
+    <value>{0} không tới được cao độ soi CAM bottom-up</value>
+  </data>
+  <data name="Auto.ZDownPickFail" xml:space="preserve">
+    <value>{0} không hạ được xuống cao độ hút</value>
+  </data>
+  <data name="Auto.ZDownPlaceFail" xml:space="preserve">
+    <value>{0} không hạ được xuống cao độ đặt</value>
+  </data>
+  <data name="Auto.ZSafeFail" xml:space="preserve">
+    <value>không nâng được Z lên cao độ an toàn</value>
+  </data>
+  <data name="Auto.ZUpAfterPlaceFail" xml:space="preserve">
+    <value>{0} không nâng lên được sau khi đặt</value>
+  </data>
+  <data name="Auto.ZUpFail" xml:space="preserve">
+    <value>{0} không nâng lên được</value>
+  </data>
+  <data name="Axis.HomeDriverAlarm" xml:space="preserve">
+    <value>driver báo alarm khi đang về gốc, mã 0x{0}</value>
+  </data>
+  <data name="Axis.HomeDriverError" xml:space="preserve">
+    <value>driver báo lỗi khi về gốc, trạng thái {0}</value>
+  </data>
+  <data name="Axis.HomeSendFail" xml:space="preserve">
+    <value>không phát được lệnh về gốc: {0}</value>
+  </data>
+  <data name="Axis.HomeTimeoutOrg" xml:space="preserve">
+    <value>quá {0} ms mà chưa có ORG_CMP</value>
+  </data>
+  <data name="Axis.HwLimitNeg" xml:space="preserve">
+    <value>cữ −</value>
+  </data>
+  <data name="Axis.HwLimitPos" xml:space="preserve">
+    <value>cữ +</value>
+  </data>
+  <data name="Axis.MoveLost" xml:space="preserve">
+    <value>driver không nhận lệnh chạy sau {0} lần gửi lại; đích {1:0.000}{2}, hiện {3:0.000}{2}</value>
+  </data>
+  <data name="Axis.MoveTimeout" xml:space="preserve">
+    <value>quá {0} ms; đích {1:0.000}{2}, hiện {3:0.000}{2}</value>
+  </data>
+  <data name="Axis.NoStatusBits" xml:space="preserve">
+    <value>(không bit nào)</value>
+  </data>
+  <data name="Axis.SendFail" xml:space="preserve">
+    <value>không phát được lệnh: {0}</value>
+  </data>
+  <data name="Axis.SimRemain" xml:space="preserve">
+    <value>còn cách đích {0:0.000}{1}</value>
+  </data>
+  <data name="Axis.SoftLimitOut" xml:space="preserve">
+    <value>đích {0:0.000}{1} ngoài [{2:0.000}, {3:0.000}]</value>
+  </data>
+  <data name="Axis.SoftLimitOutSim" xml:space="preserve">
+    <value>đích {0:0.000}{1} ngoài [{2:0.###}, {3:0.###}]</value>
+  </data>
+  <data name="Axis.TimeoutMs" xml:space="preserve">
+    <value>quá {0} ms</value>
+  </data>
+  <data name="Calib.AlignNoCan" xml:space="preserve">
+    <value>AlignBottom: không thấy con can trên tay #{0}</value>
+  </data>
+  <data name="Calib.AlignNoProduct" xml:space="preserve">
+    <value>AlignBottom: không thấy sản phẩm trên tay #{0}</value>
+  </data>
+  <data name="Calib.AlignVerifyFail" xml:space="preserve">
+    <value>Phép thử vòng xoay tay #{0}: {1}
+{2}</value>
+  </data>
+  <data name="Calib.AlignVerifyNumbers" xml:space="preserve">
+    <value>{0} xoay {1:+0.00;-0.00}° theo encoder, góc sản phẩm đổi {2:+0.00;-0.00}° — chênh {3:0.00}° (ngưỡng {4:0.00}°); sai số dư {5:0.000} mm (ngưỡng {6:0.000}); lệch tâm {7:0.000} mm (tối thiểu {8:0.000}); chụp ở X {9:0.000}, {10} {11:0.000}</value>
+  </data>
+  <data name="Calib.AngleNotFound" xml:space="preserve">
+    <value>góc {0:0.0}° không tìm thấy sản phẩm — mở rộng Angle Range của High Precision Match?</value>
+  </data>
+  <data name="Calib.ARotatedSinceCapture" xml:space="preserve">
+    <value>trục {0} đã xoay sau lúc chụp ({1:0.00}° → {2:0.00}°) — lệnh góc không còn đúng, bấm lại "Trigger AlignBottom"</value>
+  </data>
+  <data name="Calib.AssyAnchorNotTaught" xml:space="preserve">
+    <value>chưa teach mốc CAM top-down của tray lắp ráp (trang Teaching)</value>
+  </data>
+  <data name="Calib.AtCell" xml:space="preserve">
+    <value>ở ô ({0},{1})</value>
+  </data>
+  <data name="Calib.AxisBackToStartAngleFailed" xml:space="preserve">
+    <value>không đưa được trục {0} về góc xuất phát</value>
+  </data>
+  <data name="Calib.AxisBackToStartFailed" xml:space="preserve">
+    <value>không đưa được trục {0} về vị trí xuất phát</value>
+  </data>
+  <data name="Calib.AxisMoveFailed" xml:space="preserve">
+    <value>không chạy được trục {0}</value>
+  </data>
+  <data name="Calib.AxisToZeroFailed" xml:space="preserve">
+    <value>đã nạp đủ điểm nhưng không đưa được trục {0} về 0°</value>
+  </data>
+  <data name="Calib.CalibNotReady" xml:space="preserve">
+    <value>hiệu chuẩn tay #{0} chưa sẵn sàng — {1}</value>
+  </data>
+  <data name="Calib.Cancelled" xml:space="preserve">
+    <value>bị huỷ</value>
+  </data>
+  <data name="Calib.CannotReadAxes" xml:space="preserve">
+    <value>không đọc được vị trí trục X/Y2/{0}</value>
+  </data>
+  <data name="Calib.CannotReadX" xml:space="preserve">
+    <value>không đọc được vị trí trục X</value>
+  </data>
+  <data name="Calib.CellOutsideAssyGrid" xml:space="preserve">
+    <value>ô nằm ngoài lưới tray lắp ráp {0}×{1}</value>
+  </data>
+  <data name="Calib.CellOutsideInputGrid" xml:space="preserve">
+    <value>ô nằm ngoài lưới tray đầu vào {0}×{1}</value>
+  </data>
+  <data name="Calib.ClearPointsFailed" xml:space="preserve">
+    <value>không xoá được điểm cũ trong module hiệu chuẩn — {0}</value>
+  </data>
+  <data name="Calib.DryRunAngles" xml:space="preserve">
+    <value>góc đích {0:0.00}° = mốc góc {2:0.00}° − góc chi tiết {1:0.00}°; góc sản phẩm trên tay {3:0.00}°, {4} lúc chụp {5:0.00}°</value>
+  </data>
+  <data name="Calib.EccTooLarge" xml:space="preserve">
+    <value>Con can lệch tâm {0:0.000} mm, vượt ngưỡng lệch tâm {1:0.000} mm — gắp lại cho ngay ngắn rồi đo lại.</value>
+  </data>
+  <data name="Calib.GoToAlignPosFailed" xml:space="preserve">
+    <value>không tới được vị trí soi tay #{0}</value>
+  </data>
+  <data name="Calib.GoToCellCamFailed" xml:space="preserve">
+    <value>không tới được vị trí soi ô</value>
+  </data>
+  <data name="Calib.GoToCellCamFailedAt" xml:space="preserve">
+    <value>không tới được vị trí soi ô ({0},{1})</value>
+  </data>
+  <data name="Calib.GoToJigPickFailed" xml:space="preserve">
+    <value>không tới được vị trí gắp trên cơ cấu kẹp</value>
+  </data>
+  <data name="Calib.GoToPickCellFailed" xml:space="preserve">
+    <value>không tới được ô hút</value>
+  </data>
+  <data name="Calib.GoToTargetCamFailed" xml:space="preserve">
+    <value>không tới được vị trí soi chi tiết đích</value>
+  </data>
+  <data name="Calib.GuardOutsideSoftLimit" xml:space="preserve">
+    <value>{0} — và lệnh nằm ngoài soft limit, không cất</value>
+  </data>
+  <data name="Calib.HandEyeFail" xml:space="preserve">
+    <value>Xác định hand-eye: {0}</value>
+  </data>
+  <data name="Calib.HandEyeNotRecorded" xml:space="preserve">
+    <value>chưa ghi hand-eye cho tay #{0} — làm bước xác định hand-eye (nút 1 → 5) trước</value>
+  </data>
+  <data name="Calib.HeAtPick" xml:space="preserve">
+    <value>1. Tay #{0} ở vị trí gắp trên cơ cấu kẹp: X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°</value>
+  </data>
+  <data name="Calib.HeAtTarget" xml:space="preserve">
+    <value>9. Tay #{0} ở điểm đích vừa tính: X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°; {6} dừng ở điểm giảm tốc {7:0.000} (chưa chạm).</value>
+  </data>
+  <data name="Calib.HeAtTargetHint" xml:space="preserve">
+    <value> Nhìn con can có nằm đúng trên chi tiết không, xong bấm "Trả con can về cơ cấu kẹp".</value>
+  </data>
+  <data name="Calib.HeLocated" xml:space="preserve">
+    <value>3. LocateTop {0} ảnh ở vị trí soi đã dạy: chi tiết đích tại ({1:0.000}, {2:0.000}), góc {3:0.00}°</value>
+  </data>
+  <data name="Calib.HeLocatedHere" xml:space="preserve">
+    <value>6. LocateTop {0} (trục X {1:0.000}, {2} {3:0.000}): chi tiết đích tại ({4:0.000}, {5:0.000}), góc {6:0.00}°</value>
+  </data>
+  <data name="Calib.HeNotLocated" xml:space="preserve">
+    <value>chưa soi chi tiết đích — bấm "3 · Soi chi tiết đích" trước</value>
+  </data>
+  <data name="Calib.HeNotPicked" xml:space="preserve">
+    <value>tay hút #{0} chưa gắp con can trên cơ cấu kẹp — bấm "2 · Gắp con can mẫu" trước</value>
+  </data>
+  <data name="Calib.HeNotStarted" xml:space="preserve">
+    <value>chưa bắt đầu — bấm "1 · Tới vị trí gắp trên cơ cấu kẹp" trước</value>
+  </data>
+  <data name="Calib.HeOtherNozzle" xml:space="preserve">
+    <value>đang dở bước xác định hand-eye của tay #{0} — chọn lại tay #{0}, hoặc bấm nút 1 để làm lại cho tay #{1}</value>
+  </data>
+  <data name="Calib.HePicked" xml:space="preserve">
+    <value>2. Tay #{0} đã gắp con can trên cơ cấu kẹp: encoder lúc gắp X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°; Z {6:0.000}</value>
+  </data>
+  <data name="Calib.HePickMissed" xml:space="preserve">
+    <value>gắp hụt — cảm biến chân không không lên. Xem con can trên cơ cấu kẹp, và xem cơ cấu có giữ con can ở đúng cao độ đặt của tray lắp ráp không</value>
+  </data>
+  <data name="Calib.HeTarget" xml:space="preserve">
+    <value>8. Điểm đích tính từ pose nút 6: X {0:0.000}, {1} {2:0.000}, {3} {4:0.00}°; góc bù {5:+0.00;-0.00}°.</value>
+  </data>
+  <data name="Calib.HeTargetHint" xml:space="preserve">
+    <value> Chạy lại ở chỗ Jog khác: tản ra là hiệu chuẩn top-down, còn lệch ĐỀU thì phép thử này không thấy — đặt hàng thật rồi nhìn xuống.</value>
+  </data>
+  <data name="Calib.InPlace" xml:space="preserve">
+    <value>tại chỗ</value>
+  </data>
+  <data name="Calib.LocateNoMark" xml:space="preserve">
+    <value>LocateTop: không thấy dấu chuẩn</value>
+  </data>
+  <data name="Calib.LocateNoTargetInCell" xml:space="preserve">
+    <value>LocateTop: không thấy chi tiết đích trong ô</value>
+  </data>
+  <data name="Calib.ModelNotLoadedNote" xml:space="preserve">
+    <value>model chưa nạp từ đĩa (mô phỏng) — bản ghi chỉ nằm trong bộ nhớ</value>
+  </data>
+  <data name="Calib.MoveToTargetFailed" xml:space="preserve">
+    <value>không chạy được X/{0}/{1} tới điểm đích</value>
+  </data>
+  <data name="Calib.MoveXToAlignPosFailed" xml:space="preserve">
+    <value>không chạy được X về vị trí soi</value>
+  </data>
+  <data name="Calib.MoveXToFailed" xml:space="preserve">
+    <value>không chạy được X tới {0:0.000}</value>
+  </data>
+  <data name="Calib.MoveXYToCmdFailed" xml:space="preserve">
+    <value>không chạy được X/{0} tới lệnh</value>
+  </data>
+  <data name="Calib.NeedCommand" xml:space="preserve">
+    <value>chưa có lệnh của tay #{0} — bấm "Trigger AlignBottom" trước</value>
+  </data>
+  <data name="Calib.NeedLocateHere" xml:space="preserve">
+    <value>chưa soi chi tiết cho tay #{0} — bấm "6 · Soi chi tiết" trước</value>
+  </data>
+  <data name="Calib.NeedTarget" xml:space="preserve">
+    <value>chưa tính điểm đích từ lần soi mới nhất — bấm "8 · Trigger AlignBottom, tính điểm đích" trước</value>
+  </data>
+  <data name="Calib.NeedThreeAngles" xml:space="preserve">
+    <value>cần tối thiểu 3 góc xoay (VisionMaster đòi các bước xoay bằng nhau)</value>
+  </data>
+  <data name="Calib.NeedTopPose" xml:space="preserve">
+    <value>chưa có pose ô đích — bấm "Trigger LocateTop" trước</value>
+  </data>
+  <data name="Calib.NoAxis" xml:space="preserve">
+    <value>không có trục {0}</value>
+  </data>
+  <data name="Calib.NoModel" xml:space="preserve">
+    <value>chưa nạp model</value>
+  </data>
+  <data name="Calib.NoObjectSeen" xml:space="preserve">
+    <value>không thấy vật cần soi</value>
+  </data>
+  <data name="Calib.NoProductSeen" xml:space="preserve">
+    <value>không thấy sản phẩm</value>
+  </data>
+  <data name="Calib.NoTeachTarget" xml:space="preserve">
+    <value> — chưa có điểm teach hand-eye tay #{0} (bản ghi đo trước 30/09): chạy lại bước xác định hand-eye để có ΔX/ΔY/Δθ</value>
+  </data>
+  <data name="Calib.NoZSlowTaught" xml:space="preserve">
+    <value>chưa teach điểm giảm tốc của {0} cho tray lắp ráp (trang Teaching) — không có cao độ nào để dừng lơ lửng trên chi tiết</value>
+  </data>
+  <data name="Calib.NozzleBusyPick" xml:space="preserve">
+    <value>tay hút #{0} đang còn sản phẩm — nhả ra trước khi hút tiếp</value>
+  </data>
+  <data name="Calib.NozzleBusyRelease" xml:space="preserve">
+    <value>tay hút #{0} đang còn sản phẩm — nhả ra rồi hãy đo</value>
+  </data>
+  <data name="Calib.NozzleEmptyPickFirst" xml:space="preserve">
+    <value>tay hút #{0} không cầm con can — hút một con can lên tay trước</value>
+  </data>
+  <data name="Calib.NozzleHoldsNothing" xml:space="preserve">
+    <value>tay hút #{0} không cầm gì cả</value>
+  </data>
+  <data name="Calib.NozzleLostCan" xml:space="preserve">
+    <value>tay hút #{0} không còn cầm con can — làm lại từ nút 1</value>
+  </data>
+  <data name="Calib.PickMissed" xml:space="preserve">
+    <value>hút hụt — cảm biến chân không không lên (thử lại hoặc chỉnh cao độ hút)</value>
+  </data>
+  <data name="Calib.ProgressAngle" xml:space="preserve">
+    <value>Góc {0}/{1}: {2:0.0}°</value>
+  </data>
+  <data name="Calib.ProgressShift" xml:space="preserve">
+    <value>Tịnh tiến {0}/{1}: X = {2:0.000}</value>
+  </data>
+  <data name="Calib.Returned" xml:space="preserve">
+    <value>Đã trả con can về cơ cấu kẹp: tay #{0}, X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°, Z {6:0.000}</value>
+  </data>
+  <data name="Calib.RotateAxisFailed" xml:space="preserve">
+    <value>không xoay được trục {0}</value>
+  </data>
+  <data name="Calib.RotateAxisToCmdFailed" xml:space="preserve">
+    <value>không xoay được trục {0} tới lệnh</value>
+  </data>
+  <data name="Calib.RotateToFailed" xml:space="preserve">
+    <value>không xoay được tới {0:0.0}°</value>
+  </data>
+  <data name="Calib.RotateToFirstAngleFailed" xml:space="preserve">
+    <value>không xoay được trục {0} về góc đầu</value>
+  </data>
+  <data name="Calib.RotateToPickAngleFailed" xml:space="preserve">
+    <value>không xoay được {0} về góc lúc gắp ({1:0.00}°)</value>
+  </data>
+  <data name="Calib.SavedToModel" xml:space="preserve">
+    <value>đã lưu bản ghi hiệu chuẩn vào model {0}</value>
+  </data>
+  <data name="Calib.SaveModelFailed" xml:space="preserve">
+    <value>LƯU MODEL LỖI — xem alarm; bấm Lưu model ở trang Teaching trước khi tắt app</value>
+  </data>
+  <data name="Calib.ShiftPointNotFound" xml:space="preserve">
+    <value>điểm tịnh tiến X = {0:0.000} không tìm thấy sản phẩm</value>
+  </data>
+  <data name="Calib.ShotPrefix" xml:space="preserve">
+    <value>{0}, ảnh {1}/{2}: </value>
+  </data>
+  <data name="Calib.StepAligned" xml:space="preserve">
+    <value>5. AlignBottom tay #{0}: sản phẩm ({1:0.000}, {2:0.000}) góc {3:0.00}° → lệnh X {4:0.000}, {5} {6:0.000}, A {7:0.00}° (góc bù {8:0.00}°, lệch tâm {9:0.000} mm, đích {10:0.000}/{11:0.000})</value>
+  </data>
+  <data name="Calib.StepAtAlign" xml:space="preserve">
+    <value>{4}. Tay #{0} tới vị trí soi CAM bottom-up: X {1:0.000}, {2} {3:0.000}</value>
+  </data>
+  <data name="Calib.StepAtCommand" xml:space="preserve">
+    <value>6. Tay #{0} đã tới điểm đặt, Z vẫn ở cao độ an toàn: X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°</value>
+  </data>
+  <data name="Calib.StepCamAtCell" xml:space="preserve">
+    <value>1. CAM top-down tới ô ({0},{1}): X {2:0.000}, {3} {4:0.000}</value>
+  </data>
+  <data name="Calib.StepLocated" xml:space="preserve">
+    <value>2. LocateTop ô ({0},{1}): TopX_mm {2:0.000}, TopY_mm {3:0.000}, TopA_deg {4:0.00} — đã cất làm ô đích</value>
+  </data>
+  <data name="Calib.StepPicked" xml:space="preserve">
+    <value>3. Tay #{0} đã hút ô ({1},{2}) của tray đầu vào: X {3:0.000}, {4} {5:0.000}, Z {6:0.000}</value>
+  </data>
+  <data name="Calib.StepTooSmall" xml:space="preserve">
+    <value>quãng đường thử quá nhỏ — nhiễu đo sẽ lớn hơn thứ cần đo</value>
+  </data>
+  <data name="Calib.StillHolding" xml:space="preserve">
+    <value>vẫn báo còn con can sau khi thổi — xem đầu hút rồi bấm lại</value>
+  </data>
+  <data name="Calib.TestAngleTooSmall" xml:space="preserve">
+    <value>góc thử quá nhỏ — nhiễu đo sẽ lớn hơn thứ cần đo</value>
+  </data>
+  <data name="Calib.TopDownVerifyFail" xml:space="preserve">
+    <value>Kiểm tra top-down: {0}</value>
+  </data>
+  <data name="Calib.UnexpectedError" xml:space="preserve">
+    <value>lỗi bất thường: {0}</value>
+  </data>
+  <data name="Calib.VsPick" xml:space="preserve">
+    <value> Lệch so với chỗ đã gắp: X {0:+0.000;-0.000}, {1} {2:+0.000;-0.000} mm.</value>
+  </data>
+  <data name="Calib.VsStep3" xml:space="preserve">
+    <value> — lệch so với bước 3: X {0:+0.000;-0.000}, Y {1:+0.000;-0.000} mm, góc {2:+0.00;-0.00}°</value>
+  </data>
+  <data name="Calib.VsTeachTarget" xml:space="preserve">
+    <value> — so với điểm teach hand-eye tay #{0}: ΔX {1:+0.000;-0.000}, ΔY {2:+0.000;-0.000} mm, Δθ {3:+0.00;-0.00}°</value>
+  </data>
+  <data name="Calib.XNotAtAlignPos4" xml:space="preserve">
+    <value>trục X đang ở {0:0.000}, không phải vị trí soi CAM dưới của tay #{1} ({2:0.000}) — bấm "4 · Tới vị trí soi CAM dưới" rồi đừng jog nữa</value>
+  </data>
+  <data name="Calib.XNotAtAlignPos7" xml:space="preserve">
+    <value>trục X đang ở {0:0.000}, không phải vị trí soi CAM dưới của tay #{1} ({2:0.000}) — bấm "7 · Tới vị trí soi CAM dưới" trước</value>
+  </data>
+  <data name="Calib.ZAtSafe" xml:space="preserve">
+    <value>{0} ở Z an toàn: {1:0.000}</value>
+  </data>
+  <data name="Calib.ZCaptureFail" xml:space="preserve">
+    <value>{0} không tới được cao độ soi CAM bottom-up</value>
+  </data>
+  <data name="Calib.ZDownAssyPlaceFailed" xml:space="preserve">
+    <value>{0} không hạ được xuống cao độ đặt của tray lắp ráp</value>
+  </data>
+  <data name="Calib.ZDownPickFailed" xml:space="preserve">
+    <value>{0} không hạ được xuống cao độ hút</value>
+  </data>
+  <data name="Calib.ZDownPlaceFailed" xml:space="preserve">
+    <value>{0} không hạ được xuống cao độ đặt</value>
+  </data>
+  <data name="Calib.ZSafeFailed" xml:space="preserve">
+    <value>không nâng được Z lên cao độ an toàn</value>
+  </data>
+  <data name="Calib.ZSafeNotReached" xml:space="preserve">
+    <value>{0} không tới được Z an toàn</value>
+  </data>
+  <data name="Calib.ZToSlowFailed" xml:space="preserve">
+    <value>{0} không hạ được tới điểm giảm tốc</value>
+  </data>
+  <data name="Calib.ZUpAfterReturnFailed" xml:space="preserve">
+    <value>{0} không nâng lên được sau khi trả</value>
+  </data>
+  <data name="Calib.ZUpFailed" xml:space="preserve">
+    <value>{0} không nâng lên được</value>
+  </data>
+  <data name="Comm.FasReturned" xml:space="preserve">
+    <value>{0} trả về {1}</value>
+  </data>
+  <data name="Common.Total" xml:space="preserve">
+    <value>Tổng</value>
+  </data>
+  <data name="Data.CopyModelFailed" xml:space="preserve">
+    <value>Sao chép model lỗi: {0}</value>
+  </data>
+  <data name="Data.DeleteModelFailed" xml:space="preserve">
+    <value>Xoá model lỗi: {0}</value>
+  </data>
+  <data name="Data.JigCamNotTaught" xml:space="preserve">
+    <value>chưa teach vị trí soi chi tiết đích trên cơ cấu kẹp (trang Teaching, card Cơ cấu kẹp)</value>
+  </data>
+  <data name="Data.JigPickNotTaught" xml:space="preserve">
+    <value>chưa teach vị trí gắp của tay #{0} trên cơ cấu kẹp (trang Teaching, card Cơ cấu kẹp)</value>
+  </data>
+  <data name="Data.ModelNotFound" xml:space="preserve">
+    <value>Không tìm thấy {0}</value>
+  </data>
+  <data name="Data.SaveSystemFailed" xml:space="preserve">
+    <value>Lưu system.json lỗi: {0}</value>
+  </data>
+  <data name="Dialog.Confirm" xml:space="preserve">
+    <value>Xác nhận</value>
+  </data>
+  <data name="Dialog.Error" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="Dialog.Info" xml:space="preserve">
+    <value>Thông báo</value>
+  </data>
+  <data name="Dialog.Warn" xml:space="preserve">
+    <value>Cảnh báo</value>
+  </data>
+  <data name="Dry.AlignPosFailed" xml:space="preserve">
+    <value>không tới được vị trí soi của tay #{0}</value>
+  </data>
+  <data name="Dry.NoModel" xml:space="preserve">
+    <value>chưa nạp model</value>
+  </data>
+  <data name="Dry.NozzleHasProduct" xml:space="preserve">
+    <value>tay hút còn sản phẩm — lấy ra rồi hãy chạy rà</value>
+  </data>
+  <data name="Dry.Paused" xml:space="preserve">
+    <value>Chạy rà đã dừng — {0} nhịp, {1} lượt tray, {2:0} phút</value>
+  </data>
+  <data name="Dry.PickCellFailed" xml:space="preserve">
+    <value>không tới được ô hút của tay #{0}</value>
+  </data>
+  <data name="Dry.PlaceCellFailed" xml:space="preserve">
+    <value>không tới được ô đặt của tay #{0}</value>
+  </data>
+  <data name="Dry.Progress" xml:space="preserve">
+    <value>Chạy rà — lượt {0}, {1} nhịp, {2} lượt quét, {3:0} phút</value>
+  </data>
+  <data name="Dry.ScanCellFailed" xml:space="preserve">
+    <value>không tới được mốc soi ô ({0},{1}) của tray lắp ráp</value>
+  </data>
+  <data name="Dry.Stopped" xml:space="preserve">
+    <value>Chạy rà dừng: {0}</value>
+  </data>
+  <data name="Dry.TraysNotTaught" xml:space="preserve">
+    <value>chưa teach đủ hai tray — chạy rà đi theo đúng lưới đã teach</value>
+  </data>
+  <data name="Dry.ZPickDownFailed" xml:space="preserve">
+    <value>{0} không hạ được xuống cao độ hút</value>
+  </data>
+  <data name="Dry.ZPlaceDownFailed" xml:space="preserve">
+    <value>{0} không hạ được xuống cao độ đặt</value>
+  </data>
+  <data name="Dry.ZSafeFailed" xml:space="preserve">
+    <value>không nâng được Z lên cao độ an toàn</value>
+  </data>
+  <data name="Dry.ZUpFailed" xml:space="preserve">
+    <value>{0} không nâng lên được</value>
+  </data>
+  <data name="Io.DiAirOk" xml:space="preserve">
+    <value>Áp suất khí OK (NC)</value>
+  </data>
+  <data name="Io.DiBtnArmA1" xml:space="preserve">
+    <value>Cặp A — nút Arm #1 (OR)</value>
+  </data>
+  <data name="Io.DiBtnArmA2" xml:space="preserve">
+    <value>Cặp A — nút Arm #2 (OR)</value>
+  </data>
+  <data name="Io.DiBtnBuzzerStop" xml:space="preserve">
+    <value>Nút tắt còi</value>
+  </data>
+  <data name="Io.DiBtnGoB1" xml:space="preserve">
+    <value>Cụm B — Start 1 (tray đầu vào)</value>
+  </data>
+  <data name="Io.DiBtnGoB2" xml:space="preserve">
+    <value>Cụm B — Start 2 (tray lắp ráp)</value>
+  </data>
+  <data name="Io.DiBtnStop" xml:space="preserve">
+    <value>Nút STOP</value>
+  </data>
+  <data name="Io.DiEmgOk" xml:space="preserve">
+    <value>EMG OK (NC)</value>
+  </data>
+  <data name="Io.DiLightCurtainOk" xml:space="preserve">
+    <value>Rèm sáng OK (NC)</value>
+  </data>
+  <data name="Io.DiTrayAssyPresent" xml:space="preserve">
+    <value>Có tray lắp ráp</value>
+  </data>
+  <data name="Io.DiTrayInPresent" xml:space="preserve">
+    <value>Có tray đầu vào</value>
+  </data>
+  <data name="Io.DiVacuum1" xml:space="preserve">
+    <value>Chân không #1</value>
+  </data>
+  <data name="Io.DiVacuum2" xml:space="preserve">
+    <value>Chân không #2</value>
+  </data>
+  <data name="Io.DoBlow1" xml:space="preserve">
+    <value>Van thổi #1</value>
+  </data>
+  <data name="Io.DoBlow2" xml:space="preserve">
+    <value>Van thổi #2</value>
+  </data>
+  <data name="Io.DoBrakeReleaseZ1" xml:space="preserve">
+    <value>Nhả phanh Z1</value>
+  </data>
+  <data name="Io.DoBrakeReleaseZ2" xml:space="preserve">
+    <value>Nhả phanh Z2</value>
+  </data>
+  <data name="Io.DoBuzzer" xml:space="preserve">
+    <value>Còi</value>
+  </data>
+  <data name="Io.DoLampCam1" xml:space="preserve">
+    <value>Đèn CAM1</value>
+  </data>
+  <data name="Io.DoLampCam2" xml:space="preserve">
+    <value>Đèn CAM2</value>
+  </data>
+  <data name="Io.DoLampGreen" xml:space="preserve">
+    <value>Đèn xanh</value>
+  </data>
+  <data name="Io.DoLampRed" xml:space="preserve">
+    <value>Đèn đỏ</value>
+  </data>
+  <data name="Io.DoLampResetBtn" xml:space="preserve">
+    <value>Đèn nút STOP</value>
+  </data>
+  <data name="Io.DoLampStartBtn" xml:space="preserve">
+    <value>Đèn nút START Cụm A</value>
+  </data>
+  <data name="Io.DoLampStartBtnB" xml:space="preserve">
+    <value>Đèn nút Start 1 (tray đầu vào)</value>
+  </data>
+  <data name="Io.DoLampStartBtnB2" xml:space="preserve">
+    <value>Đèn nút Start 2 (tray lắp ráp)</value>
+  </data>
+  <data name="Io.DoLampYellow" xml:space="preserve">
+    <value>Đèn vàng</value>
+  </data>
+  <data name="Io.DoVacuum1" xml:space="preserve">
+    <value>Van hút #1</value>
+  </data>
+  <data name="Io.DoVacuum2" xml:space="preserve">
+    <value>Van hút #2</value>
+  </data>
+  <data name="Io.Spare" xml:space="preserve">
+    <value>(trống)</value>
+  </data>
+  <data name="Main.Aligned" xml:space="preserve">
+    <value>đã canh</value>
+  </data>
+  <data name="Main.AssyTray" xml:space="preserve">
+    <value>TRAY LẮP RÁP</value>
+  </data>
+  <data name="Main.CamTool1" xml:space="preserve">
+    <value>CAM BOTTOM-UP — TAY #1</value>
+  </data>
+  <data name="Main.CamTool2" xml:space="preserve">
+    <value>CAM BOTTOM-UP — TAY #2</value>
+  </data>
+  <data name="Main.CamTop" xml:space="preserve">
+    <value>CAM TOP-DOWN — LOCATETOP</value>
+  </data>
+  <data name="Main.CapturedAt" xml:space="preserve">
+    <value>Chụp lúc {0}</value>
+  </data>
+  <data name="Main.CtAvgCurrent" xml:space="preserve">
+    <value>Tack Time</value>
+  </data>
+  <data name="Main.CtAvgCurrentTip" xml:space="preserve">
+    <value>Thời gian TB một sản phẩm của tray đang làm = Cycle Time ÷ số sản phẩm đã đặt OK (tính cả lúc chờ và lúc dừng).</value>
+  </data>
+  <data name="Main.CtAvgPrevious" xml:space="preserve">
+    <value>Pre-Tack Time</value>
+  </data>
+  <data name="Main.CtAvgPreviousTip" xml:space="preserve">
+    <value>Thời gian TB một sản phẩm của tray vừa xong = Pre-Cycle Time ÷ số sản phẩm đặt OK của tray đó.</value>
+  </data>
+  <data name="Main.CtTrayCurrent" xml:space="preserve">
+    <value>Cycle Time</value>
+  </data>
+  <data name="Main.CtTrayCurrentTip" xml:space="preserve">
+    <value>Tray lắp ráp đang làm: giờ thực từ lúc máy chạy với tray này — tính cả lúc chờ tray đầu vào và lúc STOP. Thay tray mới thì đếm lại từ 0.</value>
+  </data>
+  <data name="Main.CtTrayPrevious" xml:space="preserve">
+    <value>Pre-Cycle Time</value>
+  </data>
+  <data name="Main.CtTrayPreviousTip" xml:space="preserve">
+    <value>Tray lắp ráp vừa xong: giờ thực từ lúc bắt đầu tới lúc tray hết ô trống.</value>
+  </data>
+  <data name="Main.DryRunBanner" xml:space="preserve">
+    <value>CHẠY RÀ — KHÔNG SẢN PHẨM</value>
+  </data>
+  <data name="Main.DryRunIdle" xml:space="preserve">
+    <value>Không sản phẩm, chỉ chạy trục — bấm Start 1 để chạy</value>
+  </data>
+  <data name="Main.DryRunProgress" xml:space="preserve">
+    <value>{0} nhịp · {1} lượt quét · {2} lượt tray · {3:0} phút</value>
+  </data>
+  <data name="Main.HideLog" xml:space="preserve">
+    <value>Ẩn Nhật ký — khung ảnh CAM rộng ra</value>
+  </data>
+  <data name="Main.InitTip" xml:space="preserve">
+    <value>Bấm đúp: nâng Z lên cao độ an toàn rồi đưa mọi trục về vị trí chờ, không về gốc lại. Bấm sau khi tạm dừng, chuyển MANUAL và thao tác tay — trước khi chạy tiếp. Hai tray ra vị trí chờ, nạp lại bằng Start 1/Start 2.</value>
+  </data>
+  <data name="Main.InputTray" xml:space="preserve">
+    <value>TRAY ĐẦU VÀO</value>
+  </data>
+  <data name="Main.LastCompensation" xml:space="preserve">
+    <value>Lượng bù gần nhất: {0:+0.0;-0.0}°, {1:0.000} mm</value>
+  </data>
+  <data name="Main.LastCompensationTip" xml:space="preserve">
+    <value>Lượng bù của sản phẩm vừa đặt. Nhìn số này trôi dần là dấu hiệu vision hoặc cơ đang lệch, trước khi nó thành NG.</value>
+  </data>
+  <data name="Main.Log" xml:space="preserve">
+    <value>NHẬT KÝ</value>
+  </data>
+  <data name="Main.Mute" xml:space="preserve">
+    <value>Tắt còi</value>
+  </data>
+  <data name="Main.NgRate" xml:space="preserve">
+    <value>Tỉ lệ NG</value>
+  </data>
+  <data name="Main.NgStreak" xml:space="preserve">
+    <value>NG liên tiếp</value>
+  </data>
+  <data name="Main.NgStreakTip" xml:space="preserve">
+    <value>NG liên tiếp &gt; 0 là dấu hiệu sớm của lệch vision/cơ, trước khi kịp kéo tỉ lệ NG tổng lên đáng kể.</value>
+  </data>
+  <data name="Main.No" xml:space="preserve">
+    <value>không</value>
+  </data>
+  <data name="Main.NoImage" xml:space="preserve">
+    <value>(chưa có ảnh)</value>
+  </data>
+  <data name="Main.NotAligned" xml:space="preserve">
+    <value>chưa canh</value>
+  </data>
+  <data name="Main.NotTriggered" xml:space="preserve">
+    <value>Chưa trigger</value>
+  </data>
+  <data name="Main.NozzleAngle" xml:space="preserve">
+    <value>Góc đo (AlignBottom): {0:0.0}° · {1}</value>
+  </data>
+  <data name="Main.NozzleMismatch" xml:space="preserve">
+    <value>  ⚠ LỆCH</value>
+  </data>
+  <data name="Main.Nozzles" xml:space="preserve">
+    <value>TAY HÚT</value>
+  </data>
+  <data name="Main.NozzleState" xml:space="preserve">
+    <value>phần mềm: {0} · cảm biến: {1}{2}</value>
+  </data>
+  <data name="Main.OnlyNozzle" xml:space="preserve">
+    <value>Chỉ chạy tay #{0} — tay kia không hút (đổi ở trang Setting)</value>
+  </data>
+  <data name="Main.Operation" xml:space="preserve">
+    <value>VẬN HÀNH</value>
+  </data>
+  <data name="Main.Origin" xml:space="preserve">
+    <value>Về gốc (Origin)</value>
+  </data>
+  <data name="Main.Production" xml:space="preserve">
+    <value>SẢN LƯỢNG</value>
+  </data>
+  <data name="Main.ReadoutToggleTip" xml:space="preserve">
+    <value>Bấm để đổi: Lệch/Đích ↔ Teaching + Vision + Bù chung + Bù riêng = Đích</value>
+  </data>
+  <data name="Main.ReloadAssyTray" xml:space="preserve">
+    <value>Nạp lại tray lắp ráp</value>
+  </data>
+  <data name="Main.ReloadInputTray" xml:space="preserve">
+    <value>Nạp lại tray đầu vào</value>
+  </data>
+  <data name="Main.RenderToolbarTip" xml:space="preserve">
+    <value>Hiện/ẩn thanh công cụ của khung ảnh (chọn ảnh, phóng to, thu nhỏ)</value>
+  </data>
+  <data name="Main.RunTip" xml:space="preserve">
+    <value>Đèn báo chạy: xám là máy đang đứng, xanh nhấp nháy là đang chờ nạp tray, xanh lá là đang chạy. Bấm để vào trạng thái Armed (chờ nạp tray) — máy CHỈ thực sự chạy khi bấm nút cứng ở cụm B: Start 1 nạp tray đầu vào, Start 2 nạp tray lắp ráp. Nút này không tự chạy máy.</value>
+  </data>
+  <data name="Main.ShowLog" xml:space="preserve">
+    <value>Hiện Nhật ký</value>
+  </data>
+  <data name="Main.StepPrefix" xml:space="preserve">
+    <value>Bước: </value>
+  </data>
+  <data name="Main.Uph" xml:space="preserve">
+    <value>Năng suất ước tính: {0:0} sp/giờ</value>
+  </data>
+  <data name="Main.UphNone" xml:space="preserve">
+    <value>Năng suất ước tính: —</value>
+  </data>
+  <data name="Main.UphTip" xml:space="preserve">
+    <value>Tính từ Pre-Tack Time (chưa có tray nào xong thì từ Tack Time), không phải sản lượng thực đếm — chỉ để tham khảo nhanh.</value>
+  </data>
+  <data name="Main.WaitTrayBanner" xml:space="preserve">
+    <value>Đặt tray xong: tray đầu vào bấm Start 1, tray lắp ráp bấm Start 2 (cụm B).</value>
+  </data>
+  <data name="Main.Yes" xml:space="preserve">
+    <value>có</value>
+  </data>
+  <data name="Manual.AxisAlarmNoServo" xml:space="preserve">
+    <value>{0} đang Alarm — bấm RST xử lý xong lỗi trước khi bật servo</value>
+  </data>
+  <data name="Manual.BlockedPrefix" xml:space="preserve">
+    <value>Đang bị chặn chuyển động: </value>
+  </data>
+  <data name="Manual.BrakeRelease" xml:space="preserve">
+    <value>Mở phanh</value>
+  </data>
+  <data name="Manual.BrakeReleaseAll" xml:space="preserve">
+    <value>Mở phanh tất cả</value>
+  </data>
+  <data name="Manual.BrakeReleaseAllTip" xml:space="preserve">
+    <value>Nhả phanh Z1 + Z2 (bấm nhanh, không phải giữ khẩn cấp). Chỉ có tác dụng với trục đã ServoOn và không Alarm.</value>
+  </data>
+  <data name="Manual.BrakeReleaseTip" xml:space="preserve">
+    <value>Bấm nhanh: nghi thức bình thường trước khi thao tác (cần đã ServoOn).
+Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả khi Alarm/Servo OFF — GIỮ NGUYÊN dù buông tay, bấm lại nút này để khoá lại.</value>
+  </data>
+  <data name="Manual.CamBtmLampTip" xml:space="preserve">
+    <value>Bật/tắt đèn trigger CAM Bottom-up (DO bit 11, 0x0B)</value>
+  </data>
+  <data name="Manual.CamLamp" xml:space="preserve">
+    <value>Đèn CAM</value>
+  </data>
+  <data name="Manual.CamTopLampTip" xml:space="preserve">
+    <value>Bật/tắt đèn trigger CAM Top-down (DO bit 12, 0x0C)</value>
+  </data>
+  <data name="Manual.ColAxis" xml:space="preserve">
+    <value>Trục</value>
+  </data>
+  <data name="Manual.ColHome" xml:space="preserve">
+    <value>Gốc</value>
+  </data>
+  <data name="Manual.ColInching" xml:space="preserve">
+    <value>Inching (bước)</value>
+  </data>
+  <data name="Manual.ColJog" xml:space="preserve">
+    <value>Jog (giữ)</value>
+  </data>
+  <data name="Manual.ColLimit" xml:space="preserve">
+    <value>Cữ</value>
+  </data>
+  <data name="Manual.ColMoveAbs" xml:space="preserve">
+    <value>Move Abs (đích)</value>
+  </data>
+  <data name="Manual.ColPosition" xml:space="preserve">
+    <value>Vị trí</value>
+  </data>
+  <data name="Manual.ColStop" xml:space="preserve">
+    <value>Dừng</value>
+  </data>
+  <data name="Manual.Diagnostics" xml:space="preserve">
+    <value>CHẨN ĐOÁN PHẦN CỨNG</value>
+  </data>
+  <data name="Manual.DiagnosticsNote" xml:space="preserve">
+    <value>Giá trị thô đọc thẳng từ thiết bị. Dùng để đối chiếu bản đồ I/O với sơ đồ điện, và để xác minh bảng bit trạng thái của driver Fastech: bật servo / chạm cữ / về gốc rồi xem tên bit nào sáng lên.</value>
+  </data>
+  <data name="Manual.EmergencyBrakeLocked" xml:space="preserve">
+    <value>Đã khoá lại phanh khẩn cấp {0}</value>
+  </data>
+  <data name="Manual.EmergencyBrakeReleased" xml:space="preserve">
+    <value>ĐÃ NHẢ PHANH KHẨN CẤP {0} — trục có thể rơi/di chuyển tự do, bấm lại nút "Mở phanh" để khoá lại</value>
+  </data>
+  <data name="Manual.HomeRefused" xml:space="preserve">
+    <value>Không về gốc {0} được: {1}</value>
+  </data>
+  <data name="Manual.IncMinusTip" xml:space="preserve">
+    <value>Inching: lùi một bước từ vị trí hiện tại</value>
+  </data>
+  <data name="Manual.IncPlusTip" xml:space="preserve">
+    <value>Inching: tiến một bước từ vị trí hiện tại</value>
+  </data>
+  <data name="Manual.Inputs" xml:space="preserve">
+    <value>NGÕ VÀO (DI)</value>
+  </data>
+  <data name="Manual.JogMinusTip" xml:space="preserve">
+    <value>Giữ để chạy lùi, nhả là dừng</value>
+  </data>
+  <data name="Manual.JogPlusTip" xml:space="preserve">
+    <value>Giữ để chạy tới, nhả là dừng</value>
+  </data>
+  <data name="Manual.MoveRefused" xml:space="preserve">
+    <value>Không di chuyển {0} được: {1}</value>
+  </data>
+  <data name="Manual.MoveTip" xml:space="preserve">
+    <value>Move Abs: chạy tới toạ độ tuyệt đối vừa nhập</value>
+  </data>
+  <data name="Manual.Origin" xml:space="preserve">
+    <value>Về gốc (Origin)</value>
+  </data>
+  <data name="Manual.OriginTip" xml:space="preserve">
+    <value>Chạy chuỗi về gốc cả máy — giống hệt nút ở trang Main. Bị từ chối khi đang chạy chu trình, mạch an toàn đang chặn, hoặc tay hút còn hàng; lý do hiện ở dòng vàng trên cùng.</value>
+  </data>
+  <data name="Manual.Outputs" xml:space="preserve">
+    <value>NGÕ RA (DO)</value>
+  </data>
+  <data name="Manual.ResetTip" xml:space="preserve">
+    <value>Xoá alarm đã hết nguyên nhân — giống hệt nút RESET ở trang Main.</value>
+  </data>
+  <data name="Manual.RstTip" xml:space="preserve">
+    <value>Reset alarm driver của riêng trục này</value>
+  </data>
+  <data name="Manual.SectionRotate" xml:space="preserve">
+    <value>Xoay tay hút — A1, A2</value>
+  </data>
+  <data name="Manual.ServoOnAll" xml:space="preserve">
+    <value>SVO ON tất cả</value>
+  </data>
+  <data name="Manual.ServoOnAllTip" xml:space="preserve">
+    <value>Bật servo mọi trục chưa ServoOn. Trục đang Alarm sẽ bị bỏ qua — bấm RST trục đó trước.</value>
+  </data>
+  <data name="Manual.ServoOnSkipped" xml:space="preserve">
+    <value>Bỏ qua SVO ON: {0} đang Alarm — bấm RST từng trục trước</value>
+  </data>
+  <data name="Manual.SimAir" xml:space="preserve">
+    <value>Áp suất khí</value>
+  </data>
+  <data name="Manual.SimAlarmTip" xml:space="preserve">
+    <value>Giả lập driver báo alarm</value>
+  </data>
+  <data name="Manual.SimArm" xml:space="preserve">
+    <value>Cặp A — Arm</value>
+  </data>
+  <data name="Manual.SimArmTip" xml:space="preserve">
+    <value>Mô phỏng bấm 1 trong 2 nút Cặp A (OR) — vào Armed</value>
+  </data>
+  <data name="Manual.SimBuzzer" xml:space="preserve">
+    <value>Tắt còi</value>
+  </data>
+  <data name="Manual.SimDisconnect" xml:space="preserve">
+    <value>Ngắt</value>
+  </data>
+  <data name="Manual.SimDisconnectTip" xml:space="preserve">
+    <value>Giả lập mất kết nối</value>
+  </data>
+  <data name="Manual.SimDriverFaults" xml:space="preserve">
+    <value>Lỗi driver giả lập (bấm lại để gỡ)</value>
+  </data>
+  <data name="Manual.SimLightCurtain" xml:space="preserve">
+    <value>Cắt/thông rèm sáng</value>
+  </data>
+  <data name="Manual.SimLightCurtainTip" xml:space="preserve">
+    <value>Rèm bị cắt chặn chuyển động ở MỌI chế độ và phải bấm RESET mới chạy lại được (alarm 1105)</value>
+  </data>
+  <data name="Manual.SimPanel" xml:space="preserve">
+    <value>BẢNG MÔ PHỎNG — NÚT CỨNG, TÍN HIỆU AN TOÀN VÀ LỖI DRIVER</value>
+  </data>
+  <data name="Manual.SimPanelNote" xml:space="preserve">
+    <value>Thay cho panel nút cứng và mạch an toàn thật. Đây là cách chạy được các nhánh EMG, cửa mở và lệch kênh cửa mà không phải rút cáp máy.</value>
+  </data>
+  <data name="Manual.SimStart1" xml:space="preserve">
+    <value>Start 1 (tray vào)</value>
+  </data>
+  <data name="Manual.SimStart1Tip" xml:space="preserve">
+    <value>Mô phỏng bấm Start 1 cụm B — nạp tray đầu vào (lúc Armed thì chạy luôn)</value>
+  </data>
+  <data name="Manual.SimStart2" xml:space="preserve">
+    <value>Start 2 (tray assy)</value>
+  </data>
+  <data name="Manual.SimStart2Tip" xml:space="preserve">
+    <value>Mô phỏng bấm Start 2 cụm B — nạp tray lắp ráp (lúc Armed thì chạy luôn)</value>
+  </data>
+  <data name="Manual.SimStop" xml:space="preserve">
+    <value>Nhấn STOP</value>
+  </data>
+  <data name="Manual.StepSizeTip" xml:space="preserve">
+    <value>Bước nhảy Inching (đơn vị theo trục)</value>
+  </data>
+  <data name="Manual.StopAll" xml:space="preserve">
+    <value>STOP tất cả</value>
+  </data>
+  <data name="Manual.StopAllTip" xml:space="preserve">
+    <value>Dừng tất cả — giống hệt nút STOP trang Main: dừng trục, huỷ về gốc/Init, tạm dừng chu trình đang chạy.</value>
+  </data>
+  <data name="Manual.TargetPosTip" xml:space="preserve">
+    <value>Toạ độ tuyệt đối đích cho Move Abs</value>
+  </data>
+  <data name="Manual.ZSafe" xml:space="preserve">
+    <value>Z ở cao độ an toàn — điều kiện để X, Y1, Y2 được phép chạy</value>
+  </data>
+  <data name="Mc.Armed" xml:space="preserve">
+    <value>Đã sẵn sàng — tray đầu vào bấm Start 1, tray lắp ráp bấm Start 2</value>
+  </data>
+  <data name="Mc.ArmedDry" xml:space="preserve">
+    <value>Đã sẵn sàng — bấm Start 1 để chạy</value>
+  </data>
+  <data name="Mc.AssyTray" xml:space="preserve">
+    <value>tray lắp ráp</value>
+  </data>
+  <data name="Mc.AssyTrayReloadHolding" xml:space="preserve">
+    <value>Đã nạp lại tray lắp ráp — tay hút còn cầm sản phẩm, chạy lại sẽ quét tray mới và soi lại trước khi đặt</value>
+  </data>
+  <data name="Mc.AutoRefused" xml:space="preserve">
+    <value>Không vào được AUTO — {0}</value>
+  </data>
+  <data name="Mc.AutoRunning" xml:space="preserve">
+    <value>Đang chạy tự động</value>
+  </data>
+  <data name="Mc.AxisAlarm" xml:space="preserve">
+    <value>{0} đang có alarm</value>
+  </data>
+  <data name="Mc.AxisBrakeLocked" xml:space="preserve">
+    <value>{0} đang khoá phanh — chờ nhả phanh trước khi thao tác</value>
+  </data>
+  <data name="Mc.AxisDisconnected" xml:space="preserve">
+    <value>{0} mất kết nối</value>
+  </data>
+  <data name="Mc.AxisServoOff" xml:space="preserve">
+    <value>{0} chưa bật servo</value>
+  </data>
+  <data name="Mc.BlockAir" xml:space="preserve">
+    <value>thiếu áp suất khí</value>
+  </data>
+  <data name="Mc.BlockAlarm" xml:space="preserve">
+    <value>còn alarm chưa xoá</value>
+  </data>
+  <data name="Mc.BlockAxisAlarm" xml:space="preserve">
+    <value>có trục báo alarm</value>
+  </data>
+  <data name="Mc.BlockAxisLost" xml:space="preserve">
+    <value>có trục mất kết nối</value>
+  </data>
+  <data name="Mc.BlockCurtain" xml:space="preserve">
+    <value>rèm sáng đang bị cắt</value>
+  </data>
+  <data name="Mc.BlockEmg" xml:space="preserve">
+    <value>EMG đang tác động</value>
+  </data>
+  <data name="Mc.BlockIoLost" xml:space="preserve">
+    <value>mất kết nối card I/O</value>
+  </data>
+  <data name="Mc.BlockNotInit" xml:space="preserve">
+    <value>chưa khởi tạo</value>
+  </data>
+  <data name="Mc.BothNozzles" xml:space="preserve">
+    <value>Chạy cả hai tay hút</value>
+  </data>
+  <data name="Mc.BusyDryRunChange" xml:space="preserve">
+    <value>Đang chạy — dừng máy rồi hãy đổi chế độ chạy rà</value>
+  </data>
+  <data name="Mc.BusyNozzleChange" xml:space="preserve">
+    <value>Đang chạy — dừng máy rồi hãy đổi tay hút</value>
+  </data>
+  <data name="Mc.Cancelled" xml:space="preserve">
+    <value>bị huỷ</value>
+  </data>
+  <data name="Mc.CannotHome" xml:space="preserve">
+    <value>Không về gốc được: {0}</value>
+  </data>
+  <data name="Mc.CannotInit" xml:space="preserve">
+    <value>Không Init được: {0}</value>
+  </data>
+  <data name="Mc.CannotJogAxis" xml:space="preserve">
+    <value>Không jog được {0}: {1}</value>
+  </data>
+  <data name="Mc.CannotMoveAxis" xml:space="preserve">
+    <value>Không chạy được {0}: {1}</value>
+  </data>
+  <data name="Mc.CannotResume" xml:space="preserve">
+    <value>Không chạy tiếp được: {0}</value>
+  </data>
+  <data name="Mc.CannotRun" xml:space="preserve">
+    <value>Không chạy được: {0}</value>
+  </data>
+  <data name="Mc.CannotRunButtonInState" xml:space="preserve">
+    <value>Không chạy được bằng {0} ở trạng thái {1}</value>
+  </data>
+  <data name="Mc.CannotStartInState" xml:space="preserve">
+    <value>Không START được ở trạng thái {0}</value>
+  </data>
+  <data name="Mc.ConfirmedContinue" xml:space="preserve">
+    <value>Đã xác nhận — chạy tiếp</value>
+  </data>
+  <data name="Mc.CreateVarsBusy" xml:space="preserve">
+    <value>đang có chu trình chạy — dừng hẳn rồi mới tạo biến</value>
+  </data>
+  <data name="Mc.CurtainHeld" xml:space="preserve">
+    <value>Rèm sáng bị tác động — đã dừng. Ra khỏi vùng rèm rồi bấm Start 1 hoặc Start 2 để chạy tiếp</value>
+  </data>
+  <data name="Mc.CurtainPressAgain" xml:space="preserve">
+    <value>Rèm sáng đang bị cắt — ra khỏi vùng rèm rồi bấm lại {0}</value>
+  </data>
+  <data name="Mc.CycleBusy" xml:space="preserve">
+    <value>Đang có chu trình chạy dở</value>
+  </data>
+  <data name="Mc.CycleBusyStop" xml:space="preserve">
+    <value>Đang có chu trình chạy dở — bấm STOP để huỷ</value>
+  </data>
+  <data name="Mc.CycleCancelled" xml:space="preserve">
+    <value>Đã huỷ chu trình chạy dở ({0})</value>
+  </data>
+  <data name="Mc.DryRunning" xml:space="preserve">
+    <value>Đang chạy rà — không sản phẩm</value>
+  </data>
+  <data name="Mc.DryRunNozzleHasProduct" xml:space="preserve">
+    <value>Tay hút còn sản phẩm — lấy ra rồi hãy bật chạy rà</value>
+  </data>
+  <data name="Mc.DryRunOff" xml:space="preserve">
+    <value>Đã tắt chạy rà — trở lại chu trình thật</value>
+  </data>
+  <data name="Mc.DryRunOn" xml:space="preserve">
+    <value>Đã bật CHẠY RÀ — không sản phẩm, chỉ chạy trục. Bấm Start 1 (cụm B) để chạy.</value>
+  </data>
+  <data name="Mc.DryRunPressStart1" xml:space="preserve">
+    <value>Chạy rà: bấm Start 1 để chạy</value>
+  </data>
+  <data name="Mc.HasErrorReset" xml:space="preserve">
+    <value>Đang có lỗi — xử lý nguyên nhân rồi bấm RESET</value>
+  </data>
+  <data name="Mc.Held" xml:space="preserve">
+    <value>Tạm dừng — bấm Start 1 hoặc Start 2 để chạy tiếp, chuyển MANUAL để bỏ chu trình</value>
+  </data>
+  <data name="Mc.HeldAbandoned" xml:space="preserve">
+    <value>Đã bỏ chu trình đang tạm dừng ({0}) — bấm Init để về vị trí chờ trước khi chạy tiếp</value>
+  </data>
+  <data name="Mc.HeldReason" xml:space="preserve">
+    <value>máy đang tạm dừng — bấm Start chạy tiếp, hoặc chuyển MANUAL để bỏ chu trình</value>
+  </data>
+  <data name="Mc.HomingCancelled" xml:space="preserve">
+    <value>Đã huỷ chuỗi về gốc</value>
+  </data>
+  <data name="Mc.HomingDone" xml:space="preserve">
+    <value>Về gốc hoàn tất — máy sẵn sàng</value>
+  </data>
+  <data name="Mc.HomingStarted" xml:space="preserve">
+    <value>Bắt đầu chuỗi về gốc</value>
+  </data>
+  <data name="Mc.InitDone" xml:space="preserve">
+    <value>Init xong — máy ở vị trí chờ; nạp tray bằng Start 1/Start 2 để chạy tiếp</value>
+  </data>
+  <data name="Mc.InitNotHomed" xml:space="preserve">
+    <value>Không Init được: chưa về gốc — bấm Về gốc (Origin)</value>
+  </data>
+  <data name="Mc.InitStarted" xml:space="preserve">
+    <value>Init — đưa máy về vị trí chờ</value>
+  </data>
+  <data name="Mc.InitWhileHeld" xml:space="preserve">
+    <value>Đang tạm dừng — chuyển MANUAL để bỏ chu trình rồi mới bấm Init</value>
+  </data>
+  <data name="Mc.InputTray" xml:space="preserve">
+    <value>tray đầu vào</value>
+  </data>
+  <data name="Mc.KeyToAuto" xml:space="preserve">
+    <value>Xoay chìa sang AUTO trước khi bấm START</value>
+  </data>
+  <data name="Mc.MachineInState" xml:space="preserve">
+    <value>Máy đang ở trạng thái {0}</value>
+  </data>
+  <data name="Mc.NoAxis" xml:space="preserve">
+    <value>không có trục {0}</value>
+  </data>
+  <data name="Mc.NotHomedPressOrigin" xml:space="preserve">
+    <value>Chưa về gốc — bấm Về gốc (Origin) trước</value>
+  </data>
+  <data name="Mc.NoVacuumSensor" xml:space="preserve">
+    <value>Chưa đọc được cảm biến chân không nên chưa biết tay hút còn hàng hay không</value>
+  </data>
+  <data name="Mc.NoVacuumSensorWhy" xml:space="preserve">
+    <value>Chưa đọc được cảm biến chân không nên chưa biết tay hút còn hàng hay không ({0})</value>
+  </data>
+  <data name="Mc.NozzleSynced" xml:space="preserve">
+    <value>Đã đồng bộ trạng thái tay hút theo cảm biến</value>
+  </data>
+  <data name="Mc.OnlyNozzle" xml:space="preserve">
+    <value>Chỉ chạy tay #{0} — tay kia không hút</value>
+  </data>
+  <data name="Mc.ReloadSolutionBusy" xml:space="preserve">
+    <value>Đang có chu trình chạy dở — dừng chu trình rồi mới nạp lại solution</value>
+  </data>
+  <data name="Mc.ResetDone" xml:space="preserve">
+    <value>Đã RESET</value>
+  </data>
+  <data name="Mc.ResetStuck" xml:space="preserve">
+    <value>RESET: chưa xoá được — {0}{1}</value>
+  </data>
+  <data name="Mc.ResetStuckMore" xml:space="preserve">
+    <value> (và {0} lỗi khác)</value>
+  </data>
+  <data name="Mc.RunningToCheckpoint" xml:space="preserve">
+    <value>Đang chạy nốt tới điểm dừng an toàn…</value>
+  </data>
+  <data name="Mc.SelectAutoFirst" xml:space="preserve">
+    <value>Chọn chế độ AUTO trước khi bấm nút vào trạng thái sẵn sàng</value>
+  </data>
+  <data name="Mc.SolutionNotLoaded" xml:space="preserve">
+    <value>chưa nạp solution vision</value>
+  </data>
+  <data name="Mc.StoppedInPlace" xml:space="preserve">
+    <value>Dừng ngay tại chỗ — phải nâng Z trước khi chạy tiếp</value>
+  </data>
+  <data name="Mc.SyncOnlyStopped" xml:space="preserve">
+    <value>Chỉ đồng bộ được khi máy đang dừng</value>
+  </data>
+  <data name="Mc.TrayAccepted" xml:space="preserve">
+    <value>Đã nhận {0} ({1})</value>
+  </data>
+  <data name="Mc.TrayAlreadyIn" xml:space="preserve">
+    <value>Đã có {0} trong máy{1}</value>
+  </data>
+  <data name="Mc.TrayWaitCancelled" xml:space="preserve">
+    <value>Đã huỷ chờ tray</value>
+  </data>
+  <data name="Mc.UnackedAlarm" xml:space="preserve">
+    <value>Còn lỗi chưa xác nhận: {0} {1} — bấm RESET trước</value>
+  </data>
+  <data name="Mc.Unexpected" xml:space="preserve">
+    <value>lỗi bất thường: {0}</value>
+  </data>
+  <data name="Mc.UnsafePauseInit" xml:space="preserve">
+    <value>Lần dừng trước là dừng ngay giữa hành trình — bấm Init (cạnh nút Về gốc) để đưa máy về vị trí chờ</value>
+  </data>
+  <data name="Mc.UnsafePauseInitResume" xml:space="preserve">
+    <value>Lần dừng trước là dừng ngay giữa hành trình — bấm Init (cạnh nút Về gốc) để đưa máy về vị trí chờ trước khi chạy tiếp.</value>
+  </data>
+  <data name="Mc.WatchdogSilent" xml:space="preserve">
+    <value>im lặng {0} ms &gt; {1} ms</value>
+  </data>
+  <data name="Mc.WhyErrorPaused" xml:space="preserve">
+    <value>có lỗi trong lúc tạm dừng</value>
+  </data>
+  <data name="Mc.WhyErrorRunning" xml:space="preserve">
+    <value>có lỗi trong lúc chạy</value>
+  </data>
+  <data name="Mc.WhyManualPaused" xml:space="preserve">
+    <value>chuyển MANUAL lúc đang tạm dừng</value>
+  </data>
+  <data name="Mc.WhyOperatorStop" xml:space="preserve">
+    <value>operator bấm STOP</value>
+  </data>
+  <data name="Mc.ZMustHomeFirst" xml:space="preserve">
+    <value>Z1/Z2 phải về gốc xong trước khi {0} về gốc/chạy Move Abs</value>
+  </data>
+  <data name="Mc.ZNotSafe" xml:space="preserve">
+    <value>Z chưa ở cao độ an toàn (Z1={0:0.0}, Z2={1:0.0}, cần ≤ {2:0.0})</value>
+  </data>
+  <data name="Origin.AbortedAtStep" xml:space="preserve">
+    <value>Huỷ về gốc ở bước {0}: {1}</value>
+  </data>
+  <data name="Origin.AutoRunning" xml:space="preserve">
+    <value>máy đang chạy Auto</value>
+  </data>
+  <data name="Origin.AxisAlarm" xml:space="preserve">
+    <value>có trục đang báo alarm — bấm RESET trước</value>
+  </data>
+  <data name="Origin.AxisNotConnected" xml:space="preserve">
+    <value>có trục chưa kết nối</value>
+  </data>
+  <data name="Origin.BrakeNotReleased" xml:space="preserve">
+    <value>Z1/Z2 chưa nhả phanh — vào trang Manual, bật servo Z1/Z2 rồi bấm "Mở phanh" trước khi về gốc</value>
+  </data>
+  <data name="Origin.GateNotHomed" xml:space="preserve">
+    <value>Chốt chặn Z: chưa đủ cả hai trục Z báo về gốc xong</value>
+  </data>
+  <data name="Origin.GateZPos" xml:space="preserve">
+    <value>Chốt chặn Z: Z1={0:0.00}, Z2={1:0.00}, cần ≤ {2:0.00}</value>
+  </data>
+  <data name="Origin.HomeAFailed" xml:space="preserve">
+    <value>A về gốc thất bại</value>
+  </data>
+  <data name="Origin.HomeAXYFailed" xml:space="preserve">
+    <value>A/X/Y về gốc thất bại</value>
+  </data>
+  <data name="Origin.HomeXYFailed" xml:space="preserve">
+    <value>X/Y về gốc thất bại</value>
+  </data>
+  <data name="Origin.HomeZFailed" xml:space="preserve">
+    <value>Z về gốc thất bại</value>
+  </data>
+  <data name="Origin.InitCancelled" xml:space="preserve">
+    <value>Đã huỷ Init</value>
+  </data>
+  <data name="Origin.InitStandbyFailed" xml:space="preserve">
+    <value>Không Init được: có trục không về được vị trí chờ</value>
+  </data>
+  <data name="Origin.InitUnexpected" xml:space="preserve">
+    <value>Init lỗi bất thường: {0}</value>
+  </data>
+  <data name="Origin.InitZFailed" xml:space="preserve">
+    <value>Không Init được: không nâng được Z lên cao độ an toàn</value>
+  </data>
+  <data name="Origin.ServoOnDetail" xml:space="preserve">
+    <value>không bật được servo</value>
+  </data>
+  <data name="Origin.ServoOnFailed" xml:space="preserve">
+    <value>bật servo thất bại</value>
+  </data>
+  <data name="Origin.StandbyFailed" xml:space="preserve">
+    <value>về vị trí chờ thất bại</value>
+  </data>
+  <data name="Origin.ZNotSafe" xml:space="preserve">
+    <value>Z chưa đạt cao độ an toàn</value>
+  </data>
+  <data name="Readout.CallError" xml:space="preserve">
+    <value>lỗi gọi Flow: {0}</value>
+  </data>
+  <data name="Readout.Cell" xml:space="preserve">
+    <value>Ô ({0},{1})</value>
+  </data>
+  <data name="Readout.ColCellOffset" xml:space="preserve">
+    <value>+ Bù riêng</value>
+  </data>
+  <data name="Readout.ColCommon" xml:space="preserve">
+    <value>+ Bù chung</value>
+  </data>
+  <data name="Readout.ColCompTheta" xml:space="preserve">
+    <value>Bù θ (°)</value>
+  </data>
+  <data name="Readout.ColTarget" xml:space="preserve">
+    <value>= Đích</value>
+  </data>
+  <data name="Readout.DeltaNozzle" xml:space="preserve">
+    <value>Δ tay #{0}</value>
+  </data>
+  <data name="Readout.Invalid" xml:space="preserve">
+    <value>kết quả không hợp lệ: {0}</value>
+  </data>
+  <data name="Readout.NoMasterLine" xml:space="preserve">
+    <value>Tay #{0}: chưa có ảnh master — chạy lại bước xác định hand-eye</value>
+  </data>
+  <data name="Readout.NoMasterNote" xml:space="preserve">
+    <value>Tay {0} chưa có ảnh master — chạy lại bước xác định hand-eye</value>
+  </data>
+  <data name="Readout.NoProduct" xml:space="preserve">
+    <value>không thấy sản phẩm</value>
+  </data>
+  <data name="Readout.NoTarget" xml:space="preserve">
+    <value>không thấy chi tiết đích</value>
+  </data>
+  <data name="Readout.NotPlaced" xml:space="preserve">
+    <value>Không đặt: {0}</value>
+  </data>
+  <data name="Readout.OffsetText" xml:space="preserve">
+    <value>Lệch X {0:+0.000;-0.000}, Y {1:+0.000;-0.000} mm, θ {2:0.00}°</value>
+  </data>
+  <data name="Readout.PartText" xml:space="preserve">
+    <value>Chi tiết X {0:0.000}, Y {1:0.000}, θ {2:0.00}°</value>
+  </data>
+  <data name="Readout.RowOffset" xml:space="preserve">
+    <value>Lệch</value>
+  </data>
+  <data name="Readout.RowPart" xml:space="preserve">
+    <value>Chi tiết</value>
+  </data>
+  <data name="Readout.RowTarget" xml:space="preserve">
+    <value>Đích</value>
+  </data>
+  <data name="Readout.SkipCell" xml:space="preserve">
+    <value>Bỏ ô: {0}</value>
+  </data>
+  <data name="Readout.SkipCellInline" xml:space="preserve">
+    <value>bỏ ô: {0}</value>
+  </data>
+  <data name="Readout.TargetText" xml:space="preserve">
+    <value>Đích X {0:0.000}, {1} {2:0.000}, A{3} {4:0.00}° · bù {5:+0.00;-0.00}°</value>
+  </data>
+  <data name="Readout.VsMaster" xml:space="preserve">
+    <value>So với master hand-eye tay #{0}: ΔX {1:+0.000;-0.000}, ΔY {2:+0.000;-0.000} mm, Δθ {3:+0.00;-0.00}°</value>
+  </data>
+  <data name="Setting.ACapTol" xml:space="preserve">
+    <value>A lệch góc lúc chụp (°)</value>
+  </data>
+  <data name="Setting.AccTip" xml:space="preserve">
+    <value>Thời gian tăng tốc (ms) từ 0 tới tốc độ Auto cao. Lệnh chạy chậm hơn dùng cùng gia tốc nên tăng tốc nhanh hơn theo tỉ lệ. Chỉ áp dụng cho X/Y1/Y2/Z1/Z2 (Panasonic). Đặt càng nhỏ càng gắt — hạ dần từng bước, coi chừng driver báo quá dòng.</value>
+  </data>
+  <data name="Setting.AlarmCatalogNotLoaded" xml:space="preserve">
+    <value>alarms.json CHƯA nạp được — alarm sẽ hiện dạng mã trần</value>
+  </data>
+  <data name="Setting.AlignXTol" xml:space="preserve">
+    <value>Dung sai vị trí soi X (mm)</value>
+  </data>
+  <data name="Setting.AssyZDown" xml:space="preserve">
+    <value>Tray lắp ráp — hạ</value>
+  </data>
+  <data name="Setting.AssyZUp" xml:space="preserve">
+    <value>Tray lắp ráp — nâng</value>
+  </data>
+  <data name="Setting.AutoModeHeader" xml:space="preserve">
+    <value>CHẾ ĐỘ CHẠY AUTO</value>
+  </data>
+  <data name="Setting.AutoModeNote" xml:space="preserve">
+    <value>Có hiệu lực ngay, không cần bấm Lưu. Máy đang chạy thì không đổi được — dừng máy trước.</value>
+  </data>
+  <data name="Setting.AutoNozzles" xml:space="preserve">
+    <value>Tay hút chạy Auto</value>
+  </data>
+  <data name="Setting.AxisConfigHeader" xml:space="preserve">
+    <value>CẤU HÌNH 7 TRỤC</value>
+  </data>
+  <data name="Setting.AxisVarsHeader" xml:space="preserve">
+    <value>Biến toàn cục chứa vị trí trục</value>
+  </data>
+  <data name="Setting.AxisVarsNote" xml:space="preserve">
+    <value>App ghi vị trí encoder vào các biến này ngay trước mọi Flow có camera. Để trống một tên: nạp điểm hiệu chuẩn bỏ qua trục đó, còn Auto và các phép kiểm coi là lỗi.</value>
+  </data>
+  <data name="Setting.BlowTime" xml:space="preserve">
+    <value>Thổi khi nhả (ms)</value>
+  </data>
+  <data name="Setting.BlowTimeTip" xml:space="preserve">
+    <value>Thời gian thổi để dứt sản phẩm khỏi đầu hút, chạy sau khi cắt chân không và trước khi nâng Z.</value>
+  </data>
+  <data name="Setting.BothNozzles" xml:space="preserve">
+    <value>Cả 2 tay</value>
+  </data>
+  <data name="Setting.Browse" xml:space="preserve">
+    <value>Duyệt...</value>
+  </data>
+  <data name="Setting.CalibResidualTol" xml:space="preserve">
+    <value>Dung sai kiểm tra (mm)</value>
+  </data>
+  <data name="Setting.Capture" xml:space="preserve">
+    <value>Chụp ảnh</value>
+  </data>
+  <data name="Setting.CheckFlowScript" xml:space="preserve">
+    <value>Kiểm tra Flow + Script</value>
+  </data>
+  <data name="Setting.CheckFlowScriptTip" xml:space="preserve">
+    <value>Hai tầng trong một lượt. Tầng Flow: ba Flow khai đủ output chưa, tên nào gõ sai, kiểu nào App không đọc được thành số. Tầng Script: ba Script (TopAbs trong LocateTop, Cmd trong hai Flow AlignBottom) khai đủ dòng chưa, và quan trọng nhất là dòng Input nào còn BỎ TRỐNG ô Subscribe — Script vẫn biên dịch, số vào luôn bằng 0, không có lỗi nào hiện ra.</value>
+  </data>
+  <data name="Setting.Checking" xml:space="preserve">
+    <value>Đang kiểm tra…</value>
+  </data>
+  <data name="Setting.CheckingBeforeCreate" xml:space="preserve">
+    <value>Đang kiểm tra trước khi tạo…</value>
+  </data>
+  <data name="Setting.CheckVars" xml:space="preserve">
+    <value>Kiểm tra biến</value>
+  </data>
+  <data name="Setting.CheckVarsTip" xml:space="preserve">
+    <value>Đối chiếu solution với 13 biến toàn cục các Flow cần: bốn biến trục, RunId, IsTriggerLocate, HasTarget, CellX_mm / CellY_mm / CellA_deg, HandEyeDx_mm / HandEyeDy_mm, AlignSign. Chỉ đọc, không sửa gì.</value>
+  </data>
+  <data name="Setting.ColAutoHigh" xml:space="preserve">
+    <value>Auto cao</value>
+  </data>
+  <data name="Setting.ColAutoLow" xml:space="preserve">
+    <value>Auto thấp</value>
+  </data>
+  <data name="Setting.ColAutoMid" xml:space="preserve">
+    <value>Auto vừa</value>
+  </data>
+  <data name="Setting.ColAxis" xml:space="preserve">
+    <value>Trục</value>
+  </data>
+  <data name="Setting.ColHomeOffset" xml:space="preserve">
+    <value>Offset gốc</value>
+  </data>
+  <data name="Setting.ColJogFast" xml:space="preserve">
+    <value>Jog nhanh</value>
+  </data>
+  <data name="Setting.ColJogSlow" xml:space="preserve">
+    <value>Jog chậm</value>
+  </data>
+  <data name="Setting.ColLevel" xml:space="preserve">
+    <value>Mức</value>
+  </data>
+  <data name="Setting.ColMessage" xml:space="preserve">
+    <value>Nội dung</value>
+  </data>
+  <data name="Setting.ColSource" xml:space="preserve">
+    <value>Nguồn</value>
+  </data>
+  <data name="Setting.ColStandby" xml:space="preserve">
+    <value>Vị trí chờ</value>
+  </data>
+  <data name="Setting.ColTime" xml:space="preserve">
+    <value>Giờ</value>
+  </data>
+  <data name="Setting.ControlTick" xml:space="preserve">
+    <value>Chu kỳ vòng điều khiển (ms)</value>
+  </data>
+  <data name="Setting.CreateVars" xml:space="preserve">
+    <value>Tạo biến còn thiếu</value>
+  </data>
+  <data name="Setting.CreateVarsCancelled" xml:space="preserve">
+    <value>Đã huỷ — chưa tạo biến nào.</value>
+  </data>
+  <data name="Setting.CreateVarsConfirm" xml:space="preserve">
+    <value>Sẽ tạo {0} biến toàn cục còn thiếu trong solution đang nạp rồi LƯU solution:</value>
+  </data>
+  <data name="Setting.CreateVarsConfirmTail" xml:space="preserve">
+    <value>Biến đã có không bị đổi giá trị hay kiểu. Nên làm trên bản sao .solw trước. Tiếp tục?</value>
+  </data>
+  <data name="Setting.CreateVarsTip" xml:space="preserve">
+    <value>Tạo qua SDK những biến CÒN THIẾU rồi lưu solution. Không đổi giá trị hay kiểu của biến đã có.</value>
+  </data>
+  <data name="Setting.CreateVarsTitle" xml:space="preserve">
+    <value>Tạo biến toàn cục</value>
+  </data>
+  <data name="Setting.CreatingVars" xml:space="preserve">
+    <value>Đang tạo {0} biến và lưu solution…</value>
+  </data>
+  <data name="Setting.DataFolderPrefix" xml:space="preserve">
+    <value>Thư mục dữ liệu: </value>
+  </data>
+  <data name="Setting.DecTip" xml:space="preserve">
+    <value>Thời gian giảm tốc (ms) từ tốc độ Auto cao về 0. Lệnh chạy chậm hơn dùng cùng gia tốc. Chỉ áp dụng cho X/Y1/Y2/Z1/Z2 (Panasonic).</value>
+  </data>
+  <data name="Setting.DelayHeader" xml:space="preserve">
+    <value>THỜI GIAN CHỜ</value>
+  </data>
+  <data name="Setting.DryRunLabel" xml:space="preserve">
+    <value>Chạy rà (không sản phẩm)</value>
+  </data>
+  <data name="Setting.DryRunOff" xml:space="preserve">
+    <value>Chạy rà: TẮT</value>
+  </data>
+  <data name="Setting.DryRunOn" xml:space="preserve">
+    <value>CHẠY RÀ: BẬT</value>
+  </data>
+  <data name="Setting.DryRunTip" xml:space="preserve">
+    <value>Chạy rà: máy chạy liên tục KHÔNG SẢN PHẨM để rà cơ khí — chỉ chạy trục X, Y, Z, A theo đúng quỹ đạo chu trình thật, không đụng van hút, van thổi hay camera. Nút này chỉ chọn chế độ; bấm Start 1 ở cụm B mới chạy. Không đổi được trong lúc máy đang chạy.</value>
+  </data>
+  <data name="Setting.Error" xml:space="preserve">
+    <value>LỖI: {0}</value>
+  </data>
+  <data name="Setting.FlowNames" xml:space="preserve">
+    <value>Tên Flow (Procedure)</value>
+  </data>
+  <data name="Setting.FlowNamesNote" xml:space="preserve">
+    <value>Mỗi Flow vừa soi vừa nạp điểm hiệu chuẩn — App ghi biến IsTriggerLocate = 1 khi soi, 0 khi hiệu chuẩn; Flow rẽ nhánh theo biến đó.</value>
+  </data>
+  <data name="Setting.FlowsPerNozzle" xml:space="preserve">
+    <value>Flow theo từng tay hút</value>
+  </data>
+  <data name="Setting.GlobalVarModule" xml:space="preserve">
+    <value>Module Global Variable (trống = tự dò)</value>
+  </data>
+  <data name="Setting.GvAxisA1" xml:space="preserve">
+    <value>Biến trục A1 (độ)</value>
+  </data>
+  <data name="Setting.GvAxisA2" xml:space="preserve">
+    <value>Biến trục A2 (độ)</value>
+  </data>
+  <data name="Setting.GvAxisX" xml:space="preserve">
+    <value>Biến trục X (mm)</value>
+  </data>
+  <data name="Setting.GvAxisY2" xml:space="preserve">
+    <value>Biến trục Y2 (mm)</value>
+  </data>
+  <data name="Setting.HasLightCurtain" xml:space="preserve">
+    <value>Có rèm sáng (DI13)</value>
+  </data>
+  <data name="Setting.HasLightCurtainTip" xml:space="preserve">
+    <value>Bật: rèm sáng bị cắt thì dừng mọi trục ngay. Đang chạy Auto thì máy TẠM DỪNG, ra khỏi vùng rèm rồi bấm Start 1 hoặc Start 2 để chạy tiếp. Rèm còn bị cắt thì không trục nào chạy được. Kiểm tra DI13 sáng ở trang Manual (rèm thông) trước khi bật.</value>
+  </data>
+  <data name="Setting.HomeRotateSequential" xml:space="preserve">
+    <value>Về gốc A1/A2 tuần tự</value>
+  </data>
+  <data name="Setting.InputZDown" xml:space="preserve">
+    <value>Tray đầu vào — hạ</value>
+  </data>
+  <data name="Setting.InputZUp" xml:space="preserve">
+    <value>Tray đầu vào — nâng</value>
+  </data>
+  <data name="Setting.LampMs" xml:space="preserve">
+    <value>Chờ đèn sáng rồi mới chụp (ms)</value>
+  </data>
+  <data name="Setting.LampTip" xml:space="preserve">
+    <value>App bật đèn CAM trước khi chụp; đèn lên gần như tức thì nhưng độ sáng còn tăng thêm một lúc, chụp ngay thì ảnh đầu tối hơn, kéo theo lệch cả tâm lẫn góc đo được. Đèn đang sáng sẵn thì không chờ. 0 = kích Flow ngay khi vừa bật đèn.</value>
+  </data>
+  <data name="Setting.LogHeader" xml:space="preserve">
+    <value>NHẬT KÝ (BỘ NHỚ)</value>
+  </data>
+  <data name="Setting.MainViews" xml:space="preserve">
+    <value>Khung ảnh trang Main</value>
+  </data>
+  <data name="Setting.MainViewsNote" xml:space="preserve">
+    <value>Ghi đầy đủ thứ hiện ở mỗi khung: tên Flow (vd T1) → Display của cả Flow; Flow.Module (vd T1.Module) → module đó trong Flow. Để trống: cả Flow của khung. Lưu xong, mở lại trang Main là đổi.</value>
+  </data>
+  <data name="Setting.MaxCompAngle" xml:space="preserve">
+    <value>Ngưỡng góc bù (°)</value>
+  </data>
+  <data name="Setting.MaxCompDistance" xml:space="preserve">
+    <value>Ngưỡng lệch tâm (mm)</value>
+  </data>
+  <data name="Setting.MaxConsecutiveNg" xml:space="preserve">
+    <value>NG liên tiếp tối đa</value>
+  </data>
+  <data name="Setting.MaxGuardSkipStreak" xml:space="preserve">
+    <value>Số ô lệch lưới liên tiếp</value>
+  </data>
+  <data name="Setting.NoMissingVars" xml:space="preserve">
+    <value>Không có biến nào còn thiếu.</value>
+  </data>
+  <data name="Setting.Nozzle1" xml:space="preserve">
+    <value>Tay #1</value>
+  </data>
+  <data name="Setting.Nozzle2" xml:space="preserve">
+    <value>Tay #2</value>
+  </data>
+  <data name="Setting.OpenDataFolder" xml:space="preserve">
+    <value>Mở thư mục dữ liệu</value>
+  </data>
+  <data name="Setting.OutFoundShared" xml:space="preserve">
+    <value>Output Found (dùng chung)</value>
+  </data>
+  <data name="Setting.PickRetry" xml:space="preserve">
+    <value>Retry khi hút hụt</value>
+  </data>
+  <data name="Setting.PlaceGuards" xml:space="preserve">
+    <value>Chặn lệnh đặt lúc chạy Auto</value>
+  </data>
+  <data name="Setting.PlaceTargetGuard" xml:space="preserve">
+    <value>Chặn lệch lưới teach (mm)</value>
+  </data>
+  <data name="Setting.ReadingFlowOutputs" xml:space="preserve">
+    <value>Đang đọc Output Params của ba Flow…</value>
+  </data>
+  <data name="Setting.ReloadRequested" xml:space="preserve">
+    <value>Đã yêu cầu nạp lại — xem log/alarm Vision để biết kết quả.</value>
+  </data>
+  <data name="Setting.ReloadSolution" xml:space="preserve">
+    <value>Nạp lại solution</value>
+  </data>
+  <data name="Setting.RenderTool1" xml:space="preserve">
+    <value>Khung CAM bottom-up — Tay #1</value>
+  </data>
+  <data name="Setting.RenderTool2" xml:space="preserve">
+    <value>Khung CAM bottom-up — Tay #2</value>
+  </data>
+  <data name="Setting.RenderTopDown" xml:space="preserve">
+    <value>Khung CAM top-down</value>
+  </data>
+  <data name="Setting.RequireHomeAfterEmg" xml:space="preserve">
+    <value>Bắt buộc về gốc lại sau EMG</value>
+  </data>
+  <data name="Setting.Saved" xml:space="preserve">
+    <value>Đã lưu system.json. Đổi COM/IP/Simulation cần khởi động lại app.</value>
+  </data>
+  <data name="Setting.SaveFailed" xml:space="preserve">
+    <value>Lưu thất bại — xem alarm.</value>
+  </data>
+  <data name="Setting.SaveSystem" xml:space="preserve">
+    <value>Lưu system.json</value>
+  </data>
+  <data name="Setting.ScanAssyByRow" xml:space="preserve">
+    <value>Quét tray lắp ráp từng hàng</value>
+  </data>
+  <data name="Setting.ScanAssyByRowTip" xml:space="preserve">
+    <value>Bật: CAM top-down chỉ soi các ô còn trống của HÀNG đang làm, hút và đặt hết hàng đó rồi mới soi hàng kế. Tắt (mặc định): soi cả tray một lượt trước khi hút. Bật khi chạy trục Y2 hết chiều dài tray có thể làm xê dịch chính tray lắp ráp — quét từng hàng rút khoảng cách giữa lúc đo một ô và lúc đặt vào ô đó xuống còn một hàng.</value>
+  </data>
+  <data name="Setting.SettleMs" xml:space="preserve">
+    <value>Chờ ổn định trước khi chụp (ms)</value>
+  </data>
+  <data name="Setting.SettleTip" xml:space="preserve">
+    <value>Chờ cơ khí thôi rung sau lệnh chạy cuối cùng, rồi mới đọc encoder và chụp. Chỉ tính từ lúc kết thúc lệnh chạy: trục đã đứng yên lâu hơn ngần này thì không chờ thêm. 0 = tắt hẳn.</value>
+  </data>
+  <data name="Setting.SimulationMode" xml:space="preserve">
+    <value>Chế độ mô phỏng (cần khởi động lại app)</value>
+  </data>
+  <data name="Setting.SolutionFilter" xml:space="preserve">
+    <value>VisionMaster solution (*.solw)|*.solw|Tất cả file|*.*</value>
+  </data>
+  <data name="Setting.SolutionPath" xml:space="preserve">
+    <value>Đường dẫn Solution (.solw)</value>
+  </data>
+  <data name="Setting.SolutionPathNote" xml:space="preserve">
+    <value>Chỉ MỘT file .solw cho cả máy. Đổi xong bấm Nạp lại — có hiệu lực ngay, không cần khởi động lại app.</value>
+  </data>
+  <data name="Setting.SolutionPathTip" xml:space="preserve">
+    <value>VmSolution là singleton của SDK nên cả ba Flow (LocateTop / AlignBottom_Tool1 / AlignBottom_Tool2) đều phải nằm chung trong một file .solw.</value>
+  </data>
+  <data name="Setting.SolutionTools" xml:space="preserve">
+    <value>Công cụ dựng solution</value>
+  </data>
+  <data name="Setting.SolutionToolsNote" xml:space="preserve">
+    <value>Không nút nào chạy Flow hay kích camera. Di chuột lên từng nút để xem nó làm gì. Nên làm trên bản sao .solw trước.</value>
+  </data>
+  <data name="Setting.SystemParams" xml:space="preserve">
+    <value>THAM SỐ HỆ THỐNG</value>
+  </data>
+  <data name="Setting.TabDelay" xml:space="preserve">
+    <value>Thời gian chờ</value>
+  </data>
+  <data name="Setting.TabLog" xml:space="preserve">
+    <value>Nhật ký</value>
+  </data>
+  <data name="Setting.TabServo" xml:space="preserve">
+    <value>Servo</value>
+  </data>
+  <data name="Setting.TabSystem" xml:space="preserve">
+    <value>Hệ thống</value>
+  </data>
+  <data name="Setting.TabVision" xml:space="preserve">
+    <value>Vision</value>
+  </data>
+  <data name="Setting.UsingFallbackRoot" xml:space="preserve">
+    <value>Đang dùng thư mục dự phòng cạnh exe (không có ổ D:)</value>
+  </data>
+  <data name="Setting.Vacuum" xml:space="preserve">
+    <value>Chân không</value>
+  </data>
+  <data name="Setting.VacuumSettle" xml:space="preserve">
+    <value>Chờ hút đủ lực rồi mới nâng (ms)</value>
+  </data>
+  <data name="Setting.VacuumSettleTip" xml:space="preserve">
+    <value>Cảm biến báo hút được là lúc đạt ngưỡng đặt trên đồng hồ, lực hút khi đó vẫn còn đang lên. Chờ thêm ngần này rồi mới nâng Z, để con can không xê dịch hay rơi. 0 = nâng ngay. Hút hụt thì không chờ.</value>
+  </data>
+  <data name="Setting.VacuumTimeout" xml:space="preserve">
+    <value>Chờ cảm biến đổi trạng thái (ms)</value>
+  </data>
+  <data name="Setting.VacuumTimeoutTip" xml:space="preserve">
+    <value>Sau khi đóng/mở van, App chờ ngần này cho cảm biến chân không đổi trạng thái. Hết thời gian mà chưa đổi thì tính là hút hụt (lúc hút) hoặc sản phẩm dính đầu hút (lúc nhả). Đồng hồ chân không lên chậm thì tăng số này.</value>
+  </data>
+  <data name="Setting.VerifyAngleTol" xml:space="preserve">
+    <value>Dung sai góc thử vòng xoay (°)</value>
+  </data>
+  <data name="Setting.VerifyHeader" xml:space="preserve">
+    <value>Kiểm tra top-down và phép thử vòng xoay</value>
+  </data>
+  <data name="Setting.VerifyMinEcc" xml:space="preserve">
+    <value>Lệch tâm tối thiểu thử vòng xoay (mm)</value>
+  </data>
+  <data name="Setting.VerifyMinTurn" xml:space="preserve">
+    <value>Góc xoay thử tối thiểu (°)</value>
+  </data>
+  <data name="Setting.VisionNamesHeader" xml:space="preserve">
+    <value>VISION — TÊN FLOW VÀ BIẾN TRONG SOLUTION</value>
+  </data>
+  <data name="Setting.VisionNamesNote" xml:space="preserve">
+    <value>Sửa đúng theo tên thật trong solution rồi bấm Lưu — VisionConnect đọc lại ngay lần trigger kế tiếp, không cần build lại app.</value>
+  </data>
+  <data name="Setting.VisionSolutionHeader" xml:space="preserve">
+    <value>VISION — DỰNG SOLUTION VISIONMASTER</value>
+  </data>
+  <data name="Setting.VisionThresholdsHeader" xml:space="preserve">
+    <value>VISION — NGƯỠNG VÀ DUNG SAI</value>
+  </data>
+  <data name="Setting.VisionThresholdsNote" xml:space="preserve">
+    <value>Flow AlignBottom_ToolN tính lệnh đặt lúc soi; App so các ngưỡng dưới đây trước khi cho trục chạy. Bấm Lưu system.json ở card trên; có hiệu lực từ lần START kế tiếp.</value>
+  </data>
+  <data name="Setting.ZSlowHeader" xml:space="preserve">
+    <value>Trục Z qua điểm giảm tốc (Auto và chạy rà)</value>
+  </data>
+  <data name="Setting.ZSlowTip" xml:space="preserve">
+    <value>Tích: Z chạy mức Auto thấp đoạn giữa điểm giảm tốc và cao độ hút/đặt (đã teach ở trang Teaching). Bỏ tích: Z chạy một mạch mức Auto cao, nhanh hơn nhưng chạm hàng mạnh hơn. Trả hàng soi hỏng về tray đầu vào luôn qua điểm giảm tốc.</value>
+  </data>
+  <data name="Shell.ActiveAlarmCount" xml:space="preserve">
+    <value>{0} alarm đang tác động</value>
+  </data>
+  <data name="Shell.ActiveAlarmList" xml:space="preserve">
+    <value>Danh sách alarm đang tác động</value>
+  </data>
+  <data name="Shell.AutoRefusedTitle" xml:space="preserve">
+    <value>Không vào được AUTO</value>
+  </data>
+  <data name="Shell.Close" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="Shell.DataPrefix" xml:space="preserve">
+    <value>Dữ liệu: </value>
+  </data>
+  <data name="Shell.Details" xml:space="preserve">
+    <value>Chi tiết</value>
+  </data>
+  <data name="Shell.Hide" xml:space="preserve">
+    <value>Ẩn</value>
+  </data>
+  <data name="Shell.HideBannerTip" xml:space="preserve">
+    <value>Ẩn banner này — alarm vẫn còn active, chỉ ẩn khỏi màn hình để đỡ vướng thao tác. Tự hiện lại nếu có alarm mới.</value>
+  </data>
+  <data name="Shell.LanguageTip" xml:space="preserve">
+    <value>Đổi ngôn ngữ (Tiếng Việt / English)</value>
+  </data>
+  <data name="Shell.No" xml:space="preserve">
+    <value>Không</value>
+  </data>
+  <data name="Shell.SimulationMode" xml:space="preserve">
+    <value>CHẾ ĐỘ MÔ PHỎNG</value>
+  </data>
+  <data name="Shell.Yes" xml:space="preserve">
+    <value>Có</value>
+  </data>
+  <data name="Status.ModelNotLoaded" xml:space="preserve">
+    <value>(chưa nạp)</value>
+  </data>
+  <data name="Status.StateAlarm" xml:space="preserve">
+    <value>LỖI</value>
+  </data>
+  <data name="Status.StateArmed" xml:space="preserve">
+    <value>ĐÃ ARM — CHỜ NẠP TRAY</value>
+  </data>
+  <data name="Status.StateEmg" xml:space="preserve">
+    <value>DỪNG KHẨN CẤP</value>
+  </data>
+  <data name="Status.StateHeld" xml:space="preserve">
+    <value>TẠM DỪNG</value>
+  </data>
+  <data name="Status.StateHoming" xml:space="preserve">
+    <value>ĐANG VỀ GỐC</value>
+  </data>
+  <data name="Status.StateIdle" xml:space="preserve">
+    <value>SẴN SÀNG</value>
+  </data>
+  <data name="Status.StateInit" xml:space="preserve">
+    <value>KHỞI ĐỘNG</value>
+  </data>
+  <data name="Status.StateNotHomed" xml:space="preserve">
+    <value>CHƯA VỀ GỐC</value>
+  </data>
+  <data name="Status.StatePaused" xml:space="preserve">
+    <value>ĐÃ DỪNG</value>
+  </data>
+  <data name="Status.StatePausing" xml:space="preserve">
+    <value>ĐANG DỪNG…</value>
+  </data>
+  <data name="Status.StateRunning" xml:space="preserve">
+    <value>ĐANG CHẠY</value>
+  </data>
+  <data name="Status.StateWaitOperator" xml:space="preserve">
+    <value>CHỜ THAO TÁC</value>
+  </data>
+  <data name="Status.StepS00" xml:space="preserve">
+    <value>S00 · sẵn sàng</value>
+  </data>
+  <data name="Status.StepS05" xml:space="preserve">
+    <value>S05 · quét trước tray lắp ráp</value>
+  </data>
+  <data name="Status.StepS10" xml:space="preserve">
+    <value>S10 · hút tay #1</value>
+  </data>
+  <data name="Status.StepS11" xml:space="preserve">
+    <value>S11 · hút tay #2</value>
+  </data>
+  <data name="Status.StepS20" xml:space="preserve">
+    <value>S20 · soi tư thế tay #2</value>
+  </data>
+  <data name="Status.StepS21" xml:space="preserve">
+    <value>S21 · soi tư thế tay #1</value>
+  </data>
+  <data name="Status.StepS30" xml:space="preserve">
+    <value>S30 · soi ô đích + đặt tay #1</value>
+  </data>
+  <data name="Status.StepS31" xml:space="preserve">
+    <value>S31 · đặt tay #1</value>
+  </data>
+  <data name="Status.StepS32" xml:space="preserve">
+    <value>S32 · soi ô đích + đặt tay #2</value>
+  </data>
+  <data name="Status.StepS33" xml:space="preserve">
+    <value>S33 · đặt tay #2</value>
+  </data>
+  <data name="Status.StepS40" xml:space="preserve">
+    <value>S40 · sang ô kế</value>
+  </data>
+  <data name="Status.StepS50" xml:space="preserve">
+    <value>S50 · kiểm tra tray</value>
+  </data>
+  <data name="Teach.AlignPosHeader" xml:space="preserve">
+    <value>VỊ TRÍ SOI CAM1 (BOTTOM-UP)</value>
+  </data>
+  <data name="Teach.AlignPosHint" xml:space="preserve">
+    <value>Toạ độ X của gantry để mỗi tay hút vào giữa khung hình CAM1 (bottom-up), dùng trong chu trình Auto sau khi hút xong cả hai tay. Jog X (ở panel trên) rồi bấm Teach cho từng tay — hai tay lệch nhau theo bước hút nên phải teach riêng.</value>
+  </data>
+  <data name="Teach.Angle" xml:space="preserve">
+    <value>Góc</value>
+  </data>
+  <data name="Teach.ApplySize" xml:space="preserve">
+    <value>Áp dụng</value>
+  </data>
+  <data name="Teach.ApplySizeTip" xml:space="preserve">
+    <value>Đổi kích thước lưới theo Số hàng/Số cột vừa nhập — offset từng ô đã tinh chỉnh được giữ lại phần trùng nhau</value>
+  </data>
+  <data name="Teach.ApplyTrim" xml:space="preserve">
+    <value>Ghi bù</value>
+  </data>
+  <data name="Teach.ApplyTrimAllTip" xml:space="preserve">
+    <value>Ghi lượng bù chung cho mọi ô, Tool đang chọn</value>
+  </data>
+  <data name="Teach.ApplyTrimCellTip" xml:space="preserve">
+    <value>Ghi lượng bù riêng cho ô đang chọn, Tool đang chọn</value>
+  </data>
+  <data name="Teach.AxisMoveFailed" xml:space="preserve">
+    <value>{0} không tới được {1:0.000} mm: {2}</value>
+  </data>
+  <data name="Teach.Blow1" xml:space="preserve">
+    <value>Thổi #1</value>
+  </data>
+  <data name="Teach.Blow2" xml:space="preserve">
+    <value>Thổi #2</value>
+  </data>
+  <data name="Teach.Cam1LightTip" xml:space="preserve">
+    <value>Bật/tắt đèn trigger CAM1 (DO bit 11, 0x0B)</value>
+  </data>
+  <data name="Teach.Cam2LightTip" xml:space="preserve">
+    <value>Bật/tắt đèn trigger CAM2 (DO bit 12, 0x0C)</value>
+  </data>
+  <data name="Teach.CamAnchorHeader" xml:space="preserve">
+    <value>MỐC CAM TOP-DOWN</value>
+  </data>
+  <data name="Teach.CamAnchorHint1" xml:space="preserve">
+    <value>Jog X và Y2 tới khi camera top-down nằm đúng tâm Ô (1,1) của tray lắp ráp (xem ảnh camera trực tiếp), rồi bấm Teach. Dùng chung cho cả Tool 1 và Tool 2 vì camera gắn cố định trên gantry.</value>
+  </data>
+  <data name="Teach.CamAnchorHint2" xml:space="preserve">
+    <value>Các ô khác App tự suy ra: mốc này + độ lệch của ô so với Ô (1,1), lấy theo LƯỚI TEACH CỦA TOOL 2 (tay #2 lắp gần CAM hơn). Nên teach lại P1/P2/P3 hay đặt offset ô bên Tool 2 là mọi chỗ đứng soi dịch theo; làm bên Tool 1 thì camera không đổi.</value>
+  </data>
+  <data name="Teach.CamAnchorNotTaughtWarn" xml:space="preserve">
+    <value>Chưa teach mốc CAM top-down của ô (1,1) — chưa suy ra được chỗ đứng soi. Teach mốc đó trước (card Mốc CAM top-down ở trang này).</value>
+  </data>
+  <data name="Teach.CamPosAt" xml:space="preserve">
+    <value>CAM top-down soi ô {0} tại  X={1:0.000}   {2}={3:0.000}   (theo lưới Tool 2 + mốc CAM)</value>
+  </data>
+  <data name="Teach.CamPosLabel" xml:space="preserve">
+    <value>chỗ đứng soi ô {0}</value>
+  </data>
+  <data name="Teach.CamPosNoAnchor" xml:space="preserve">
+    <value>Chưa teach mốc CAM top-down (ô 1,1) — chưa suy ra được chỗ đứng soi của ô nào.</value>
+  </data>
+  <data name="Teach.CellLabel" xml:space="preserve">
+    <value>ô {0}</value>
+  </data>
+  <data name="Teach.CellsHeader" xml:space="preserve">
+    <value>TOẠ ĐỘ TÍNH RA CỦA TỪNG Ô</value>
+  </data>
+  <data name="Teach.ChooseSourceModel" xml:space="preserve">
+    <value>Chọn model nguồn trước.</value>
+  </data>
+  <data name="Teach.ClearOffset" xml:space="preserve">
+    <value>Xoá</value>
+  </data>
+  <data name="Teach.ClearOffsetTip" xml:space="preserve">
+    <value>Xoá offset của riêng ô đang chọn</value>
+  </data>
+  <data name="Teach.ClearTrim" xml:space="preserve">
+    <value>Xoá bù</value>
+  </data>
+  <data name="Teach.Cols" xml:space="preserve">
+    <value>Số cột</value>
+  </data>
+  <data name="Teach.ConfirmDeleteModel" xml:space="preserve">
+    <value>Xoá vĩnh viễn model '{0}'?</value>
+  </data>
+  <data name="Teach.ConfirmWrite" xml:space="preserve">
+    <value>Ghi {0}?
+
+Cũ:   {1}
+Mới: {2}</value>
+  </data>
+  <data name="Teach.CopyModel" xml:space="preserve">
+    <value>Sao chép từ model chọn</value>
+  </data>
+  <data name="Teach.CopyModelFailed" xml:space="preserve">
+    <value>Sao chép model thất bại — xem log.</value>
+  </data>
+  <data name="Teach.CurrentModel" xml:space="preserve">
+    <value>Đang dùng:</value>
+  </data>
+  <data name="Teach.DeleteModel" xml:space="preserve">
+    <value>Xoá</value>
+  </data>
+  <data name="Teach.DeleteModelFailed" xml:space="preserve">
+    <value>Xoá model thất bại — xem log.</value>
+  </data>
+  <data name="Teach.DeleteOpenModel" xml:space="preserve">
+    <value>Không xoá được model đang mở — nạp model khác trước.</value>
+  </data>
+  <data name="Teach.EnterModelName" xml:space="preserve">
+    <value>Nhập tên model.</value>
+  </data>
+  <data name="Teach.Go" xml:space="preserve">
+    <value>Tới</value>
+  </data>
+  <data name="Teach.GoCamAnchor" xml:space="preserve">
+    <value>Tới mốc CAM top-down</value>
+  </data>
+  <data name="Teach.GoCamAnchorTip" xml:space="preserve">
+    <value>Bấm đúp: chạy thử tới mốc đã teach — kiểm tra lại camera có đúng tâm Ô (1,1) không</value>
+  </data>
+  <data name="Teach.GoJigCamTip" xml:space="preserve">
+    <value>Bấm đúp: X/Y2 tới vị trí để CAM top-down ngắm dấu định vị của chi tiết đích</value>
+  </data>
+  <data name="Teach.GoJigPick1Tip" xml:space="preserve">
+    <value>Bấm đúp: X/Y2 tới vị trí gắp đã dạy của tay #1 trên cơ cấu kẹp</value>
+  </data>
+  <data name="Teach.GoJigPick2Tip" xml:space="preserve">
+    <value>Bấm đúp: X/Y2 tới vị trí gắp đã dạy của tay #2 trên cơ cấu kẹp</value>
+  </data>
+  <data name="Teach.GoPick" xml:space="preserve">
+    <value>Tới Pick</value>
+  </data>
+  <data name="Teach.GoPickTip" xml:space="preserve">
+    <value>Double-click để chạy tới cao độ hút đã teach ở tray đầu vào</value>
+  </data>
+  <data name="Teach.GoPlace" xml:space="preserve">
+    <value>Tới Place</value>
+  </data>
+  <data name="Teach.GoPlaceTip" xml:space="preserve">
+    <value>Double-click để chạy tới cao độ đặt đã teach ở tray lắp ráp</value>
+  </data>
+  <data name="Teach.GoT1Trigger" xml:space="preserve">
+    <value>Tới T1 Trigger</value>
+  </data>
+  <data name="Teach.GoT1TriggerTip" xml:space="preserve">
+    <value>Double-click: Z1 về cao độ soi (Z_SAFE) rồi X tới vị trí soi CAM1 đã teach cho tay #1</value>
+  </data>
+  <data name="Teach.GoT2Trigger" xml:space="preserve">
+    <value>Tới T2 Trigger</value>
+  </data>
+  <data name="Teach.GoT2TriggerTip" xml:space="preserve">
+    <value>Double-click: Z2 về cao độ soi (Z_SAFE) rồi X tới vị trí soi CAM1 đã teach cho tay #2</value>
+  </data>
+  <data name="Teach.JigAllTaught" xml:space="preserve">
+    <value>Đã teach đủ ba điểm.</value>
+  </data>
+  <data name="Teach.JigCamLabel" xml:space="preserve">
+    <value>Soi chi tiết:</value>
+  </data>
+  <data name="Teach.JigCamNotTaughtWarn" xml:space="preserve">
+    <value>Chưa teach vị trí soi chi tiết đích trên cơ cấu kẹp — Jog X/Y2 tới đó rồi bấm Teach.</value>
+  </data>
+  <data name="Teach.JigHeader" xml:space="preserve">
+    <value>CƠ CẤU KẸP (XÁC ĐỊNH HAND-EYE)</value>
+  </data>
+  <data name="Teach.JigHint" xml:space="preserve">
+    <value>Cơ cấu kẹp giữ CHI TIẾT ĐÍCH đứng yên khi gắp con can mẫu lên — đó là điều kiện để LocateTop đo đúng chỗ chi tiết nằm lúc con can còn ngồi trên nó. Jog X và Y2 tới từng vị trí rồi bấm Teach. Hai tay lệch nhau một bước cơ khí nên phải teach RIÊNG từng tay, không suy từ tay kia. Bấm ĐÚP nút Tới để nghiệm lại; Z phải đang ở cao độ an toàn.</value>
+  </data>
+  <data name="Teach.JigMissingCam" xml:space="preserve">
+    <value>vị trí soi chi tiết</value>
+  </data>
+  <data name="Teach.JigMissingPick" xml:space="preserve">
+    <value>vị trí gắp tay #{0}</value>
+  </data>
+  <data name="Teach.JigNote" xml:space="preserve">
+    <value>Cơ cấu kẹp phải giữ con can ở ĐÚNG cao độ đặt của tray lắp ráp ({0:0.000} / {1:0.000} mm) — bước gắp hạ Z theo hai số đó, không có cao độ riêng. Và THÁO cơ cấu kẹp ra trước khi chạy Auto.</value>
+  </data>
+  <data name="Teach.JigNotTaught" xml:space="preserve">
+    <value>CHƯA teach: {0} — bước xác định hand-eye sẽ từ chối chạy.</value>
+  </data>
+  <data name="Teach.JigPick1Label" xml:space="preserve">
+    <value>Gắp tay #1:</value>
+  </data>
+  <data name="Teach.JigPick2Label" xml:space="preserve">
+    <value>Gắp tay #2:</value>
+  </data>
+  <data name="Teach.JigPickNotTaughtWarn" xml:space="preserve">
+    <value>Chưa teach vị trí gắp của tay #{0} trên cơ cấu kẹp — Jog X/Y2 tới đó rồi bấm Teach.</value>
+  </data>
+  <data name="Teach.JogFast" xml:space="preserve">
+    <value>Nhanh</value>
+  </data>
+  <data name="Teach.JogHeader" xml:space="preserve">
+    <value>JOG TRỤC &amp; KHÍ NÉN</value>
+  </data>
+  <data name="Teach.JogSlow" xml:space="preserve">
+    <value>Chậm</value>
+  </data>
+  <data name="Teach.JogSpeed" xml:space="preserve">
+    <value>Tốc độ</value>
+  </data>
+  <data name="Teach.LoadModel" xml:space="preserve">
+    <value>Nạp</value>
+  </data>
+  <data name="Teach.LoadModelBusy" xml:space="preserve">
+    <value>Không nạp được model khi máy đang chạy hoặc đang về gốc.</value>
+  </data>
+  <data name="Teach.LoadModelFailed" xml:space="preserve">
+    <value>Nạp model '{0}' thất bại — xem log.</value>
+  </data>
+  <data name="Teach.ModelExists" xml:space="preserve">
+    <value>Đã có model tên '{0}'.</value>
+  </data>
+  <data name="Teach.ModelNameInvalid" xml:space="preserve">
+    <value>Tên model không được chứa ký tự đặc biệt (\ / : * ? " &lt; &gt; |).</value>
+  </data>
+  <data name="Teach.MoveCamTip" xml:space="preserve">
+    <value>Bấm đúp: chạy gantry tới chỗ đứng để CAM top-down soi đúng tâm ô đang chọn — cùng toạ độ chu trình Auto dùng lúc quét tray</value>
+  </data>
+  <data name="Teach.MoveCellTip" xml:space="preserve">
+    <value>Bấm đúp: chạy tay hút của Tool đang chọn tới ô đang chọn để kiểm tra — nâng Z an toàn trước, xoay trục A của Tool đó về góc hút đã teach</value>
+  </data>
+  <data name="Teach.MoveFailed" xml:space="preserve">
+    <value>Không tới được {0}: {1}</value>
+  </data>
+  <data name="Teach.NewModel" xml:space="preserve">
+    <value>Tạo mới</value>
+  </data>
+  <data name="Teach.NewModelNameTip" xml:space="preserve">
+    <value>Tên model mới — dùng cho cả nút Tạo mới và nút Sao chép (sao chép từ model đang chọn ở trên)</value>
+  </data>
+  <data name="Teach.NoCellChosen" xml:space="preserve">
+    <value>Chưa chọn ô nào.</value>
+  </data>
+  <data name="Teach.NoCellHint" xml:space="preserve">
+    <value>Chưa chọn ô — bấm một ô ở lưới bên dưới</value>
+  </data>
+  <data name="Teach.NoCellSelected" xml:space="preserve">
+    <value>Chưa chọn ô.</value>
+  </data>
+  <data name="Teach.NotTaught" xml:space="preserve">
+    <value>(chưa teach)</value>
+  </data>
+  <data name="Teach.Nozzle1Label" xml:space="preserve">
+    <value>Tay #1:</value>
+  </data>
+  <data name="Teach.Nozzle2Label" xml:space="preserve">
+    <value>Tay #2:</value>
+  </data>
+  <data name="Teach.OffsetText" xml:space="preserve">
+    <value>bù X {0:+0.000;-0.000}, {1} {2:+0.000;-0.000} mm</value>
+  </data>
+  <data name="Teach.P1Sub" xml:space="preserve">
+    <value>ô (1,1)</value>
+  </data>
+  <data name="Teach.P1Tip" xml:space="preserve">
+    <value>Ô (1,1) — jog tới ô đầu tiên của tray rồi bấm</value>
+  </data>
+  <data name="Teach.P2Sub" xml:space="preserve">
+    <value>cuối hàng 1</value>
+  </data>
+  <data name="Teach.P2Tip" xml:space="preserve">
+    <value>Cuối hàng 1 — jog tới ô cuối cùng của hàng 1 rồi bấm</value>
+  </data>
+  <data name="Teach.P3Sub" xml:space="preserve">
+    <value>cuối cột 1</value>
+  </data>
+  <data name="Teach.P3Tip" xml:space="preserve">
+    <value>Cuối cột 1 — jog tới ô cuối cùng của cột 1 rồi bấm</value>
+  </data>
+  <data name="Teach.PickAngleHeader" xml:space="preserve">
+    <value>GÓC HÚT (A_PICK)</value>
+  </data>
+  <data name="Teach.PickAngleHint" xml:space="preserve">
+    <value>Đầu hút có gờ ôm lấy sản phẩm, hút lệch tư thế thì hở khí và không nhấc được hàng. Đặt một sản phẩm vào hốc tray, jog A1 (hoặc A2) tới khi gờ ăn khớp đúng sản phẩm đó rồi bấm Teach của đúng trục. A1 và A2 teach ĐỘC LẬP — hai gá đầu hút có gốc encoder riêng. Mọi lần hạ Z xuống hút đều xoay A về đây trước.</value>
+  </data>
+  <data name="Teach.PointP1" xml:space="preserve">
+    <value>P1 — ô (1,1)</value>
+  </data>
+  <data name="Teach.PointP2" xml:space="preserve">
+    <value>P2 — cuối hàng 1</value>
+  </data>
+  <data name="Teach.PointP3" xml:space="preserve">
+    <value>P3 — cuối cột 1</value>
+  </data>
+  <data name="Teach.PointVerify" xml:space="preserve">
+    <value>điểm kiểm chứng</value>
+  </data>
+  <data name="Teach.Position" xml:space="preserve">
+    <value>vị trí</value>
+  </data>
+  <data name="Teach.Rows" xml:space="preserve">
+    <value>Số hàng</value>
+  </data>
+  <data name="Teach.Save" xml:space="preserve">
+    <value>Lưu</value>
+  </data>
+  <data name="Teach.SaveModelFailed" xml:space="preserve">
+    <value>Lưu model thất bại — xem log.</value>
+  </data>
+  <data name="Teach.SaveTip" xml:space="preserve">
+    <value>Lưu toàn bộ Model đang mở xuống đĩa (bao gồm mọi Teach đã làm trên trang này)</value>
+  </data>
+  <data name="Teach.ScanOrder" xml:space="preserve">
+    <value>Thứ tự quét ô</value>
+  </data>
+  <data name="Teach.ScanSequential" xml:space="preserve">
+    <value>Tuần tự</value>
+  </data>
+  <data name="Teach.SelectTool" xml:space="preserve">
+    <value>Chọn Tool</value>
+  </data>
+  <data name="Teach.SelectTrayHeader" xml:space="preserve">
+    <value>CHỌN TRAY</value>
+  </data>
+  <data name="Teach.SetOffsetTip" xml:space="preserve">
+    <value>Ghi độ lệch giữa vị trí vừa jog tới tay và giá trị tính ra</value>
+  </data>
+  <data name="Teach.TeachFromA1" xml:space="preserve">
+    <value>Teach từ A1</value>
+  </data>
+  <data name="Teach.TeachFromA2" xml:space="preserve">
+    <value>Teach từ A2</value>
+  </data>
+  <data name="Teach.TeachFromZ1" xml:space="preserve">
+    <value>Teach từ Z1</value>
+  </data>
+  <data name="Teach.TeachFromZ2" xml:space="preserve">
+    <value>Teach từ Z2</value>
+  </data>
+  <data name="Teach.TeachNozzle1" xml:space="preserve">
+    <value>Teach tay #1</value>
+  </data>
+  <data name="Teach.TeachNozzle2" xml:space="preserve">
+    <value>Teach tay #2</value>
+  </data>
+  <data name="Teach.ThreePointHeader" xml:space="preserve">
+    <value>TEACH 3 ĐIỂM</value>
+  </data>
+  <data name="Teach.ThreePointHint" xml:space="preserve">
+    <value>Jog X và trục hàng (ở panel trên) tới đúng ô rồi bấm P1, P2, P3 theo đúng thứ tự. Toạ độ chỉ đọc — không gõ tay được, để không tạo ra điểm 'trông như đã teach' nhưng thực ra chưa.</value>
+  </data>
+  <data name="Teach.TrayAssy" xml:space="preserve">
+    <value>Tray lắp ráp</value>
+  </data>
+  <data name="Teach.TrayAssyLower" xml:space="preserve">
+    <value>tray lắp ráp</value>
+  </data>
+  <data name="Teach.TrayInput" xml:space="preserve">
+    <value>Tray đầu vào</value>
+  </data>
+  <data name="Teach.TrayInputLower" xml:space="preserve">
+    <value>tray đầu vào</value>
+  </data>
+  <data name="Teach.TrimAllLabel" xml:space="preserve">
+    <value>Bù chung mọi ô:</value>
+  </data>
+  <data name="Teach.TrimAssyOnly" xml:space="preserve">
+    <value>Bù đặt chỉ dùng cho Tray lắp ráp.</value>
+  </data>
+  <data name="Teach.TrimCellLabel" xml:space="preserve">
+    <value>Bù riêng ô này:</value>
+  </data>
+  <data name="Teach.TrimHint" xml:space="preserve">
+    <value>Đích gửi đi = vị trí camera đo + bù chung + bù riêng của ô, riêng từng Tool. Đặt xuống lệch +0,05 mm theo X thì nhập −0,05; mọi ô cùng lệch một lượng thì dùng bù chung. Mỗi lượng bù tối đa ±1 mm / ±5° — lệch hơn thế là lỗi hiệu chuẩn, sửa ở trang Vision chứ đừng bù ở đây.</value>
+  </data>
+  <data name="Teach.TrimNotNumber" xml:space="preserve">
+    <value>Lượng bù theo {0} không phải số.</value>
+  </data>
+  <data name="Teach.TrimTooLarge" xml:space="preserve">
+    <value>Lượng bù theo {0} vượt ±{1} — lệch tới mức đó là lỗi hiệu chuẩn chứ không phải chuyện tinh chỉnh.</value>
+  </data>
+  <data name="Teach.TrimUnits" xml:space="preserve">
+    <value>mm / mm / độ</value>
+  </data>
+  <data name="Teach.Vacuum1" xml:space="preserve">
+    <value>Hút #1</value>
+  </data>
+  <data name="Teach.Vacuum2" xml:space="preserve">
+    <value>Hút #2</value>
+  </data>
+  <data name="Teach.VerifyFail" xml:space="preserve">
+    <value>CẢNH BÁO: điểm kiểm chứng lệch {0:0.000} mm &gt; {1:0.000} mm — kiểm tra thứ tự teach hoặc độ phẳng của tray</value>
+  </data>
+  <data name="Teach.VerifyNoPoint" xml:space="preserve">
+    <value>Chưa teach điểm kiểm chứng (tuỳ chọn, nhưng nên có — bắt được lỗi teach nhầm thứ tự ô).</value>
+  </data>
+  <data name="Teach.VerifyNotTaught" xml:space="preserve">
+    <value>Chưa teach đủ 3 điểm cho Tool này — toạ độ dưới đây đang tính từ giá trị 0.</value>
+  </data>
+  <data name="Teach.VerifyOk" xml:space="preserve">
+    <value>Điểm kiểm chứng đạt: lệch {0:0.000} mm ≤ {1:0.000} mm</value>
+  </data>
+  <data name="Teach.VerifyOptional" xml:space="preserve">
+    <value>Kiểm chứng (tuỳ chọn)</value>
+  </data>
+  <data name="Teach.VisitOrderPrefix" xml:space="preserve">
+    <value>Thứ tự #</value>
+  </data>
+  <data name="Teach.WhatAlignPos" xml:space="preserve">
+    <value>vị trí soi CAM bottom-up của tay #{0}</value>
+  </data>
+  <data name="Teach.WhatCamAnchor" xml:space="preserve">
+    <value>mốc CAM top-down (tâm Ô (1,1) tray lắp ráp)</value>
+  </data>
+  <data name="Teach.WhatCellPos" xml:space="preserve">
+    <value>vị trí ô ({0},{1}) của {2}, Tool {3}</value>
+  </data>
+  <data name="Teach.WhatGridPoint" xml:space="preserve">
+    <value>{0} của {1}, Tool {2}</value>
+  </data>
+  <data name="Teach.WhatJigCam" xml:space="preserve">
+    <value>vị trí soi chi tiết đích trên cơ cấu kẹp</value>
+  </data>
+  <data name="Teach.WhatJigPick" xml:space="preserve">
+    <value>vị trí gắp của tay #{0} trên cơ cấu kẹp</value>
+  </data>
+  <data name="Teach.WhatPickAngle" xml:space="preserve">
+    <value>góc hút {0}</value>
+  </data>
+  <data name="Teach.WhatZPick" xml:space="preserve">
+    <value>cao độ hút {0} của {1}</value>
+  </data>
+  <data name="Teach.WhatZPlace" xml:space="preserve">
+    <value>cao độ đặt {0} của {1}</value>
+  </data>
+  <data name="Teach.WhatZSlow" xml:space="preserve">
+    <value>điểm giảm tốc {0} của {1}</value>
+  </data>
+  <data name="Teach.WordAngle" xml:space="preserve">
+    <value>góc</value>
+  </data>
+  <data name="Teach.WordPick" xml:space="preserve">
+    <value>hút</value>
+  </data>
+  <data name="Teach.WordPlace" xml:space="preserve">
+    <value>đặt</value>
+  </data>
+  <data name="Teach.ZCaptureFailed" xml:space="preserve">
+    <value>{0} không tới được cao độ soi {1:0.000} mm: {2}</value>
+  </data>
+  <data name="Teach.ZCellMoveTip" xml:space="preserve">
+    <value>Bấm đúp: Z của Tool đang chọn hạ tới cao độ hút (tray đầu vào) hoặc đặt (tray lắp ráp) đã teach, qua điểm giảm tốc</value>
+  </data>
+  <data name="Teach.ZHome" xml:space="preserve">
+    <value>Về gốc</value>
+  </data>
+  <data name="Teach.ZHomeTip" xml:space="preserve">
+    <value>Double-click để chạy tới toạ độ gốc (Z=0) — cần đã về gốc trước</value>
+  </data>
+  <data name="Teach.ZPickHint" xml:space="preserve">
+    <value>Z1 và Z2 teach ĐỘC LẬP — hai tay hút không nhất thiết cùng cao độ. Jog Z1 (hoặc Z2) xuống đúng cao độ HÚT sản phẩm ở Tray đầu vào rồi bấm Teach của đúng trục đó.</value>
+  </data>
+  <data name="Teach.ZPickTitle" xml:space="preserve">
+    <value>CAO ĐỘ HÚT (Z_PICK)</value>
+  </data>
+  <data name="Teach.ZPlaceHint" xml:space="preserve">
+    <value>Z1 và Z2 teach ĐỘC LẬP — hai tay hút không nhất thiết cùng cao độ. Jog Z1 (hoặc Z2) xuống đúng cao độ ĐẶT sản phẩm ở Tray lắp ráp rồi bấm Teach của đúng trục đó.</value>
+  </data>
+  <data name="Teach.ZPlaceTitle" xml:space="preserve">
+    <value>CAO ĐỘ ĐẶT (Z_PLACE)</value>
+  </data>
+  <data name="Teach.ZSlowHint" xml:space="preserve">
+    <value>Jog Z1 (hoặc Z2) xuống đúng cao độ muốn máy BẮT ĐẦU chạy chậm rồi bấm Teach của trục đó. Từ cao độ an toàn xuống tới đây máy chạy mức Auto cao, từ đây xuống cao độ {0} chạy mức Auto thấp. Bỏ trống (0.000) thì hạ một mạch ở mức cao như trước.</value>
+  </data>
+  <data name="Teach.ZSlowNotTaught" xml:space="preserve">
+    <value>{0}: chưa teach — Z hạ một mạch ở mức Auto cao xuống cao độ {1}.</value>
+  </data>
+  <data name="Teach.ZSlowOk" xml:space="preserve">
+    <value>{0}: chạy mức Auto thấp {1:0.000} mm cuối trước khi chạm.</value>
+  </data>
+  <data name="Teach.ZSlowPickTitle" xml:space="preserve">
+    <value>Điểm giảm tốc trước khi hút (Z_Slow)</value>
+  </data>
+  <data name="Teach.ZSlowPlaceTitle" xml:space="preserve">
+    <value>Điểm giảm tốc trước khi đặt (Z_Slow)</value>
+  </data>
+  <data name="Teach.ZSlowWrongSide" xml:space="preserve">
+    <value>{0}: SAI — điểm giảm tốc {1:0.000} phải NHỎ HƠN cao độ {2} {3:0.000} (Z dương là chiều đi xuống). Máy bỏ qua điểm này và hạ một mạch ở mức cao.</value>
+  </data>
+  <data name="Tray.SummaryCurrent" xml:space="preserve">
+    <value>{0} × {1} — ô hiện tại {2}/{3}</value>
+  </data>
+  <data name="Tray.SummaryDone" xml:space="preserve">
+    <value>{0} × {1} — đã hết tray</value>
+  </data>
+  <data name="Vision.AcceptHeader" xml:space="preserve">
+    <value>Nghiệm thu sau hiệu chuẩn</value>
+  </data>
+  <data name="Vision.AcceptNote" xml:space="preserve">
+    <value>Chạy khô là phép DUY NHẤT trong App nói được hand-eye có sai đều hay không: tay cầm sản phẩm mẫu, App tính điểm đặt rồi CHẠY TỚI đó ở Z an toàn — nhìn từ trên xuống, tâm sản phẩm phải nằm trên chi tiết. Ngoài nó chỉ còn đặt hàng thật rồi nhìn. Nút 6 và 7 của bước xác định hand-eye KHÔNG thay được phép này: chúng đo cái tản ra theo chỗ Jog, còn sai lệch ĐỀU thì chúng không thấy.</value>
+  </data>
+  <data name="Vision.AlignAngles" xml:space="preserve">
+    <value>Các góc trục A (°)</value>
+  </data>
+  <data name="Vision.AlignNotVerified" xml:space="preserve">
+    <value>CHƯA xác minh — chạy phép thử vòng xoay</value>
+  </data>
+  <data name="Vision.AlignSeqConfirm" xml:space="preserve">
+    <value>Hút sẵn một sản phẩm mẫu lên tay #{0} chưa?
+
+App sẽ xoá danh sách điểm cũ trong module hiệu chuẩn của Flow AlignBottom_Tool{0}, rồi nạp {1} điểm tịnh tiến + {2} điểm xoay, cuối cùng đưa trục A về 0° để chụp ảnh mẫu chuẩn.</value>
+  </data>
+  <data name="Vision.AlignSeqDone" xml:space="preserve">
+    <value>Đã nạp đủ {0} điểm cho tay #{1}, trục A đang ở 0°.
+
+Tiếp theo trong VisionMaster (cột trái): Calibrate → Create Calibration File, trỏ Calibration Transformation của Flow AlignBottom_Tool{1} vào file đó, Ctrl+S. Sau đó quay lại đây chạy "Phép thử vòng xoay".</value>
+  </data>
+  <data name="Vision.AlignSeqLoaded" xml:space="preserve">
+    <value>Đã nạp {0} điểm, trục A về 0°.</value>
+  </data>
+  <data name="Vision.AlignSeqStop" xml:space="preserve">
+    <value>Chuỗi hiệu chuẩn tay #{0} dừng: {1} (đã nạp {2} điểm).</value>
+  </data>
+  <data name="Vision.AlignStatus" xml:space="preserve">
+    <value>{0}dấu góc {1}, sai số dư {2:0.000} mm, soi tại X={3:0.000} — {4:dd/MM/yyyy HH:mm}</value>
+  </data>
+  <data name="Vision.AlignXOffsets" xml:space="preserve">
+    <value>Vị trí X lệch (mm)</value>
+  </data>
+  <data name="Vision.AutoCalib" xml:space="preserve">
+    <value>Auto Calib (thứ tự hình S)</value>
+  </data>
+  <data name="Vision.AutoCalibConfirm" xml:space="preserve">
+    <value>App sẽ xoá danh sách điểm cũ trong module N-point Calibration của Flow LocateTop, rồi nạp 9 điểm mới theo thứ tự hình S.
+
+Chạy?</value>
+  </data>
+  <data name="Vision.AutoCalibDone" xml:space="preserve">
+    <value>Auto Calib hoàn tất — đã nạp đủ 9 điểm theo thứ tự hình S.
+
+Giờ sang module N-point Calibration (cột trái) bấm Calibrate rồi "Create Calibration File", sau đó quay lại đây chạy "Kiểm tra top-down".</value>
+  </data>
+  <data name="Vision.AutoCalibLoaded" xml:space="preserve">
+    <value>Đã nạp đủ 9 điểm.</value>
+  </data>
+  <data name="Vision.AutoCalibPoint" xml:space="preserve">
+    <value>Điểm {0}/{1} (numpad {2})…</value>
+  </data>
+  <data name="Vision.AutoCalibStop" xml:space="preserve">
+    <value>Auto Calib dừng tại điểm thứ {0} (numpad {1}): di chuyển hoặc Flow LocateTop (hiệu chuẩn) thất bại.</value>
+  </data>
+  <data name="Vision.AutoCalibStopStatus" xml:space="preserve">
+    <value>Dừng tại điểm {0} (numpad {1}).</value>
+  </data>
+  <data name="Vision.AutoCalibTip" xml:space="preserve">
+    <value>Bấm đúp: chạy 9 điểm theo thứ tự 1,2,3,6,5,4,7,8,9 — đúng quỹ đạo hình S mà module N-point của VisionMaster giả định khi tự sinh toạ độ vật lý</value>
+  </data>
+  <data name="Vision.AxisAToZero" xml:space="preserve">
+    <value>Đưa trục A về 0°</value>
+  </data>
+  <data name="Vision.AxisAToZeroTip" xml:space="preserve">
+    <value>Bấm đúp: đưa trục A của tay đang chọn về 0°</value>
+  </data>
+  <data name="Vision.AxisAZeroFail" xml:space="preserve">
+    <value>Không đưa được trục A của tay #{0} về 0°.</value>
+  </data>
+  <data name="Vision.BottomUpNote" xml:space="preserve">
+    <value>Hút sẵn một sản phẩm mẫu lên tay đang chọn. Chuỗi chạy các vị trí X (phần tịnh tiến) rồi các góc trục A (phần xoay) tại đúng vị trí soi, mỗi bước nạp một điểm, cuối cùng đưa A về 0° để chụp ảnh mẫu chuẩn. Để trống ô X nếu phương án hiệu chuẩn chỉ cần phần xoay.</value>
+  </data>
+  <data name="Vision.BottomUpNoteHeader" xml:space="preserve">
+    <value>Hiệu chuẩn bottom-up (Align) — VisionMaster</value>
+  </data>
+  <data name="Vision.CenterNotSaved" xml:space="preserve">
+    <value>(chưa lưu)</value>
+  </data>
+  <data name="Vision.CenterSaved" xml:space="preserve">
+    <value>(đã lưu)</value>
+  </data>
+  <data name="Vision.CenterSavedDiskFail" xml:space="preserve">
+    <value>Đã lưu Calibration Center Point: ({0:0.000}, {1:0.000}) nhưng GHI ĐĨA THẤT BẠI — xem alarm.</value>
+  </data>
+  <data name="Vision.CenterSavedOk" xml:space="preserve">
+    <value>Đã lưu Calibration Center Point: ({0:0.000}, {1:0.000}) và ghi xuống system.json (kèm bước lưới X/Y).</value>
+  </data>
+  <data name="Vision.CheckCalib" xml:space="preserve">
+    <value>Kiểm tra hiệu chuẩn</value>
+  </data>
+  <data name="Vision.ClearFail" xml:space="preserve">
+    <value>Không xoá được điểm cũ trong module N-point Calibration — chưa chạy trục nào.
+
+{0}</value>
+  </data>
+  <data name="Vision.ClearFailStatus" xml:space="preserve">
+    <value>Không xoá được điểm cũ.</value>
+  </data>
+  <data name="Vision.ClearingPoints" xml:space="preserve">
+    <value>Xoá điểm cũ trong module N-point…</value>
+  </data>
+  <data name="Vision.DryRunConfirm" xml:space="preserve">
+    <value>Chạy khô đặt tay #{0}: CAM top-down phải đang thấy dấu chuẩn và tay hút #{0} ĐANG cầm sản phẩm mẫu.
+
+App soi dấu, đưa tay tới vị trí soi CAM bottom-up, Flow AlignBottom_Tool{0} tính lệnh đặt lên dấu, rồi tay chạy tới lệnh ở Z an toàn — không hạ Z. Tiếp tục?</value>
+  </data>
+  <data name="Vision.DryRunDone" xml:space="preserve">
+    <value>Chạy khô tay #{0}: dấu chuẩn tại ({1:0.000}, {2:0.000}); tay đã tới X {3:0.000}, Y2 {4:0.000}.
+
+Nhìn xuống: tâm sản phẩm mẫu phải nằm trên dấu chuẩn, lệch không quá 0.05 mm.</value>
+  </data>
+  <data name="Vision.DryRunPlace" xml:space="preserve">
+    <value>Chạy khô đặt lên dấu chuẩn (Tool đang chọn)</value>
+  </data>
+  <data name="Vision.DryRunPlaceTip" xml:space="preserve">
+    <value>Bấm đúp. Tay cầm sản phẩm mẫu. Soi dấu chuẩn, Flow AlignBottom_ToolN tính lệnh đặt lên dấu, tay tới lệnh ở Z an toàn — tâm sản phẩm phải nằm trên dấu</value>
+  </data>
+  <data name="Vision.DryRunStop" xml:space="preserve">
+    <value>Chạy khô tay #{0} dừng: {1}</value>
+  </data>
+  <data name="Vision.Expired" xml:space="preserve">
+    <value>HẾT HẠN</value>
+  </data>
+  <data name="Vision.GoToAlign4" xml:space="preserve">
+    <value>4 · Tới vị trí soi CAM dưới</value>
+  </data>
+  <data name="Vision.GoToAlign7" xml:space="preserve">
+    <value>7 · Tới vị trí soi CAM dưới</value>
+  </data>
+  <data name="Vision.GridPoint5Tip" xml:space="preserve">
+    <value>Bấm đúp: điểm giữa khung hình — đúng Calibration Center Point đã Save, offset (0,0)</value>
+  </data>
+  <data name="Vision.GridPointFail" xml:space="preserve">
+    <value>Điểm {0}: di chuyển hoặc Flow LocateTop (hiệu chuẩn) thất bại — kiểm tra lại.</value>
+  </data>
+  <data name="Vision.GridPointTip" xml:space="preserve">
+    <value>Bấm đúp: chạy X/Y2 tới điểm này của lưới 9 điểm rồi nạp một điểm vào module N-point</value>
+  </data>
+  <data name="Vision.GridStepX" xml:space="preserve">
+    <value>Bước X (mm)</value>
+  </data>
+  <data name="Vision.GridStepY" xml:space="preserve">
+    <value>Bước Y (mm)</value>
+  </data>
+  <data name="Vision.GuardConfirm" xml:space="preserve">
+    <value>Lệnh lệch lưới teach: {0}
+
+Chạy Auto thì ô này bị bỏ. Vẫn chạy tới điểm đó? (Z giữ nguyên cao độ an toàn.)</value>
+  </data>
+  <data name="Vision.GuardWarn" xml:space="preserve">
+    <value>Lệnh nằm NGOÀI hàng rào lưới teach: {0}
+
+Chạy Auto thì ô này bị bỏ. Nút "Tới điểm đặt" vẫn chạy được nhưng sẽ hỏi lại — thường là hand-eye hoặc lưới teach sai, xem lại trước khi hạ Z ở đâu đó.</value>
+  </data>
+  <data name="Vision.HandEyeNote" xml:space="preserve">
+    <value>Gá cơ cấu kẹp lên bàn tray lắp ráp, kẹp CHI TIẾT ĐÍCH cho nó không xê dịch, rồi đặt lên đó một shield can lắp đúng. Bấm 1 → 2 → 3 → 4 → 5: tay tới vị trí gắp đã dạy, gắp con can, LocateTop soi chi tiết vừa lộ ra ở dưới, tay ra đứng trước CAM bottom-up, rồi App ghi HandEyeDx_mm = X_gắp + ObjX_mm − TopX_mm và mốc góc giữa hai camera = ObjA_deg + TopA_deg (App cộng vào CellA_deg — thay cho Create Reference, module Single Point Alignment không có nút đó). Gắp lệch tâm cũng được, camera bottom-up đo đúng lượng lệch đó; thứ KHÔNG được xê dịch là chi tiết đích. ĐỪNG xoay trục A. Ba vị trí dạy ở trang Teaching, card Cơ cấu kẹp; cao độ hạ Z lấy của tray lắp ráp, nên cơ cấu phải giữ con can ở đúng cao độ đó.</value>
+  </data>
+  <data name="Vision.HandEyeNoteHeader" xml:space="preserve">
+    <value>Xác định hand-eye — offset CAM top-down ↔ tâm xoay tay hút</value>
+  </data>
+  <data name="Vision.HandEyeNotMeasured" xml:space="preserve">
+    <value>CHƯA đo</value>
+  </data>
+  <data name="Vision.HandEyeOutdated" xml:space="preserve">
+    <value>ĐO LẠI — bản ghi cũ, đo trước khi sửa chiều Y camera dưới (30/09)</value>
+  </data>
+  <data name="Vision.HandEyeStatus" xml:space="preserve">
+    <value>dx={0:0.000}, dy={1:0.000} mm, mốc góc {3:0.00}° — {2:dd/MM/yyyy HH:mm}</value>
+  </data>
+  <data name="Vision.Header" xml:space="preserve">
+    <value>HIỆU CHUẨN VISION</value>
+  </data>
+  <data name="Vision.HeaderNote" xml:space="preserve">
+    <value>Auto chỉ chạy khi kiểm tra top-down đã đạt, và cả hai tay đã qua phép thử vòng xoay và xác định hand-eye. Hiệu chuẩn lại CAM top-down thì làm lại kiểm tra top-down và xác định hand-eye; hiệu chuẩn lại CAM bottom-up thì làm lại phép thử vòng xoay.</value>
+  </data>
+  <data name="Vision.HeCellButton" xml:space="preserve">
+    <value>Ô…</value>
+  </data>
+  <data name="Vision.HeCellInPlace" xml:space="preserve">
+    <value>Tại chỗ — không chạy trục</value>
+  </data>
+  <data name="Vision.HeCellPickerTip" xml:space="preserve">
+    <value>Chọn ô tray lắp ráp cho nút 6</value>
+  </data>
+  <data name="Vision.HeCellPickerTitle" xml:space="preserve">
+    <value>Tray lắp ráp — chọn ô cho nút 6</value>
+  </data>
+  <data name="Vision.HeCheckTarget" xml:space="preserve">
+    <value>8 · Trigger AlignBottom, tính điểm đích</value>
+  </data>
+  <data name="Vision.HeCheckTargetTip" xml:space="preserve">
+    <value>Bấm đúp (có đưa Z tới cao độ chụp). Tay phải đang đứng ở vị trí soi CAM dưới (nút 7). AlignBottom soi con can trên tay, Group Cmd tính điểm đặt lên pose của nút 6, báo lệch so với encoder lúc gắp. Không chạy trục X</value>
+  </data>
+  <data name="Vision.HeCommit" xml:space="preserve">
+    <value>5 · Ghi hand-eye</value>
+  </data>
+  <data name="Vision.HeCommitDone" xml:space="preserve">
+    <value>Đã ghi hand-eye tay #{0}: dx={1:0.000}, dy={2:0.000} mm, mốc góc {3:0.00}°.
+
+Con can vẫn đang trên tay. Thử tổng quát thì Jog X/Y2 đi chỗ khác (chi tiết còn trong khung hình) (hoặc sang sản phẩm khác trên cơ cấu kẹp) rồi bấm 6 → 7 → 8 → 9; xong thì bấm "Trả con can về cơ cấu kẹp".</value>
+  </data>
+  <data name="Vision.HeCommitFail" xml:space="preserve">
+    <value>Hand-eye tay #{0} KHÔNG ghi: {1}</value>
+  </data>
+  <data name="Vision.HeCommitLine" xml:space="preserve">
+    <value>5. Đã ghi hand-eye tay #{0}: dx {1:0.000}, dy {2:0.000} mm, mốc góc {3:0.00}°</value>
+  </data>
+  <data name="Vision.HeCommitTip" xml:space="preserve">
+    <value>Bấm đúp: xoay A về đúng góc lúc gắp (phòng khi đã jog A), soi con can trên tay bằng AlignBottom_ToolN, chặn ngưỡng lệch tâm, rồi ghi hand-eye và mốc góc vào model</value>
+  </data>
+  <data name="Vision.HeGoToAlign7Tip" xml:space="preserve">
+    <value>Bấm đúp: chạy X tới AlignPosX của tay đang chọn — y như nút 4. Không xoay A</value>
+  </data>
+  <data name="Vision.HeGoToAlignTip" xml:space="preserve">
+    <value>Bấm đúp: chạy X tới AlignPosX của tay đang chọn — cùng lõi với nút 4 của khu chạy kiểm từng bước. Không xoay A</value>
+  </data>
+  <data name="Vision.HeGoToPick" xml:space="preserve">
+    <value>1 · Tới vị trí gắp trên cơ cấu kẹp</value>
+  </data>
+  <data name="Vision.HeGoToPickTip" xml:space="preserve">
+    <value>Bấm đúp: X, Y2 tới vị trí gắp đã dạy của tay đang chọn, A về góc hút — không chạm Z. Bấm lại là làm lại từ đầu, bỏ hết số đo cũ</value>
+  </data>
+  <data name="Vision.HeGoToTarget" xml:space="preserve">
+    <value>9 · Tới điểm đích vừa tính</value>
+  </data>
+  <data name="Vision.HeGoToTargetTip" xml:space="preserve">
+    <value>Bấm đúp: chạy X, Y2 và xoay A tới điểm đích nút 8 vừa tính, hạ Z tới điểm giảm tốc của tray lắp ráp rồi dừng — con can lơ lửng trên chi tiết, không chạm, không nhả. Nhìn con can có nằm đúng trên chi tiết không</value>
+  </data>
+  <data name="Vision.HeLocate" xml:space="preserve">
+    <value>3 · Soi chi tiết đích (LocateTop)</value>
+  </data>
+  <data name="Vision.HeLocateCell" xml:space="preserve">
+    <value>6 · Tới ô {0}, soi chi tiết (LocateTop)</value>
+  </data>
+  <data name="Vision.HeLocateHere" xml:space="preserve">
+    <value>6 · Soi chi tiết tại chỗ (LocateTop)</value>
+  </data>
+  <data name="Vision.HeLocateHereTip" xml:space="preserve">
+    <value>Bấm đúp. Có chọn ô (nút bên phải): CAM top-down tới vị trí soi ô đó của tray lắp ráp — cùng phép tính S05 — rồi kích LocateTop MỘT lần. Không chọn ô: kích ngay tại chỗ gantry đang đứng, KHÔNG chạy trục — TopX_mm là toạ độ máy tuyệt đối nên pose phải ra y như bước 3</value>
+  </data>
+  <data name="Vision.HeLocateTip" xml:space="preserve">
+    <value>Bấm đúp: CAM top-down tới vị trí soi đã dạy rồi kích LocateTop mấy ảnh, lấy trung bình TopX_mm / TopY_mm / TopA_deg của chi tiết vừa lộ ra</value>
+  </data>
+  <data name="Vision.HePick" xml:space="preserve">
+    <value>2 · Gắp con can mẫu</value>
+  </data>
+  <data name="Vision.HePickConfirm" xml:space="preserve">
+    <value>Cơ cấu kẹp đang kẹp chi tiết đích, và trên nó có một shield can lắp đúng chưa?
+
+App sẽ cho tay #{0} hạ Z xuống CAO ĐỘ ĐẶT CỦA TRAY LẮP RÁP rồi bật hút — cơ cấu kẹp phải giữ con can ở đúng cao độ đó. Tiếp tục?</value>
+  </data>
+  <data name="Vision.HePickTip" xml:space="preserve">
+    <value>Bấm đúp: hạ Z xuống cao độ đặt của tray lắp ráp, bật hút, nâng lên — và ghi encoder X/Y2 đúng lúc gắp. Có hạ Z nên hỏi lại trước</value>
+  </data>
+  <data name="Vision.HeRetestHeader" xml:space="preserve">
+    <value>Thử lại ở chỗ Jog bất kỳ</value>
+  </data>
+  <data name="Vision.HeRetestNote" xml:space="preserve">
+    <value>Hand-eye đã ghi thì bấm được ngay, không phải làm lại nút 1 → 5 — kể cả sau khi mở lại App; chỉ cần một con can trên tay (gắp bằng nút 1 → 2, hoặc hút ở trang Manual). Jog X/Y2 đi chỗ khác (chi tiết còn trong khung hình CAM trên) hoặc sang một sản phẩm khác trên cơ cấu kẹp — hay chọn một ô tray lắp ráp ở nút nhỏ cạnh nút 6 để CAM tự tới đó — rồi bấm 6 → 7 → 8 → 9: soi chi tiết (một ảnh), tới vị trí soi CAM dưới, Trigger AlignBottom tính điểm đích, tay tới điểm đích với Z dừng ở điểm giảm tốc ngay trên chi tiết để nhìn bằng mắt. Soi lại chính chi tiết vừa gắp bằng nút 2 thì điểm đích phải ra đúng chỗ đã gắp. CHẠY LẠI Ở NHIỀU CHỖ mới có ý nghĩa: tản ra theo chỗ Jog là hiệu chuẩn top-down trong khung hình. Soi lại chính chi tiết đã gắp thì hand-eye sai ĐỀU vẫn đạt; soi sang sản phẩm khác thì cái sai đó hiện ra thành khoảng lệch giữa con can và chi tiết mới.</value>
+  </data>
+  <data name="Vision.HeReturn" xml:space="preserve">
+    <value>Trả con can về cơ cấu kẹp</value>
+  </data>
+  <data name="Vision.HeReturnConfirm" xml:space="preserve">
+    <value>Trả con can trên tay #{0} về cơ cấu kẹp: App về vị trí gắp đã dạy và xoay A về góc hút, hạ Z, nhả hút và thổi, rồi nâng lên.
+
+Cơ cấu kẹp phải còn gá nguyên chỗ cũ. Tiếp tục?</value>
+  </data>
+  <data name="Vision.HeReturnTip" xml:space="preserve">
+    <value>Bấm đúp: về vị trí gắp đã dạy và xoay A về góc hút, hạ Z, nhả hút và thổi, nâng lên. Chỉ đòi tay đang cầm hàng — bỏ dở ở bước nào cũng bấm được</value>
+  </data>
+  <data name="Vision.HeTitleGoToPick" xml:space="preserve">
+    <value>1 · Tới vị trí gắp</value>
+  </data>
+  <data name="Vision.HeTitleLocate" xml:space="preserve">
+    <value>3 · Soi chi tiết đích</value>
+  </data>
+  <data name="Vision.JogBackTip" xml:space="preserve">
+    <value>Giữ để chạy lùi, nhả là dừng</value>
+  </data>
+  <data name="Vision.JogFast" xml:space="preserve">
+    <value>Nhanh</value>
+  </data>
+  <data name="Vision.JogFwdTip" xml:space="preserve">
+    <value>Giữ để chạy tới, nhả là dừng</value>
+  </data>
+  <data name="Vision.JogSlow" xml:space="preserve">
+    <value>Chậm</value>
+  </data>
+  <data name="Vision.MoveXToAlignFail" xml:space="preserve">
+    <value>Không chạy được X tới vị trí soi.</value>
+  </data>
+  <data name="Vision.NeedThreeAngles" xml:space="preserve">
+    <value>Cần tối thiểu 3 góc xoay — sửa danh sách góc bên trên.</value>
+  </data>
+  <data name="Vision.NoAlignPosX" xml:space="preserve">
+    <value>Chưa teach vị trí soi CAM bottom-up của tay #{0} (trang Teaching, nút "Teach tay #{0}") — chuỗi hiệu chuẩn sẽ chạy X về 0.</value>
+  </data>
+  <data name="Vision.NoCenter" xml:space="preserve">
+    <value>Chưa lưu Calibration Center Point — jog tới giữa khung hình rồi bấm Save trước.</value>
+  </data>
+  <data name="Vision.NoModel" xml:space="preserve">
+    <value>Chưa nạp model.</value>
+  </data>
+  <data name="Vision.NoOrigin" xml:space="preserve">
+    <value>Chưa về gốc — chạy Origin trước.</value>
+  </data>
+  <data name="Vision.NoOriginCalib" xml:space="preserve">
+    <value>Chưa về gốc — chạy Origin trước khi hiệu chuẩn.</value>
+  </data>
+  <data name="Vision.NoOriginCoords" xml:space="preserve">
+    <value>Chưa về gốc — toạ độ đọc lúc này không có ý nghĩa.</value>
+  </data>
+  <data name="Vision.NotCalibChecked" xml:space="preserve">
+    <value>(chưa kiểm tra hiệu chuẩn)</value>
+  </data>
+  <data name="Vision.NotChecked" xml:space="preserve">
+    <value>(chưa kiểm tra)</value>
+  </data>
+  <data name="Vision.Note" xml:space="preserve">
+    <value>Lưu ý: {0}</value>
+  </data>
+  <data name="Vision.NothingWritten" xml:space="preserve">
+    <value>{0}
+
+Chưa ghi gì vào model.</value>
+  </data>
+  <data name="Vision.NotRunYet" xml:space="preserve">
+    <value>(chưa chạy bước nào)</value>
+  </data>
+  <data name="Vision.ReadyHint" xml:space="preserve">
+    <value>Auto chỉ chạy khi hiệu chuẩn sẵn sàng — bấm "Kiểm tra hiệu chuẩn" bên dưới.</value>
+  </data>
+  <data name="Vision.RotationFail" xml:space="preserve">
+    <value>Vòng xoay tay #{0} KHÔNG ĐẠT: {1}</value>
+  </data>
+  <data name="Vision.RotationMoveXConfirm" xml:space="preserve">
+    <value>Trục X đang ở {0:0.000} nhưng vị trí soi của tay #{1} là {2:0.000}. Chạy X tới vị trí soi rồi thử?</value>
+  </data>
+  <data name="Vision.RotationPass" xml:space="preserve">
+    <value>Vòng xoay tay #{0} ĐẠT: xoay {1:0.0}° → đo được {2:0.0}°, dấu {3}, sai số dư {4:0.000} mm (lệch tâm {5:0.000} mm).</value>
+  </data>
+  <data name="Vision.RotationRunning" xml:space="preserve">
+    <value>Đang chạy phép thử vòng xoay (soi — xoay thử — soi lại)…</value>
+  </data>
+  <data name="Vision.RotationTest" xml:space="preserve">
+    <value>Phép thử vòng xoay</value>
+  </data>
+  <data name="Vision.RotationTestTip" xml:space="preserve">
+    <value>Bấm đúp: chụp sản phẩm trước và sau khi xoay thử — App so hai tư thế ra dấu góc, bắt được tâm xoay/chiều hệ toạ độ sai trong file bottom-up; đạt thì ghi vào model</value>
+  </data>
+  <data name="Vision.RunAlignSeq" xml:space="preserve">
+    <value>Chạy chuỗi hiệu chuẩn Align</value>
+  </data>
+  <data name="Vision.RunAlignSeqTip" xml:space="preserve">
+    <value>Bấm đúp: chạy các vị trí X rồi các góc trục A tại vị trí soi, mỗi bước nạp một điểm</value>
+  </data>
+  <data name="Vision.SaveCenter" xml:space="preserve">
+    <value>Save (ghi xuống system.json)</value>
+  </data>
+  <data name="Vision.SaveCenterTip" xml:space="preserve">
+    <value>Lưu vị trí trục X/Y2 hiện tại làm Calibration Center Point (điểm 5) và ghi ngay xuống system.json cùng bước lưới X/Y</value>
+  </data>
+  <data name="Vision.SelectTool" xml:space="preserve">
+    <value>Chọn Tool (tay hút)</value>
+  </data>
+  <data name="Vision.SeqAlignBottom" xml:space="preserve">
+    <value>5 · Trigger AlignBottom (lấy độ lệch)</value>
+  </data>
+  <data name="Vision.SeqAlignBottomTip" xml:space="preserve">
+    <value>Bấm đúp (có đưa Z tới cao độ chụp): soi sản phẩm trên tay; Group Cmd tính lệnh đặt vào ô đã soi bằng Trigger LocateTop. App chặn ngưỡng và hàng rào lưới teach y như chạy Auto</value>
+  </data>
+  <data name="Vision.SeqAssyRow" xml:space="preserve">
+    <value>Ô lắp ráp — hàng</value>
+  </data>
+  <data name="Vision.SeqCol" xml:space="preserve">
+    <value>cột</value>
+  </data>
+  <data name="Vision.SeqHeader" xml:space="preserve">
+    <value>Chạy kiểm từng bước — cả chu trình</value>
+  </data>
+  <data name="Vision.SeqInputRow" xml:space="preserve">
+    <value>Ô đầu vào — hàng</value>
+  </data>
+  <data name="Vision.SeqLocateTopTip" xml:space="preserve">
+    <value>Kích Flow LocateTop tại chỗ, đọc TopX_mm / TopY_mm / TopA_deg và cất làm pose ô đích cho nút Trigger AlignBottom</value>
+  </data>
+  <data name="Vision.SeqMoveCam" xml:space="preserve">
+    <value>1 · CAM tới ô lắp ráp</value>
+  </data>
+  <data name="Vision.SeqMoveCamTip" xml:space="preserve">
+    <value>Bấm đúp. Mốc CAM top-down đã teach + độ lệch của ô so với Ô (1,1) theo lưới teach của Tool 2 — đúng phép tính S05 lúc chạy Auto. Bấm nút này là bỏ số LocateTop đang cất.</value>
+  </data>
+  <data name="Vision.SeqMoveCamTitle" xml:space="preserve">
+    <value>CAM tới ô lắp ráp</value>
+  </data>
+  <data name="Vision.SeqMoveToAlignTip" xml:space="preserve">
+    <value>Bấm đúp: chạy X tới AlignPosX của tay đang chọn — đúng vị trí đã dùng khi hiệu chuẩn bottom-up và phép thử vòng xoay</value>
+  </data>
+  <data name="Vision.SeqMoveToAlignTitle" xml:space="preserve">
+    <value>Tới vị trí soi CAM dưới</value>
+  </data>
+  <data name="Vision.SeqMoveToCmd" xml:space="preserve">
+    <value>6 · Tới điểm đặt đã tính</value>
+  </data>
+  <data name="Vision.SeqMoveToCmdTip" xml:space="preserve">
+    <value>Bấm đúp: chạy A, X, Y tới CmdA_deg / CmdX_mm / CmdY2_mm — giữ nguyên Z an toàn, không nhả hút</value>
+  </data>
+  <data name="Vision.SeqMoveToCmdTitle" xml:space="preserve">
+    <value>Tới điểm đặt</value>
+  </data>
+  <data name="Vision.SeqNote" xml:space="preserve">
+    <value>Chạy tay đúng trình tự Auto, mỗi bước một nút. Tay hút = Tool đang chọn ở trên. Nút 'Tới điểm đặt' KHÔNG hạ Z và KHÔNG nhả hút — xem xong thì sang trang Manual hạ/nhả.</value>
+  </data>
+  <data name="Vision.SeqPick" xml:space="preserve">
+    <value>3 · Hút hàng ở ô đầu vào</value>
+  </data>
+  <data name="Vision.SeqPickConfirm" xml:space="preserve">
+    <value>Hút hàng: tay hút #{0} chạy tới ô ({1},{2}) của tray đầu vào, HẠ Z xuống cao độ hút, bật hút rồi nâng lên.
+
+Ô đó phải đang có sản phẩm. Tiếp tục?</value>
+  </data>
+  <data name="Vision.SeqPickTip" xml:space="preserve">
+    <value>Bấm đúp: tới ô tray đầu vào, hạ Z xuống cao độ hút, bật hút, nâng lên — ghi sổ tay đang cầm hàng như lúc chạy Auto</value>
+  </data>
+  <data name="Vision.SeqPickTitle" xml:space="preserve">
+    <value>Hút hàng</value>
+  </data>
+  <data name="Vision.StepBottomUp" xml:space="preserve">
+    <value>Hiệu chuẩn CAM bottom-up (Tool đang chọn)</value>
+  </data>
+  <data name="Vision.StepHandEye" xml:space="preserve">
+    <value>Xác định hand-eye (Tool đang chọn)</value>
+  </data>
+  <data name="Vision.StepRotation" xml:space="preserve">
+    <value>Phép thử vòng xoay (Tool đang chọn)</value>
+  </data>
+  <data name="Vision.StepSequence" xml:space="preserve">
+    <value>Chạy kiểm từng bước cả chu trình</value>
+  </data>
+  <data name="Vision.StepsLabel" xml:space="preserve">
+    <value>Bước hiệu chuẩn — làm lần lượt từ trên xuống</value>
+  </data>
+  <data name="Vision.StepsTip" xml:space="preserve">
+    <value>Danh sách xếp đúng thứ tự phải làm. Chỉ khối của bước đang chọn hiện ra bên dưới.</value>
+  </data>
+  <data name="Vision.StepStopped" xml:space="preserve">
+    <value>{0} dừng: {1}</value>
+  </data>
+  <data name="Vision.StepTopDown" xml:space="preserve">
+    <value>Hiệu chuẩn + kiểm tra CAM top-down (dùng chung)</value>
+  </data>
+  <data name="Vision.StepVerify" xml:space="preserve">
+    <value>Nghiệm thu — chạy khô</value>
+  </data>
+  <data name="Vision.StoppedMidway" xml:space="preserve">
+    <value>Dừng giữa chừng.</value>
+  </data>
+  <data name="Vision.StopTip" xml:space="preserve">
+    <value>Dừng tất cả — giống nút STOP trang Main: dừng trục, huỷ chuỗi hiệu chuẩn / hand-eye / chạy kiểm đang chạy</value>
+  </data>
+  <data name="Vision.TestAngle" xml:space="preserve">
+    <value>Góc thử (°)</value>
+  </data>
+  <data name="Vision.TopDownFail" xml:space="preserve">
+    <value>Top-down KHÔNG ĐẠT: {0}</value>
+  </data>
+  <data name="Vision.TopDownNote" xml:space="preserve">
+    <value>Dấu chuẩn phải nằm trên đồ gá tray (đi theo Y2), không dán trên bàn máy: các hàng của lưới được tạo bằng cách chạy tray theo Y2. Jog X/Y2 tới giữa khung hình rồi bấm Save — mọi điểm tính offset từ toạ độ đó.</value>
+  </data>
+  <data name="Vision.TopDownNoteHeader" xml:space="preserve">
+    <value>Hiệu chuẩn top-down — lưới 9 điểm</value>
+  </data>
+  <data name="Vision.TopDownPass" xml:space="preserve">
+    <value>Top-down ĐẠT (chạy {0:0.0} mm): lệch X {1:0.000}, Y {2:0.000} mm; lẫn trục {3:0.000}/{4:0.000} mm.</value>
+  </data>
+  <data name="Vision.TriggerAlignCalib" xml:space="preserve">
+    <value>Trigger AlignBottom hiệu chuẩn (không xoay)</value>
+  </data>
+  <data name="Vision.TriggerAlignCalibTip" xml:space="preserve">
+    <value>Bấm đúp: đưa Z tới cao độ chụp rồi nạp thêm một điểm tại góc hiện tại — cũng làm thay đổi danh sách điểm hiệu chuẩn</value>
+  </data>
+  <data name="Vision.TriggerAlignNotFound" xml:space="preserve">
+    <value>Đã kích hoạt Flow AlignBottom_Tool{0} (hiệu chuẩn) — KHÔNG báo tìm thấy, kiểm tra sản phẩm/khung hình.</value>
+  </data>
+  <data name="Vision.TriggerAlignOk" xml:space="preserve">
+    <value>Đã kích hoạt Flow AlignBottom_Tool{0} (hiệu chuẩn) — báo tìm thấy. Lưu ý: điểm này ĐÃ được nạp vào danh sách hiệu chuẩn.</value>
+  </data>
+  <data name="Vision.TriggerTopCalib" xml:space="preserve">
+    <value>Trigger LocateTop (hiệu chuẩn)</value>
+  </data>
+  <data name="Vision.TriggerTopCalibTip" xml:space="preserve">
+    <value>Kích nhánh hiệu chuẩn của Flow LocateTop (IsTriggerLocate = 0) tại vị trí hiện tại — CẢNH BÁO: cũng nạp thêm một điểm vào module N-point, không phải nút test vô hại</value>
+  </data>
+  <data name="Vision.TriggerTopNotFound" xml:space="preserve">
+    <value>Đã kích hoạt Flow LocateTop (hiệu chuẩn) — KHÔNG báo tìm thấy, kiểm tra dấu chuẩn/khung hình.</value>
+  </data>
+  <data name="Vision.TriggerTopOk" xml:space="preserve">
+    <value>Đã kích hoạt Flow LocateTop (hiệu chuẩn) — báo tìm thấy. Lưu ý: điểm này ĐÃ được nạp vào danh sách hiệu chuẩn.</value>
+  </data>
+  <data name="Vision.Vacuum1" xml:space="preserve">
+    <value>Hút #1</value>
+  </data>
+  <data name="Vision.Vacuum1Tip" xml:space="preserve">
+    <value>Bật/tắt van hút tay #1 — xanh là van đang bật</value>
+  </data>
+  <data name="Vision.Vacuum2" xml:space="preserve">
+    <value>Hút #2</value>
+  </data>
+  <data name="Vision.Vacuum2Tip" xml:space="preserve">
+    <value>Bật/tắt van hút tay #2 — xanh là van đang bật</value>
+  </data>
+  <data name="Vision.VerifyingTopDown" xml:space="preserve">
+    <value>Đang kiểm tra top-down (đo dấu chuẩn ở ba vị trí)…</value>
+  </data>
+  <data name="Vision.VerifyTopDown" xml:space="preserve">
+    <value>Kiểm tra top-down (dấu + thang đo)</value>
+  </data>
+  <data name="Vision.VerifyTopDownTip" xml:space="preserve">
+    <value>Bấm đúp: đo dấu chuẩn ở ba vị trí (gốc, sau khi chạy X, sau khi chạy Y2) — App so vị trí dấu, đạt thì ghi ngày vào model</value>
+  </data>
+  <data name="Vision.VerifyTravel" xml:space="preserve">
+    <value>Quãng chạy thử (mm)</value>
+  </data>
+  <data name="Vision.Z1SafeTip" xml:space="preserve">
+    <value>Bấm đúp: chạy Z1 lên cao độ an toàn Z_SAFE — cần đã về gốc, đã bật servo và mở phanh</value>
+  </data>
+  <data name="Vision.Z2SafeTip" xml:space="preserve">
+    <value>Bấm đúp: chạy Z2 lên cao độ an toàn Z_SAFE — cần đã về gốc, đã bật servo và mở phanh</value>
+  </data>
+  <data name="Vision.ZSafeTitle" xml:space="preserve">
+    <value>{0} về Z an toàn</value>
+  </data>
+  <data name="Vm.Cancelled" xml:space="preserve">
+    <value>bị huỷ</value>
+  </data>
+  <data name="Vm.CancelledInFlow" xml:space="preserve">
+    <value>bị huỷ khi đang chạy Flow {0}</value>
+  </data>
+  <data name="Vm.CountMissing" xml:space="preserve">
+    <value> · Thiếu: {0}</value>
+  </data>
+  <data name="Vm.CountWrongType" xml:space="preserve">
+    <value> · Sai kiểu: {0}</value>
+  </data>
+  <data name="Vm.DevClearPointFail" xml:space="preserve">
+    <value>module "{0}" của Flow "{1}" không xoá được điểm (mã 0x{2:X})</value>
+  </data>
+  <data name="Vm.DevFlowNotFound" xml:space="preserve">
+    <value>không tìm thấy Flow "{0}" trong solution — kiểm tra tên trong VisionMaster IDE</value>
+  </data>
+  <data name="Vm.DevGvListNull" xml:space="preserve">
+    <value>module Global Variable trả danh sách biến rỗng (null)</value>
+  </data>
+  <data name="Vm.DevMissingOutputParam" xml:space="preserve">
+    <value>Flow "{0}" thiếu output "{1}" — kiểm tra Output Params của Flow</value>
+  </data>
+  <data name="Vm.DevMissingOutputVar" xml:space="preserve">
+    <value>Flow "{0}" thiếu output "{1}" — kiểm tra biến output trong solution</value>
+  </data>
+  <data name="Vm.DevNoCalibModule" xml:space="preserve">
+    <value>Flow "{0}" không có module N-point Calibration hay Translation Calibration nào</value>
+  </data>
+  <data name="Vm.DevNoGvModule" xml:space="preserve">
+    <value>solution không có module Global Variable — thêm module đó vào solution (Global Module › Global Variable) rồi khai các biến trục</value>
+  </data>
+  <data name="Vm.DevNoGvModuleNamed" xml:space="preserve">
+    <value>solution không có module Global Variable tên "{0}" — thêm module đó vào solution (Global Module › Global Variable) rồi khai các biến trục</value>
+  </data>
+  <data name="Vm.DevValueNotFinite" xml:space="preserve">
+    <value>giá trị ghi vào biến "{0}" không hữu hạn</value>
+  </data>
+  <data name="Vm.DevVarNameEmpty" xml:space="preserve">
+    <value>tên biến toàn cục trống — kiểm tra GvAxisX/Y2/A1/A2 trong system.json</value>
+  </data>
+  <data name="Vm.DevVarNotDeclared" xml:space="preserve">
+    <value>solution chưa khai biến toàn cục "{0}" — bấm Kiểm tra biến ở trang Setting</value>
+  </data>
+  <data name="Vm.DevVarNotDeclaredList" xml:space="preserve">
+    <value>solution chưa khai biến toàn cục "{0}" — đang có: {1}</value>
+  </data>
+  <data name="Vm.FlowInputParamsLeft" xml:space="preserve">
+    <value>{0} còn khai {1} Input Params — hợp đồng không dùng Input Params nữa, xoá cho sạch</value>
+  </data>
+  <data name="Vm.FlowNameMissing" xml:space="preserve">
+    <value>thiếu tên Flow</value>
+  </data>
+  <data name="Vm.FlowNameNotSet" xml:space="preserve">
+    <value>chưa đặt tên Flow ở trang Setting</value>
+  </data>
+  <data name="Vm.FlowNoOutputs" xml:space="preserve">
+    <value>{0}: solution không trả về tên output nào — Flow chưa khai gì ở tab Output Params, hoặc chưa chạy lần nào kể từ lúc nạp solution</value>
+  </data>
+  <data name="Vm.FlowTimeout" xml:space="preserve">
+    <value>quá thời gian chờ Flow {0}</value>
+  </data>
+  <data name="Vm.FlowUnreadable" xml:space="preserve">
+    <value>không đọc được</value>
+  </data>
+  <data name="Vm.GvCreated" xml:space="preserve">
+    <value> · Đã tạo: {0}</value>
+  </data>
+  <data name="Vm.GvCreatedAsType" xml:space="preserve">
+    <value>tạo ra kiểu {0}</value>
+  </data>
+  <data name="Vm.GvExisting" xml:space="preserve">
+    <value>Có sẵn đúng kiểu: {0}</value>
+  </data>
+  <data name="Vm.GvFailedCount" xml:space="preserve">
+    <value> · Tạo lỗi: {0}</value>
+  </data>
+  <data name="Vm.GvInvalidNameCount" xml:space="preserve">
+    <value> · Tên không hợp lệ: {0}</value>
+  </data>
+  <data name="Vm.GvListFailed" xml:space="preserve">
+    <value>Tạo lỗi</value>
+  </data>
+  <data name="Vm.GvListInvalidName" xml:space="preserve">
+    <value>Tên không hợp lệ</value>
+  </data>
+  <data name="Vm.GvListMissing" xml:space="preserve">
+    <value>Còn thiếu</value>
+  </data>
+  <data name="Vm.GvListWrongType" xml:space="preserve">
+    <value>Sai kiểu — App không tự sửa, sửa tay trong VisionMaster</value>
+  </data>
+  <data name="Vm.GvMoreVars" xml:space="preserve">
+    <value> … và {0} biến khác</value>
+  </data>
+  <data name="Vm.GvNoStore" xml:space="preserve">
+    <value>thiếu kho biến hoặc danh mục biến</value>
+  </data>
+  <data name="Vm.GvNotFoundAfterCreate" xml:space="preserve">
+    <value>không thấy biến sau khi tạo</value>
+  </data>
+  <data name="Vm.GvNotSaved" xml:space="preserve">
+    <value>Chưa lưu solution (không có biến mới hoặc lưu lỗi).</value>
+  </data>
+  <data name="Vm.GvReadFail" xml:space="preserve">
+    <value>không đọc được danh sách biến toàn cục — {0}</value>
+  </data>
+  <data name="Vm.GvRereadFail" xml:space="preserve">
+    <value>không đọc lại được danh sách biến để xác nhận</value>
+  </data>
+  <data name="Vm.GvRereadFailAfterCreate" xml:space="preserve">
+    <value>không đọc lại được danh sách biến sau khi tạo — {0}</value>
+  </data>
+  <data name="Vm.GvSaved" xml:space="preserve">
+    <value>Đã lưu solution.</value>
+  </data>
+  <data name="Vm.GvSaveFail" xml:space="preserve">
+    <value>đã tạo biến nhưng lưu solution lỗi — {0}</value>
+  </data>
+  <data name="Vm.GvTypeIs" xml:space="preserve">
+    <value>đang là {0}, cần {1}</value>
+  </data>
+  <data name="Vm.NameEmpty" xml:space="preserve">
+    <value>tên trống</value>
+  </data>
+  <data name="Vm.NameForbiddenChars" xml:space="preserve">
+    <value>chứa ký tự cấm ? ; . / \ ` { } [ ] &lt; &gt; ( )</value>
+  </data>
+  <data name="Vm.NameSpaces" xml:space="preserve">
+    <value>có khoảng trắng đầu/cuối</value>
+  </data>
+  <data name="Vm.NameTooLong" xml:space="preserve">
+    <value>dài quá 125 byte</value>
+  </data>
+  <data name="Vm.NoCalibAxes" xml:space="preserve">
+    <value>thiếu vị trí trục để nạp điểm hiệu chuẩn</value>
+  </data>
+  <data name="Vm.NoSolution" xml:space="preserve">
+    <value>chưa nạp solution</value>
+  </data>
+  <data name="Vm.NotConnected" xml:space="preserve">
+    <value>chưa kết nối</value>
+  </data>
+  <data name="Vm.NoVisionSolution" xml:space="preserve">
+    <value>chưa nạp solution vision</value>
+  </data>
+  <data name="Vm.OutAllClean" xml:space="preserve">
+    <value>Ba Flow và ba Script khai đủ theo hợp đồng.</value>
+  </data>
+  <data name="Vm.OutExtraCount" xml:space="preserve">
+    <value> · Khai thêm: {0}</value>
+  </data>
+  <data name="Vm.OutExtraHeader" xml:space="preserve">
+    <value>Khai thêm ngoài hợp đồng (App không đọc, để lại cũng được):</value>
+  </data>
+  <data name="Vm.OutLineMissing" xml:space="preserve">
+    <value>  · thiếu output {0}</value>
+  </data>
+  <data name="Vm.OutLineTypo" xml:space="preserve">
+    <value>  · có "{0}" — hợp đồng dùng "{1}", đổi tên ô này</value>
+  </data>
+  <data name="Vm.OutLineUnbound" xml:space="preserve">
+    <value>  · {0} CHƯA BIND — ô Subscribe bỏ trống, số vào Script luôn bằng 0</value>
+  </data>
+  <data name="Vm.OutLineWrongType" xml:space="preserve">
+    <value>  · {0} khai kiểu {1} — App chỉ đọc được float hoặc int, sẽ báo "thiếu output"</value>
+  </data>
+  <data name="Vm.OutOkCount" xml:space="preserve">
+    <value>Đủ và đúng kiểu: {0}</value>
+  </data>
+  <data name="Vm.OutTypoCount" xml:space="preserve">
+    <value> · Sai tên: {0}</value>
+  </data>
+  <data name="Vm.OutUnboundCount" xml:space="preserve">
+    <value> · CHƯA BIND: {0}</value>
+  </data>
+  <data name="Vm.ReportError" xml:space="preserve">
+    <value>LỖI: {0}</value>
+  </data>
+  <data name="Vm.ScriptBlockHead" xml:space="preserve">
+    <value>Script {0} trong {1} — {2} Input, {3} Output</value>
+  </data>
+  <data name="Vm.ScriptDeclares" xml:space="preserve">
+    <value>{0} khai: {1}</value>
+  </data>
+  <data name="Vm.ScriptNoModules" xml:space="preserve">
+    <value>{0}: không duyệt được module bên trong Flow — bỏ qua phần kiểm Script</value>
+  </data>
+  <data name="Vm.ScriptNoOutputs" xml:space="preserve">
+    <value>(không có output nào)</value>
+  </data>
+  <data name="Vm.ScriptNotBound" xml:space="preserve">
+    <value>← (CHƯA BIND)</value>
+  </data>
+  <data name="Vm.ScriptNotFound" xml:space="preserve">
+    <value>{0}: không thấy module nào khai output của Script {1} (module trong Flow: {2})</value>
+  </data>
+  <data name="Vm.SimClearFail" xml:space="preserve">
+    <value>mô phỏng: module hiệu chuẩn báo lỗi khi xoá điểm</value>
+  </data>
+  <data name="Vm.SimFlowMissingOutput" xml:space="preserve">
+    <value>Flow "{0}" thiếu output "{1}"</value>
+  </data>
+  <data name="Vm.SimFlowNotFound" xml:space="preserve">
+    <value>không tìm thấy Flow "{0}" trong solution</value>
+  </data>
+  <data name="Vm.SimNoOutputSource" xml:space="preserve">
+    <value>mô phỏng: không có solution để đọc Output Params</value>
+  </data>
+  <data name="Vm.SimObjectNotFound" xml:space="preserve">
+    <value>không tìm thấy đối tượng</value>
+  </data>
+  <data name="Vm.SimValueNotFinite" xml:space="preserve">
+    <value>giá trị ghi vào "{0}" không hữu hạn</value>
+  </data>
+  <data name="Vm.SimVarNameEmpty" xml:space="preserve">
+    <value>tên biến toàn cục trống</value>
+  </data>
+  <data name="Vm.SimVarNotDeclared" xml:space="preserve">
+    <value>solution chưa khai biến toàn cục "{0}"</value>
+  </data>
+  <data name="Vm.SolutionNotFound" xml:space="preserve">
+    <value>solution báo không tìm thấy</value>
+  </data>
+  <data name="Vm.StAlignAngleOut" xml:space="preserve">
+    <value>góc đo khác góc encoder quá VerifyAngleTolDeg</value>
+  </data>
+  <data name="Vm.StAlignAxisMoved" xml:space="preserve">
+    <value>trục X đã chạy giữa hai lần chụp</value>
+  </data>
+  <data name="Vm.StAlignEccOut" xml:space="preserve">
+    <value>sai số dư vượt VerifyTolMm — tâm xoay hoặc chiều hệ toạ độ của file bottom-up sai</value>
+  </data>
+  <data name="Vm.StAlignNoConclusion" xml:space="preserve">
+    <value>sản phẩm lệch tâm dưới MinEccMm, không kết luận được tâm xoay — không ghi</value>
+  </data>
+  <data name="Vm.StAlignOk" xml:space="preserve">
+    <value>đạt — đã đo được dấu góc</value>
+  </data>
+  <data name="Vm.StAlignTurnSmall" xml:space="preserve">
+    <value>góc thử nhỏ hơn MinVerifyTurnDeg</value>
+  </data>
+  <data name="Vm.StNotFinite" xml:space="preserve">
+    <value>số không hữu hạn</value>
+  </data>
+  <data name="Vm.StOdd" xml:space="preserve">
+    <value>Status lạ ({0})</value>
+  </data>
+  <data name="Vm.StPlaceInvalid" xml:space="preserve">
+    <value>số không hợp lệ hoặc Single Point Alignment báo NG</value>
+  </data>
+  <data name="Vm.StPlaceNoTarget" xml:space="preserve">
+    <value>Flow không tính lệnh — biến HasTarget không tới Flow (Group Cmd chưa đọc biến?)</value>
+  </data>
+  <data name="Vm.StPlaceOdd" xml:space="preserve">
+    <value>Status lạ ({0}) — Script không chạy tới cuối hoặc output khai sai kiểu</value>
+  </data>
+  <data name="Vm.StPlaceOk" xml:space="preserve">
+    <value>tính được lệnh</value>
+  </data>
+  <data name="Vm.StTopAxisMoved" xml:space="preserve">
+    <value>trục còn lại đã chạy trong lúc đo</value>
+  </data>
+  <data name="Vm.StTopEccOut" xml:space="preserve">
+    <value>sai lệch vượt dung sai</value>
+  </data>
+  <data name="Vm.StTopOk" xml:space="preserve">
+    <value>đạt</value>
+  </data>
+  <data name="Vm.StTopStepSmall" xml:space="preserve">
+    <value>bước chạy dưới 0.5 mm</value>
+  </data>
+  <data name="Vm.StTopWrongSign" xml:space="preserve">
+    <value>SAI DẤU — dấu chuẩn dịch cùng chiều trục thay vì đứng yên</value>
+  </data>
+  <data name="Vm.Timeout" xml:space="preserve">
+    <value>quá thời gian chờ</value>
+  </data>
+  <data name="Vm.TypeCode" xml:space="preserve">
+    <value>kiểu {0}</value>
+  </data>
+  <data name="Vm.TypeImage" xml:space="preserve">
+    <value>ảnh</value>
+  </data>
+  <data name="Vm.TypeString" xml:space="preserve">
+    <value>chuỗi</value>
+  </data>
+  <data name="VmCycle.AxisVarsEmpty" xml:space="preserve">
+    <value>tên biến trục (GvAxisX/Y2/A1/A2) trong system.json còn trống</value>
+  </data>
+  <data name="VmCycle.CheckMatch" xml:space="preserve">
+    <value>KHỚP Group Cmd (lệch tối đa {0:0.0000} mm, {1:0.000}°)</value>
+  </data>
+  <data name="VmCycle.CheckMismatch" xml:space="preserve">
+    <value>LỆCH Group Cmd: CmdX {0}, CmdY2 {1}, CmdA {2}°, DiagDA {3}° (lệch tối đa {4:0.000} mm, {5:0.00}°)</value>
+  </data>
+  <data name="VmCycle.CheckRecalc" xml:space="preserve">
+    <value>App tính lại: đích ({0:0.000}, {1:0.000}, {2:0.00}°), Δθ {3:+0.00;-0.00}°, dấu {4:+0;-0}, góc bù {5:+0.00;-0.00}° → lệnh X {6:0.000}, Y2 {7:0.000}, A {8:0.00}° — {9}</value>
+  </data>
+  <data name="VmCycle.CmdAFarFromCapture" xml:space="preserve">
+    <value>góc lệnh {0:0.00}° cách góc lúc chụp {1} quá ngưỡng góc bù + 1°</value>
+  </data>
+  <data name="VmCycle.CmdAOutOfRange" xml:space="preserve">
+    <value>{0} = {1} ngoài [0, 360]</value>
+  </data>
+  <data name="VmCycle.CmdNotFinite" xml:space="preserve">
+    <value>lệnh hoặc số chẩn đoán không hữu hạn</value>
+  </data>
+  <data name="VmCycle.CmdXSoftLimit" xml:space="preserve">
+    <value>lệnh X = {0} ngoài soft limit</value>
+  </data>
+  <data name="VmCycle.CmdY2SoftLimit" xml:space="preserve">
+    <value>lệnh Y2 = {0} ngoài soft limit</value>
+  </data>
+  <data name="VmCycle.EchoRunIdMismatch" xml:space="preserve">
+    <value>EchoRunId không khớp RunId vừa ghi — đọc phải kết quả của lần chạy khác</value>
+  </data>
+  <data name="VmCycle.GateAlignPosMoved" xml:space="preserve">
+    <value>vị trí soi tay #{0} ({1:0.000}) khác vị trí đã xác minh ở phép thử vòng xoay ({2:0.000}) quá {3:0.000} mm — chạy lại phép thử vòng xoay cho tay này</value>
+  </data>
+  <data name="VmCycle.GateHandEyeMissing" xml:space="preserve">
+    <value>hand-eye tay #{0} chưa xác định</value>
+  </data>
+  <data name="VmCycle.GateHandEyeOld" xml:space="preserve">
+    <value>hand-eye tay #{0} là bản ghi cũ (đo trước khi sửa chiều Y camera dưới 30/09) — chạy lại bước xác định hand-eye</value>
+  </data>
+  <data name="VmCycle.GateNoModel" xml:space="preserve">
+    <value>chưa nạp model hoặc cấu hình</value>
+  </data>
+  <data name="VmCycle.GateNoSign" xml:space="preserve">
+    <value>dấu góc tay #{0} chưa đo (phép thử vòng xoay)</value>
+  </data>
+  <data name="VmCycle.GateNotReady" xml:space="preserve">
+    <value>Hiệu chuẩn: CHƯA sẵn sàng — {0}</value>
+  </data>
+  <data name="VmCycle.GateReady" xml:space="preserve">
+    <value>Hiệu chuẩn: sẵn sàng — hand-eye #1 ({0:0.000}, {1:0.000}, mốc góc {6:0.00}°), #2 ({2:0.000}, {3:0.000}, mốc góc {7:0.00}°); dấu góc {4:+0;-0}/{5:+0;-0}</value>
+  </data>
+  <data name="VmCycle.GateThresholds" xml:space="preserve">
+    <value>ngưỡng ở trang Setting không hợp lệ (góc bù, lệch tâm, dung sai vị trí soi X)</value>
+  </data>
+  <data name="VmCycle.GateTopDown" xml:space="preserve">
+    <value>kiểm tra top-down chưa đạt</value>
+  </data>
+  <data name="VmCycle.Missing" xml:space="preserve">
+    <value>(thiếu)</value>
+  </data>
+  <data name="VmCycle.MissingOutput" xml:space="preserve">
+    <value>thiếu output {0}</value>
+  </data>
+  <data name="VmCycle.NaNMissing" xml:space="preserve">
+    <value>NaN (thiếu)</value>
+  </data>
+  <data name="VmCycle.NgAngle" xml:space="preserve">
+    <value>góc bù {0:0.00}° vượt ngưỡng {1:0.#}° (lệch tâm {2:0.000} mm)</value>
+  </data>
+  <data name="VmCycle.NgEcc" xml:space="preserve">
+    <value>lệch tâm {0:0.000} mm vượt ngưỡng {1:0.##} mm (góc bù {2:0.00}°)</value>
+  </data>
+  <data name="VmCycle.NoResult" xml:space="preserve">
+    <value>không có kết quả</value>
+  </data>
+  <data name="VmCycle.NoSuchFlow" xml:space="preserve">
+    <value>không có Flow tên này trong hợp đồng</value>
+  </data>
+  <data name="VmCycle.NoteGroupCmdOutputs" xml:space="preserve">
+    <value>tám output Status / CmdX_mm / CmdY2_mm / CmdA_deg / Diag* là của Group Cmd — thiếu cả cụm nghĩa là Group chưa dựng hoặc chưa kéo lên Output Params của Flow</value>
+  </data>
+  <data name="VmCycle.NoteTool2Echo" xml:space="preserve">
+    <value>Group Cmd của Tool 2 Import từ Tool 1 thì nhớ đổi Echo0 sang A2_deg</value>
+  </data>
+  <data name="VmCycle.NoVisionNames" xml:space="preserve">
+    <value>thiếu cấu hình tên vision</value>
+  </data>
+  <data name="VmCycle.ObjRunIdMismatch" xml:space="preserve">
+    <value>ObjRunId không khớp RunId — Script trong Group Cmd chưa chạy tới lệnh cuối</value>
+  </data>
+  <data name="VmCycle.PoseNotFinite" xml:space="preserve">
+    <value>{0}/{1}/{2} không hữu hạn hoặc thiếu</value>
+  </data>
+  <data name="VmCycle.RunIdNotReached" xml:space="preserve">
+    <value>{0} ≠ RunId — Script chưa chạy tới lệnh cuối</value>
+  </data>
+  <data name="VmCycle.SimSource" xml:space="preserve">
+    <value>mô phỏng</value>
+  </data>
+  <data name="VmCycle.SkipCmdOffGrid" xml:space="preserve">
+    <value>lệnh lệch lưới teach X {0:+0.000;-0.000} mm, Y {1:+0.000;-0.000} mm (ngưỡng {2:0.00} mm)</value>
+  </data>
+  <data name="VmCycle.SkipTargetOffGrid" xml:space="preserve">
+    <value>đích lệch lưới teach X {0:+0.000;-0.000} mm, Y {1:+0.000;-0.000} mm (ngưỡng {2:0.00} mm)</value>
+  </data>
+</root>

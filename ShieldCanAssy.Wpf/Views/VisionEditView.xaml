@@ -1,0 +1,609 @@
+﻿<UserControl x:Class="ShieldCanAssy.Wpf.Views.VisionEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vmui="clr-namespace:VMControls.WPF.Release;assembly=VMControls.WPF.Release"
+             xmlns:vm="clr-namespace:ShieldCanAssy.Wpf.ViewModels"
+             xmlns:l="clr-namespace:ShieldCanAssy.Wpf.Mvvm">
+
+    <UserControl.DataContext>
+        <vm:VisionCalibViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <!-- Chú thích dài gập lại dưới tiêu đề in đậm: mặc định chỉ hiện tiêu đề, bấm vào tiêu đề mới mở đoạn
+             giải thích (Tuấn yêu cầu 2026-09-25 — cột này hẹp, các đoạn chú thích đẩy nút bấm xuống dưới mép màn
+             1280×1024). Mũi tên vẽ bằng Path, không dùng ký tự font icon để khỏi phụ thuộc máy có font đó. -->
+        <Style x:Key="NoteExpanderStyle" TargetType="Expander">
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <StackPanel>
+                            <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                          Cursor="Hand" Focusable="False">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent" Padding="0,2">
+                                            <DockPanel>
+                                                <Path x:Name="Chevron" DockPanel.Dock="Left" Data="M0,0 L4,4 L0,8 Z"
+                                                      Width="5" Height="8" Stretch="Fill" VerticalAlignment="Top" Margin="0,5,6,0"
+                                                      Fill="{StaticResource TextSecondaryBrush}" RenderTransformOrigin="0.5,0.5"/>
+                                                <ContentPresenter/>
+                                            </DockPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Chevron" Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <RotateTransform Angle="90"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="Body" Visibility="Collapsed" Margin="11,2,0,2"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="Body" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nút Chậm/Nhanh của thanh Jog — tô nút đang chọn, như trang Teaching. Tốc độ thật của mỗi mức
+             chỉnh ở trang Setting (AxisConfig.JogSpeedSlow/JogSpeedFast). -->
+        <Style x:Key="JogSlowButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding JogFast}" Value="False">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="JogFastButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding JogFast}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Nút Hút #1/#2 — tô xanh khi van đang BẬT, cùng màu với IoOnButtonStyle của trang Teaching. Tag bind vào
+             trạng thái DO; phải là DataTrigger, không phải Trigger Property="Tag" (xem chú thích ở TeachingView). -->
+        <Style x:Key="IoOnButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="280"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Hàng tiêu đề chứa luôn thanh Jog X/Y2/Z1/Z2/A1/A2 — đưa camera top-down tới dấu chuẩn, chỉnh tay
+             trục Z và xoay đầu hút mà không rời trang (Tuấn yêu cầu 2026-09-13, thêm Z 2026-09-19, thêm A
+             2026-09-22; dời lên cạnh chữ "Vision Edit" 2026-09-22 cho đỡ tốn một dòng của cột VisionMaster).
+             Sắp lại thành lưới 2 hàng cố định 2026-09-26 (Tuấn: WrapPanel cũ ở 1280×1024 xuống dòng lộn xộn):
+               X  −+   Z1 −+   Z2 −+   [Z1 → Z_SAFE] [Z2 → Z_SAFE]   [Chậm]   [STOP]
+               Y2 −+   A1 −+   A2 −+   [Hút #1]      [Hút #2]        [Nhanh]  [    ]
+             mỗi cột một cụm: gantry, tay #1, tay #2 — nút Z_SAFE và Hút của từng tay thẳng hàng với nhau. Bỏ số
+             toạ độ trục: thanh trạng thái trên cùng đã hiện rồi. Rộng ~930 px, còn dư ở màn 1280. -->
+        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+            <Grid HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="VISION EDIT" FontSize="20" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="0,0,24,0"/>
+
+                <!-- Jog −/+ giữ để chạy, nhả là dừng (code-behind, không dùng Command). Khoá khi một
+                     phép hiệu chuẩn đang tự chạy trục (Busy), để tay không giành trục với routine.
+                     Thứ tự phần tử X, Z1, Z2, Y2, A1, A2 (VisionCalibViewModel.JogAxes) rải theo hàng. -->
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding JogAxes}" VerticalAlignment="Center"
+                              IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3" Rows="2"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
+                                <TextBlock Text="{Binding Name}" Width="28" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                                <Button Content="−" Width="44" Height="36" Margin="0,0,2,0" Tag="-1" FontSize="18"
+                                        PreviewMouseLeftButtonDown="Jog_Down" PreviewMouseLeftButtonUp="Jog_Up"
+                                        MouseLeave="Jog_Leave" ToolTip="{l:T Vision.JogBackTip}"/>
+                                <Button Content="+" Width="44" Height="36" Tag="1" FontSize="18"
+                                        PreviewMouseLeftButtonDown="Jog_Down" PreviewMouseLeftButtonUp="Jog_Up"
+                                        MouseLeave="Jog_Leave" ToolTip="{l:T Vision.JogFwdTip}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Nút theo từng tay: Z_SAFE ở hàng trên, van hút ở hàng dưới.
+                     Z_SAFE: trước 2026-09-23 hai nút này chạy VỀ GỐC riêng Z1/Z2; Tuấn đổi sang lệnh chạy tới Z_SAFE,
+                     giống nút "Về gốc" của trang Teaching. Bấm đúp như mọi nút chạy trục của trang.
+                     Hút: một nút toggle mỗi van như trang Teaching, xanh = van đang BẬT (đọc lại DO thật). Khoá theo
+                     Busy như Jog — routine hiệu chuẩn đang tự bật/tắt hút thì tay không giành van. -->
+                <Grid Grid.Column="2" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Content="Z1 → Z_SAFE" Command="{Binding MoveZSafeCommand}" CommandParameter="Z1"
+                            Width="108" Height="36" Margin="0,2,4,2"
+                            IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                            PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                            ToolTip="{l:T Vision.Z1SafeTip}"/>
+                    <Button Grid.Row="0" Grid.Column="1" Content="Z2 → Z_SAFE" Command="{Binding MoveZSafeCommand}" CommandParameter="Z2"
+                            Width="108" Height="36" Margin="0,2,0,2"
+                            IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                            PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                            ToolTip="{l:T Vision.Z2SafeTip}"/>
+                    <Button Grid.Row="1" Grid.Column="0" Content="{l:T Vision.Vacuum1}" Command="{Binding Vacuum1ToggleCommand}"
+                            Width="108" Height="36" Margin="0,2,4,2"
+                            Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Vacuum1On}"
+                            IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                            ToolTip="{l:T Vision.Vacuum1Tip}"/>
+                    <Button Grid.Row="1" Grid.Column="1" Content="{l:T Vision.Vacuum2}" Command="{Binding Vacuum2ToggleCommand}"
+                            Width="108" Height="36" Margin="0,2,0,2"
+                            Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Vacuum2On}"
+                            IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                            ToolTip="{l:T Vision.Vacuum2Tip}"/>
+                </Grid>
+
+                <!-- Chậm/Nhanh chung cho mọi trục và mọi trang (McFunction.JogFast). -->
+                <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <Button Content="{l:T Vision.JogSlow}" Command="{Binding SetJogSlowCommand}" Width="76" Height="36" Margin="0,2"
+                            Style="{StaticResource JogSlowButtonStyle}"/>
+                    <Button Content="{l:T Vision.JogFast}" Command="{Binding SetJogFastCommand}" Width="76" Height="36" Margin="0,2"
+                            Style="{StaticResource JogFastButtonStyle}"/>
+                </StackPanel>
+
+                <!-- STOP cao bằng hai hàng cho dễ bấm. Không khoá theo Busy: dừng được cả khi phép hiệu chuẩn đang
+                     chạy trục. -->
+                <Button Grid.Column="4" Content="STOP" Command="{Binding StopAllCommand}" Width="96" Height="76"
+                        FontSize="16" FontWeight="Bold" VerticalAlignment="Center"
+                        Background="{StaticResource CriticalBrush}" Foreground="{StaticResource TextOnAccentBrush}"
+                        ToolTip="{l:T Vision.StopTip}"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,8,0">
+            <DockPanel>
+                <!-- Toolbar SDK của VisionMaster — mở Camera Manager/Communication Manager/Global
+                     Variable/Global Script/Global Trigger (VmGlobalToolControl.OpenGlobalCamera(),
+                     .OpenCommunicationManager(), v.v.). Thanh Jog nằm ở hàng tiêu đề phía trên. -->
+                <Border DockPanel.Dock="Top" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,1">
+                    <vmui:VmGlobalToolControl Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                </Border>
+                <vmui:VmMainViewConfigControl x:Name="ConfigControl"/>
+            </DockPanel>
+        </Border>
+
+        <!-- Cột hiệu chuẩn vision (§6). Phép hiệu chuẩn làm bên VisionMaster (cột trái); các nút ở
+             đây chỉ nạp điểm, kiểm tra lại bằng chuyển động trục thật, và đo hand-eye (Tuấn chốt
+             2026-09-12). DataContext riêng (VisionCalibViewModel) vì VmMainViewConfigControl bên
+             cột trái không bind qua DataContext (gán thẳng bằng code-behind), không xung đột. -->
+        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorderStyle}"
+                IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0,0,4,0">
+                    <!-- Chữ trên nút xuống dòng thay vì bị cắt: cột chỉ còn ~241 px khi hiện thanh cuộn, mà vài tên nút
+                         dài hơn thế. Nút nào tên dài thì bỏ Height cố định để nó cao lên đủ hai dòng. -->
+                    <StackPanel.Resources>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Setter Property="ContentTemplate">
+                                <Setter.Value>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center"/>
+                                    </DataTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </StackPanel.Resources>
+                    <!-- ══════════ LUÔN HIỆN: cổng Auto, dòng tiến trình, chọn Tool, chọn bước ══════════
+                         Nút "Kiểm tra hiệu chuẩn" ở đây chứ không nằm trong một bước: nó chỉ LÀM MỚI dòng cổng Auto
+                         ngay dưới tiêu đề, và bấm START cũng ra đúng câu đó (Routine_Auto đánh giá cùng cổng rồi dừng kèm lý do).
+                         SequenceStatusText cũng ở đây: bốn bước khác nhau ghi tiến trình vào nó (nạp 9 điểm, kiểm tra
+                         top-down, chuỗi bottom-up, phép thử vòng xoay) — nhét vào một bước là ba bước kia mất dòng báo. -->
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                    <Expander Header="{l:T Vision.Header}" Style="{StaticResource NoteExpanderStyle}" Margin="0">
+                        <Expander.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Style="{StaticResource SectionHeaderStyle}"/>
+                            </DataTemplate>
+                        </Expander.HeaderTemplate>
+                        <TextBlock TextWrapping="Wrap" FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="{l:T Vision.HeaderNote}"/>
+                    </Expander>
+                    </Border>
+                    <TextBlock Text="{Binding ReadyStatusText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <Button Content="{l:T Vision.CheckCalib}" Command="{Binding CheckCalibCommand}" Height="26" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding VmStatusText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding SequenceStatusText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                    <Separator Margin="0,0,0,8"/>
+
+                    <!-- Tool 1/2 = tay hút #1/#2 — Align và Hand-eye là hiệu chuẩn RIÊNG từng tay,
+                         chọn Tool ở đây để chuyển ngữ cảnh cho cả hai khối bên dưới. -->
+                    <TextBlock Text="{l:T Vision.SelectTool}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <RadioButton Content="Tool 1" GroupName="CalibTool" VerticalAlignment="Center"
+                                     IsChecked="{Binding IsTool1}" Margin="0,0,20,0"/>
+                        <RadioButton Content="Tool 2" GroupName="CalibTool" VerticalAlignment="Center"
+                                     IsChecked="{Binding IsTool2}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{l:T Vision.StepsLabel}" FontSize="12" FontWeight="SemiBold"
+                           TextWrapping="Wrap" Margin="0,0,0,4"/>
+                    <!-- Tên bước xuống dòng thay vì bị cắt: cột này chỉ rộng ~270 px, không đủ cho tên dài nhất. -->
+                    <ComboBox ItemsSource="{Binding CalibSteps}" SelectedIndex="{Binding StepIndex}"
+                              MinHeight="30" Margin="0,0,0,10"
+                              ToolTip="{l:T Vision.StepsTip}">
+                        <!-- Mục là CalibStepItem: Text đổi tại chỗ khi đổi ngôn ngữ, ItemsSource giữ nguyên nên bước
+                             đang chọn không bị đặt lại. -->
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Separator Margin="0,0,0,8"/>
+
+                    <!-- ══ Bước: Hiệu chuẩn + kiểm tra CAM top-down (dùng chung) ══ -->
+                    <!-- Dùng chung cho cả hai tay — ô chọn Tool ở trên không ảnh hưởng bước này. -->
+                    <StackPanel Visibility="{Binding IsStepTopDown, Converter={StaticResource BoolToVis}}">
+                        <!-- ── CAM top-down: lưới 9 điểm ── -->
+                        <Expander Header="{l:T Vision.TopDownNoteHeader}" Style="{StaticResource NoteExpanderStyle}">
+                            <TextBlock TextWrapping="Wrap" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="{l:T Vision.TopDownNote}"/>
+                        </Expander>
+
+                        <!-- TextWrapping="Wrap" — thiếu thuộc tính này làm cả dòng (nhãn + X + Y +
+                             trạng thái) tràn thẳng ra ngoài mép cột thay vì xuống dòng (Tuấn chụp ảnh
+                             chỉ ra, 2026-09-07). -->
+                        <TextBlock FontSize="11" Margin="0,0,0,2" TextWrapping="Wrap">
+                            <Run Text="Calibration Center Point:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding CalibrationCenterX, StringFormat='X={0:0.000}', Mode=OneWay}" FontWeight="SemiBold"/>
+                            <Run Text="{Binding CalibrationCenterY, StringFormat='Y={0:0.000}', Mode=OneWay}" FontWeight="SemiBold"/>
+                            <Run Text="{Binding CalibrationCenterStatusText, Mode=OneWay}" FontSize="10"/>
+                        </TextBlock>
+                        <Button Content="{l:T Vision.SaveCenter}" Command="{Binding SaveCalibrationCenterCommand}" Height="26" Margin="0,0,0,8"
+                                ToolTip="{l:T Vision.SaveCenterTip}"/>
+
+                        <!-- 2 hàng (nhãn + ô nhập) thay vì 4 cột trên 1 hàng: 4 cột Auto+70+Auto+70 cần
+                             ~284px, vượt bề rộng khả dụng của cột 280px (Tuấn chụp ảnh chỉ ra, 2026-09-07). -->
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:T Vision.GridStepX}" VerticalAlignment="Center" Margin="0,0,6,4" FontSize="11"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" MinHeight="28" Margin="0,0,0,4" Text="{Binding TopDownCalibStepXMm}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:T Vision.GridStepY}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" MinHeight="28" Text="{Binding TopDownCalibStepYMm}"/>
+                        </Grid>
+
+                        <!-- Numpad: hàng trên 7,8,9 — giữa 4,5,6 — dưới 1,2,3, khớp đúng cách người
+                             dùng đánh số minh hoạ. Điểm 5 = đúng Calibration Center Point đã Save.
+                             Auto Calib chạy theo thứ tự hình S của VisionMaster, không theo 1→9. -->
+                        <!-- Mọi nút làm trục chạy trên trang này đều BẤM ĐÚP (Tuấn đồng bộ 2026-09-26) — cùng cách
+                             nút Z1/Z2 → Z_SAFE và các nút Tới… ở trang Teaching. Chỉ nút chỉ kích Flow tại chỗ mới
+                             bấm một lần. -->
+                        <UniformGrid Rows="3" Columns="3" Margin="0,0,0,6">
+                            <UniformGrid.Resources>
+                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="RequireDoubleClick_PreviewMouseLeftButtonDown"/>
+                                    <Setter Property="ToolTip" Value="{l:T Vision.GridPointTip}"/>
+                                </Style>
+                            </UniformGrid.Resources>
+                            <Button Content="7" Height="40" Margin="2" Command="{Binding TopDownPoint7Command}"/>
+                            <Button Content="8" Height="40" Margin="2" Command="{Binding TopDownPoint8Command}"/>
+                            <Button Content="9" Height="40" Margin="2" Command="{Binding TopDownPoint9Command}"/>
+                            <Button Content="4" Height="40" Margin="2" Command="{Binding TopDownPoint4Command}"/>
+                            <Button Content="5" Height="40" Margin="2" Command="{Binding TopDownPoint5Command}"
+                                    ToolTip="{l:T Vision.GridPoint5Tip}"/>
+                            <Button Content="6" Height="40" Margin="2" Command="{Binding TopDownPoint6Command}"/>
+                            <Button Content="1" Height="40" Margin="2" Command="{Binding TopDownPoint1Command}"/>
+                            <Button Content="2" Height="40" Margin="2" Command="{Binding TopDownPoint2Command}"/>
+                            <Button Content="3" Height="40" Margin="2" Command="{Binding TopDownPoint3Command}"/>
+                        </UniformGrid>
+
+                        <Button Content="{l:T Vision.AutoCalib}" Command="{Binding AutoCalibCommand}" Height="30" Margin="0,0,0,6"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.AutoCalibTip}"/>
+
+                        <Button Content="{l:T Vision.TriggerTopCalib}" Command="{Binding TriggerTopDownFlowCommand}"
+                                Height="28" Margin="0,0,0,6"
+                                ToolTip="{l:T Vision.TriggerTopCalibTip}"/>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{l:T Vision.VerifyTravel}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBox Grid.Column="1" MinHeight="28" Text="{Binding TopDownVerifyStepMm}"/>
+                        </Grid>
+                        <Button Content="{l:T Vision.VerifyTopDown}" Command="{Binding VerifyTopDownCommand}" Margin="0,0,0,6"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.VerifyTopDownTip}"/>
+
+                        <TextBlock Text="{Binding VerifyResultText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"/>
+                    </StackPanel>
+
+                    <!-- ══ Bước: Hiệu chuẩn CAM bottom-up (Tool đang chọn) ══ -->
+                    <StackPanel Visibility="{Binding IsStepBottomUp, Converter={StaticResource BoolToVis}}">
+                        <!-- ── CAM bottom-up: hiệu chuẩn Align trong VisionMaster ── -->
+                        <Expander Header="{l:T Vision.BottomUpNoteHeader}" Style="{StaticResource NoteExpanderStyle}">
+                            <TextBlock TextWrapping="Wrap" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="{l:T Vision.BottomUpNote}"/>
+                        </Expander>
+
+                        <TextBlock Text="{l:T Vision.AlignXOffsets}" FontSize="11" Margin="0,0,0,2"/>
+                        <TextBox MinHeight="28" Margin="0,0,0,4" Text="{Binding AlignCalibXOffsetsMm}"/>
+                        <TextBlock Text="{l:T Vision.AlignAngles}" FontSize="11" Margin="0,0,0,2"/>
+                        <TextBox MinHeight="28" Margin="0,0,0,6" Text="{Binding AlignCalibAnglesDeg}"/>
+
+                        <Button Content="{l:T Vision.RunAlignSeq}" Command="{Binding RunAlignCalibSequenceCommand}" Height="30" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.RunAlignSeqTip}"/>
+                        <!-- Có chạy trục: hạ Z tới cao độ chụp bottom-up trước khi kích (MoveZToBottomCaptureAsync). -->
+                        <Button Content="{l:T Vision.TriggerAlignCalib}" Command="{Binding TriggerAlignCalibFlowCommand}"
+                                Height="28" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.TriggerAlignCalibTip}"/>
+                        <Button Content="{l:T Vision.AxisAToZero}" Command="{Binding AlignAxisToZeroCommand}" Height="28" Margin="0,0,0,8"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.AxisAToZeroTip}"/>
+                    </StackPanel>
+
+                    <!-- ══ Bước: Phép thử vòng xoay (Tool đang chọn) ══ -->
+                    <!-- Nghiệm thu của bước 2 — tách riêng để đọc Combobox là thấy mỗi lần hiệu chuẩn đi kèm một phép nghiệm thu. -->
+                    <StackPanel Visibility="{Binding IsStepRotation, Converter={StaticResource BoolToVis}}">
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{l:T Vision.TestAngle}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBox Grid.Column="1" MinHeight="28" Text="{Binding AlignVerifyAngleDeg}"/>
+                        </Grid>
+                        <Button Content="{l:T Vision.RotationTest}" Command="{Binding VerifyAlignRotationCommand}" Height="28" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.RotationTestTip}"/>
+                        <TextBlock Text="{Binding AlignStatusText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"/>
+                            <!-- Cùng một VerifyResultText với bước 1: cả kiểm tra top-down lẫn phép thử vòng xoay đều ghi vào
+                                 đó. Không hiện ở đây thì bấm xong không thấy kết quả — bước 1 đang bị ẩn. -->
+                            <TextBlock Text="{Binding VerifyResultText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"/>
+                    </StackPanel>
+
+                    <!-- ══ Bước: Xác định hand-eye (Tool đang chọn) ══ -->
+                    <StackPanel Visibility="{Binding IsStepHandEye, Converter={StaticResource BoolToVis}}">
+                        <!-- ── Xác định hand-eye ──
+                             Bảy nút, mỗi nút một việc (Tuấn yêu cầu 2026-09-25); 26/09 tách nút tính điểm đích thành 7/8, thêm 9. Con can mẫu gắp trên CƠ CẤU KẸP giữ
+                             chi tiết đích đứng yên, ở vị trí Jog-dạy riêng trên trang Teaching — không còn ô hàng/cột
+                             của tray lắp ráp. Xếp DỌC, không Width cố định: 2 nút Width=140 cạnh nhau tràn khỏi cột
+                             280px (Tuấn chụp ảnh chỉ ra, 2026-09-07). -->
+                        <Expander Header="{l:T Vision.HandEyeNoteHeader}" Style="{StaticResource NoteExpanderStyle}">
+                            <TextBlock TextWrapping="Wrap" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="{l:T Vision.HandEyeNote}"/>
+                        </Expander>
+                        <TextBlock Text="{Binding HandEyeStatusText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,4"/>
+                        <StackPanel Margin="0,0,0,6">
+                            <Button Content="{l:T Vision.HeGoToPick}" Command="{Binding HandEyeGoToPickCommand}" Height="28" Margin="0,0,0,4"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HeGoToPickTip}"/>
+                            <Button Content="{l:T Vision.HePick}" Command="{Binding HandEyePickCommand}" Height="28" Margin="0,0,0,4"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HePickTip}"/>
+                            <Button Content="{l:T Vision.HeLocate}" Command="{Binding HandEyeLocateCommand}" Height="28" Margin="0,0,0,4"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HeLocateTip}"/>
+                            <Button Content="{l:T Vision.GoToAlign4}" Command="{Binding HandEyeGoToAlignCommand}" Height="28" Margin="0,0,0,4"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HeGoToAlignTip}"/>
+                            <Button Content="{l:T Vision.HeCommit}" Command="{Binding HandEyeCommitCommand}" Height="28"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HeCommitTip}"/>
+                        </StackPanel>
+
+                        <!-- Phép thử tổng quát (Tuấn nêu 2026-09-25). Đoạn mô tả nói CẢ HAI vế — nó chứng minh gì và
+                             nó không chứng minh gì — vì con số ra đẹp ở đây rất dễ bị đọc thành "hand-eye đã đúng". -->
+                        <Expander Header="{l:T Vision.HeRetestHeader}" Style="{StaticResource NoteExpanderStyle}">
+                            <TextBlock TextWrapping="Wrap" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="{l:T Vision.HeRetestNote}"/>
+                        </Expander>
+                        <StackPanel Margin="0,0,0,6">
+                            <!-- Nút nhỏ cạnh nút 6 mở lưới ô tray lắp ráp (Tuấn thêm 2026-09-26): chọn ô thì nút 6 đưa CAM
+                                 top-down tới ô đó rồi kích LocateTop một lần; không chọn thì soi tại chỗ như trước.
+                                 MinHeight thay Height: nhãn nút 6 đổi theo ô chọn, dài ra thì xuống dòng thay vì bị cắt. -->
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="{Binding HandEyeLocateLabel}" Command="{Binding HandEyeLocateHereCommand}" MinHeight="28"
+                                        PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                        ToolTip="{l:T Vision.HeLocateHereTip}"/>
+                                <Button x:Name="HandEyeCellPickerButton" Grid.Column="1" Content="{Binding HandEyeCellButtonText}" Command="{Binding OpenHandEyeCellPickerCommand}"
+                                        MinWidth="52" MinHeight="28" Margin="4,0,0,0" Padding="6,0"
+                                        ToolTip="{l:T Vision.HeCellPickerTip}"/>
+                                <Popup IsOpen="{Binding HandEyeCellPickerOpen, Mode=TwoWay}" StaysOpen="False"
+                                       PlacementTarget="{Binding ElementName=HandEyeCellPickerButton}" Placement="Bottom"
+                                       AllowsTransparency="True">
+                                    <Border Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource CardStrokeBrush}"
+                                            BorderThickness="1" CornerRadius="8" Padding="8">
+                                        <StackPanel>
+                                            <TextBlock Text="{l:T Vision.HeCellPickerTitle}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
+                                            <ItemsControl ItemsSource="{Binding HandEyeCells}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <UniformGrid Rows="{Binding HandEyeCellRows}" Columns="{Binding HandEyeCellCols}"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Button Margin="2" MinWidth="44" MinHeight="36" Content="{Binding Label}" FontSize="11"
+                                                                Command="{Binding DataContext.SelectHandEyeCellCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                CommandParameter="{Binding}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Value="True">
+                                                                            <DataTrigger.Binding>
+                                                                                <MultiBinding Converter="{StaticResource RefEquals}">
+                                                                                    <Binding/>
+                                                                                    <Binding Path="DataContext.HandEyeCell" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                                                                                </MultiBinding>
+                                                                            </DataTrigger.Binding>
+                                                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                                                            <Setter Property="BorderThickness" Value="2.5"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <Button Content="{l:T Vision.HeCellInPlace}" Command="{Binding ClearHandEyeCellCommand}"
+                                                    MinHeight="28" Margin="2,6,2,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                            <Button Content="{l:T Vision.GoToAlign7}" Command="{Binding HandEyeGoToAlignForTestCommand}" Height="28" Margin="0,0,0,4"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HeGoToAlign7Tip}"/>
+                            <Button Content="{l:T Vision.HeCheckTarget}" Command="{Binding HandEyeCheckTargetCommand}" MinHeight="28" Margin="0,0,0,4"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HeCheckTargetTip}"/>
+                            <Button Content="{l:T Vision.HeGoToTarget}" Command="{Binding HandEyeGoToTargetCommand}" Height="28"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Vision.HeGoToTargetTip}"/>
+                        </StackPanel>
+
+                        <Button Content="{l:T Vision.HeReturn}" Command="{Binding HandEyeReturnCommand}" Height="28" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.HeReturnTip}"/>
+                        <TextBlock Text="{Binding HandEyeStepText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"/>
+                    </StackPanel>
+
+                    <!-- ══ Bước: Nghiệm thu — chạy khô (đo sau đặt bỏ 2026-10-08 cùng Flow MeasurePlaced) ══ -->
+                    <StackPanel Visibility="{Binding IsStepVerify, Converter={StaticResource BoolToVis}}">
+                        <Expander Header="{l:T Vision.AcceptHeader}" Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
+                            <TextBlock TextWrapping="Wrap" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="{l:T Vision.AcceptNote}"/>
+                        </Expander>
+                        <Button Content="{l:T Vision.DryRunPlace}" Command="{Binding DryRunPlaceAlignCommand}" Margin="0,0,0,8"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.DryRunPlaceTip}"/>
+                    </StackPanel>
+
+                    <!-- ══ Bước: Chạy kiểm từng bước cả chu trình ══ -->
+                    <StackPanel Visibility="{Binding IsStepSequence, Converter={StaticResource BoolToVis}}">
+                        <!-- ── Chạy kiểm từng bước cả chu trình (Tuấn yêu cầu 2026-09-14) ──
+                             Đúng trình tự Auto: soi ô đích → hút → tới chỗ soi → soi sản phẩm và tính lệnh → tới
+                             điểm đặt; mỗi bước một nút để đọc số giữa chừng. Tay hút theo Tool đang chọn ở trên.
+                             Nút cuối dừng ở Z an toàn — chỗ nguy hiểm nhất là lần hạ xuống đặt, và mọi sai lệch cần
+                             nhìn đều đọc được ở trên cao. -->
+                        <Expander Header="{l:T Vision.SeqHeader}" Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
+                            <TextBlock TextWrapping="Wrap" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="{l:T Vision.SeqNote}"/>
+                        </Expander>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{l:T Vision.SeqAssyRow}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBox Grid.Column="1" MinHeight="28" Margin="0,0,8,0" Text="{Binding StepAssyRow}"/>
+                            <TextBlock Grid.Column="2" Text="{l:T Vision.SeqCol}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBox Grid.Column="3" MinHeight="28" Text="{Binding StepAssyCol}"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{l:T Vision.SeqInputRow}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBox Grid.Column="1" MinHeight="28" Margin="0,0,8,0" Text="{Binding StepInputRow}"/>
+                            <TextBlock Grid.Column="2" Text="{l:T Vision.SeqCol}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"/>
+                            <TextBox Grid.Column="3" MinHeight="28" Text="{Binding StepInputCol}"/>
+                        </Grid>
+
+                        <Button Content="{l:T Vision.SeqMoveCam}" Command="{Binding StepMoveCamCommand}" Height="28" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.SeqMoveCamTip}"/>
+                        <Button Content="2 · Trigger LocateTop" Command="{Binding StepLocateTopCommand}" Height="28" Margin="0,0,0,4"
+                                ToolTip="{l:T Vision.SeqLocateTopTip}"/>
+                        <Button Content="{l:T Vision.SeqPick}" Command="{Binding StepPickCommand}" Height="28" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.SeqPickTip}"/>
+                        <Button Content="{l:T Vision.GoToAlign4}" Command="{Binding StepMoveToAlignCommand}" Height="28" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.SeqMoveToAlignTip}"/>
+                        <Button Content="{l:T Vision.SeqAlignBottom}" Command="{Binding StepAlignBottomCommand}" Margin="0,0,0,4"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.SeqAlignBottomTip}"/>
+                        <Button Content="{l:T Vision.SeqMoveToCmd}" Command="{Binding StepMoveToCommandCommand}" Height="28" Margin="0,0,0,6"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Vision.SeqMoveToCmdTip}"/>
+
+                        <TextBlock Text="{Binding StepResultText}" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,10"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

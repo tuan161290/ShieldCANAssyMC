@@ -1,0 +1,187 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-445A8E5B-F2C6-406E-AB19-E7C3F95C5854.html
+
+Rotate Calculate
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Rotate Calculate
+
+ Rotate
+ Calculate
+
+ The Rotate Calculate module can rotate a point or
+ line around the rotation center in accordance with the rotation angle, and calculate the
+ coordinate information of the point or line after rotation.
+
+ This section contains:
+
+- 
+ How It Works
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How It Works
+
+ The module principle is shown in the formula below. In this formula, Out
+ X/Y is the coordinate of the output point, In X/Y is the coordinate of the input
+ point, X0 and Y0 is the coordinate of the rotation center, and
+ θ is the rotation angle in the image coordinate system (θ is positive for clockwise
+ rotation and negative for counterclockwise rotation).
+
+ [img:GUID-560AE9D7-0861-4DFD-8C7F-2B345B32F30C-high.png] 
+
+ How To Use
+
+ This module should be used with the Image Source module and the Locating modules as the predecessors, as shown
+ in the figure below.
+
+ [img:GUID-B849481F-70A1-4670-B1EA-C84B2D5FBA5C-high.png] 
+ Figure 1 Rotate Calculate Application
+ Example
+
+ In the figure above, the Image Source module can
+ provide the image, the locating modules can provide the feature points or lines in
+ the image coordinate system, and the Rotation Calculate
+ module can rotate the angle bisector (blue) 45° around the intersection to obtain
+ the rotated line (green).
+
+ Parameter Configuration
+
+ This part introduces the configuration of basic parameters. For the
+ result parameters, see Result Show.
+
+ Image Input
+
+ Subscribe to images in the Input
+ Source module.
+
+ Input Type
+
+ Set the point or line to be rotated and calculated. Optional
+ By Point or Line.
+
+ Point Input
+
+ When selecting By Point, set
+ the point coordinate.
+
+ Line Input
+
+ When selecting Line, set
+ the line to be rotated.
+
+ Rotate CenterPoint
+
+ Set the coordinate of the rotation center.
+
+ Rotation Angle
+
+ Set the rotation angle when rotating around the center point
+ of rotation. The value is positive for clockwise rotation and negative
+ for counterclockwise rotation.
+
+ Module Result
+
+ Module Result of Rotate
+ Calculate is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ Output Point
+
+ Output Point X
+
+ Float. The X-coordinate of the point obtained by
+ rotating input point.
+
+ Note 
+ Pixel coordinate system is used.
+
+ Output Point Y
+
+ Float. The Y-coordinate of the point obtained by
+ rotating input point.
+
+ Output Line
+
+ Line Start Point
+
+ Line Start
+ X
+
+ Float. The X coordinate of output
+ line start point.
+
+ Line Start Y
+
+ Float. The Y coordinate of output
+ line start point.
+
+ Line End Point
+
+ Line End X
+
+ Float. The X coordinate of output
+ line end point.
+
+ Line End X
+
+ Float. The Y coordinate of output
+ line end point.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

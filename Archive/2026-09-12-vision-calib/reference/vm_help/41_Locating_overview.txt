@@ -1,0 +1,43 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-077CCCFA-347D-4416-A862-B4790B74561B.html
+
+Locating
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Locating
+
+ Locating
+
+ The locating and other related modules are mainly suitable to detect and
+ position some features in images. 
+
+Share
+
+ Previous Page
+Next Page
+
+ -->

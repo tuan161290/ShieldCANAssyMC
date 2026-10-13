@@ -1,0 +1,934 @@
+﻿<UserControl x:Class="ShieldCanAssy.Wpf.Views.TeachingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ShieldCanAssy.Wpf.ViewModels"
+             xmlns:l="clr-namespace:ShieldCanAssy.Wpf.Mvvm">
+
+    <UserControl.DataContext>
+        <vm:TeachingViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <!-- Nút hẹp (ô vacuum) — FlatButtonStyle mặc định Padding="10,5" ăn hết chỗ của nút rộng
+             ~34-56px, chữ tràn ra ngoài Border/ContentPresenter (không tự cắt) và đè lên control
+             cạnh bên. -->
+        <Style x:Key="CompactButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+            <Setter Property="Padding" Value="4,3"/>
+        </Style>
+
+        <!-- Khu Jog gọn (Tuấn yêu cầu 2026-09-28: ưu tiên chỗ cho lưới ô tray). Nút thấp 30 px thay vì MinHeight 36
+             của FlatButtonStyle, không kẻ vạch giữa các hàng — năm trục xếp trong ba hàng, xem card "Jog trục & khí nén".
+             Chỉ Jog −/+ và vị trí đọc được, không Stop/Home/SVO/RST/Move/ORG như trang Manual: teach chỉ cần jog vào
+             đúng ô rồi bấm Teach — các nút chẩn đoán/an toàn vẫn ở nguyên trang Manual (2026-08-19). -->
+        <Style x:Key="JogButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Margin" Value="1,0"/>
+        </Style>
+
+        <!-- Phần chung của mọi hàng Jog: tên trục, vị trí, −/+. Hàng X và Z thêm nút chạy tới vị trí ở template riêng. -->
+        <DataTemplate x:Key="JogCoreTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}" FontWeight="Bold" Width="26" VerticalAlignment="Center"/>
+                <TextBlock Width="84" VerticalAlignment="Center" FontFamily="Consolas" FontSize="14">
+                    <Run Text="{Binding Axis.CurrentPos, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                    <Run Text="{Binding Unit, Mode=OneWay}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </TextBlock>
+                <Button Content="−" Width="34" Tag="-1" Style="{StaticResource JogButtonStyle}"
+                        PreviewMouseLeftButtonDown="Jog_Down" PreviewMouseLeftButtonUp="Jog_Up" MouseLeave="Jog_Leave"/>
+                <Button Content="+" Width="34" Tag="1" Style="{StaticResource JogButtonStyle}"
+                        PreviewMouseLeftButtonDown="Jog_Down" PreviewMouseLeftButtonUp="Jog_Up" MouseLeave="Jog_Leave"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="JogOnlyRowTemplate">
+            <ContentControl Content="{Binding}" ContentTemplate="{StaticResource JogCoreTemplate}" Margin="0,2"/>
+        </DataTemplate>
+
+        <!-- Hàng X: thêm 2 nút chạy thử tới vị trí soi CAM1 của từng tay hút (Tuấn yêu cầu 2026-09-05). Chỉ có một trục X
+             nên không cần CommandParameter, khác hàng Z phải truyền tên trục. -->
+        <DataTemplate x:Key="XJogRowTemplate">
+            <StackPanel Orientation="Horizontal" Margin="0,2">
+                <ContentControl Content="{Binding}" ContentTemplate="{StaticResource JogCoreTemplate}"/>
+                <Button Content="{l:T Teach.GoT1Trigger}" Width="96" Margin="6,0,1,0" Style="{StaticResource JogButtonStyle}"
+                        IsEnabled="{Binding DataContext.Busy, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                        Command="{Binding DataContext.MoveXTrigger1Command, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                        ToolTip="{l:T Teach.GoT1TriggerTip}"/>
+                <Button Content="{l:T Teach.GoT2Trigger}" Width="96" Style="{StaticResource JogButtonStyle}"
+                        IsEnabled="{Binding DataContext.Busy, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                        Command="{Binding DataContext.MoveXTrigger2Command, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                        ToolTip="{l:T Teach.GoT2TriggerTip}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- Hàng Z1/Z2: thêm 3 nút chạy thử tới cao độ tham chiếu ngay trên cùng hàng với Jog (Tuấn yêu cầu 2026-09-05).
+             Lệnh nằm ở TeachingViewModel (không phải AxisRowVm) nên trỏ DataContext lên UserControl rồi truyền tên trục
+             qua CommandParameter. -->
+        <DataTemplate x:Key="ZJogRowTemplate">
+            <StackPanel Orientation="Horizontal" Margin="0,2">
+                <ContentControl Content="{Binding}" ContentTemplate="{StaticResource JogCoreTemplate}"/>
+                <Button Content="{l:T Teach.ZHome}" Width="60" Margin="6,0,1,0" Style="{StaticResource JogButtonStyle}"
+                        IsEnabled="{Binding DataContext.Busy, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                        Command="{Binding DataContext.MoveZHomeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding Name}"
+                        PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                        ToolTip="{l:T Teach.ZHomeTip}"/>
+                <Button Content="{l:T Teach.GoPick}" Width="64" Style="{StaticResource JogButtonStyle}"
+                        IsEnabled="{Binding DataContext.Busy, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                        Command="{Binding DataContext.MoveZPickCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding Name}"
+                        PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                        ToolTip="{l:T Teach.GoPickTip}"/>
+                <Button Content="{l:T Teach.GoPlace}" Width="70" Style="{StaticResource JogButtonStyle}"
+                        IsEnabled="{Binding DataContext.Busy, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                        Command="{Binding DataContext.MoveZPlaceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding Name}"
+                        PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                        ToolTip="{l:T Teach.GoPlaceTip}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- Nút chọn tốc độ Jog Chậm/Nhanh — CHUNG cho cả 7 trục (McFunction.JogFast), không phải
+             cấu hình riêng từng trục. Giá trị tốc độ thật của mỗi mức nằm ở trang Setting
+             (AxisConfig.JogSpeedSlow/JogSpeedFast), nút này chỉ CHỌN mức nào đang dùng. -->
+        <Style x:Key="JogSlowButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding JogFast}" Value="False">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="JogFastButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding JogFast}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Highlight nút tray đang chọn — so trực tiếp UseInputTray (True/False) thay vì converter
+             chung, vì mỗi nút cần tô sáng ở giá trị đối lập nhau. -->
+        <Style x:Key="SelectInputTrayButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding UseInputTray}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SelectAssyTrayButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding UseInputTray}" Value="False">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Highlight nút Tool đang chọn — mỗi Tool có lưới toạ độ RIÊNG (TrayGeometry), độc lập
+             với việc đang teach tray nào (Tuấn xác nhận 2026-09-05). -->
+        <Style x:Key="SelectNozzle1ButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding UseNozzle1}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SelectNozzle2ButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding UseNozzle1}" Value="False">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Nút bước Teach P1/P2/P3 — cả khối là một nút bấm được, xanh khi điểm đó đã teach
+             (giống PartronCamTestAuto.Wpf: 3 nút tuần tự P1→P2→P3 thay vì bảng toạ độ dòng). -->
+        <!-- MinHeight chứ không Height (2026-09-16): nút chứa bốn dòng chữ, cao cứng thì dòng cuối
+             bị cắt — cũng lỗi đó với TextBox, xem ghi chú style TextBox trong Themes\Controls.xaml. -->
+        <Style x:Key="TeachStepButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinHeight" Value="66"/>
+            <Setter Property="Padding" Value="4"/>
+        </Style>
+
+        <!-- MỘT style dùng chung cho MỌI nút trạng thái IO nhị phân (đèn CAM, van hút, van thổi):
+             set Tag="{Binding <PropertyIO>}" ở từng nút, Style chỉ so Tag — không cần một Style
+             riêng cho mỗi nút/mỗi cặp ON-OFF (Tuấn góp ý 2026-09-10: cách cũ tạo Style riêng cho
+             từng nút là rườm rà). Nút nào cần điều kiện ngược (vd. nút OFF) thì bind Tag qua
+             Converter={StaticResource InverseBool} ngay tại chỗ khai Button, không cần đổi Style.
+
+             DÙNG DataTrigger (không phải Trigger Property="Tag") — Tag là property kiểu object,
+             <Trigger Property="Tag" Value="True"> so trực tiếp giá trị boxed bool với chuỗi "True"
+             được parse tại lúc biên dịch XAML, HAI BÊN KHÔNG CÙNG KIỂU nên không bao giờ khớp (nút
+             không bao giờ sáng dù property đổi đúng) — lỗi bản đầu (Tuấn báo 2026-09-10). DataTrigger
+             đi qua Binding nên WPF coerce kiểu đúng trước khi so sánh, khớp bình thường. NavTabButtonStyle
+             (MainWindow.xaml) tránh vấn đề này bằng cách khác — dùng Binding+Converter trực tiếp trong
+             ControlTemplate, không phải Trigger Property="Tag" trong Style. -->
+        <Style x:Key="IoOnButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="440"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,8,0">
+        <StackPanel>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="MODEL" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <TextBlock FontSize="13" Margin="0,0,0,8">
+                        <Run Text="{l:T Teach.CurrentModel}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <Run Text="{Binding CurrentModelName, Mode=OneWay}" FontWeight="Bold"/>
+                    </TextBlock>
+
+                    <ListBox ItemsSource="{Binding ModelNames}" SelectedItem="{Binding SelectedModelName}"
+                             Height="90" Margin="0,0,0,6"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <Button Content="{l:T Teach.LoadModel}" Command="{Binding LoadSelectedModelCommand}" Width="70" Height="28" Margin="0,0,6,0"/>
+                        <Button Content="{l:T Teach.Save}" Command="{Binding SaveModelCommand}" Width="70" Height="28" Margin="0,0,6,0"/>
+                        <Button Content="{l:T Teach.DeleteModel}" Command="{Binding DeleteModelCommand}" Width="70" Height="28"/>
+                    </StackPanel>
+
+                    <TextBox Text="{Binding NewModelNameText, UpdateSourceTrigger=PropertyChanged}"
+                             MinHeight="28" Margin="0,0,0,6"
+                             ToolTip="{l:T Teach.NewModelNameTip}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="{l:T Teach.NewModel}" Command="{Binding NewModelCommand}" Width="94" Height="28" Margin="0,0,6,0"/>
+                        <Button Content="{l:T Teach.CopyModel}" Command="{Binding CopyModelCommand}" Width="180" Height="28"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Teach.SelectTrayHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="{l:T Teach.TrayInput}" Command="{Binding SelectInputCommand}" Width="130" Height="34" Margin="0,0,6,0"
+                                Style="{StaticResource SelectInputTrayButtonStyle}"/>
+                        <Button Content="{l:T Teach.TrayAssy}" Command="{Binding SelectAssyCommand}" Width="130" Height="34"
+                                Style="{StaticResource SelectAssyTrayButtonStyle}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding TrayTitle}" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
+
+                    <Separator/>
+                    <!-- Mỗi Tool teach lưới toạ độ RIÊNG cho tray đang chọn ở trên (2 trục chọn:
+                         tray nào × Tool nào) — Tool2 không còn suy ra bằng pitch cố định nữa. -->
+                    <TextBlock Text="{l:T Teach.SelectTool}" Margin="0,0,0,4" FontSize="12" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="Tool 1" Command="{Binding SelectNozzle1Command}" Width="130" Height="34" Margin="0,0,6,0"
+                                Style="{StaticResource SelectNozzle1ButtonStyle}"/>
+                        <Button Content="Tool 2" Command="{Binding SelectNozzle2Command}" Width="130" Height="34"
+                                Style="{StaticResource SelectNozzle2ButtonStyle}"/>
+                    </StackPanel>
+
+                    <!-- Số hàng/cột đã chuyển sang card "Teach 3 điểm" bên dưới, đặt xen giữa
+                         P1-P2-P3 cho trực quan: P1→P2 = "cuối hàng 1" phụ thuộc Số cột, P2→P3 =
+                         "cuối cột 1" phụ thuộc Số hàng (2026-08-19). -->
+
+                    <!-- Thứ tự quét ô — RowMajor (tuần tự, mỗi hàng luôn trái→phải) hoặc Serpentine
+                         (zig zag, hàng lẻ quét ngược) — xem TeachingViewModel.SetScanOrder. Chỉ 2
+                         lựa chọn: ColMajor tồn tại trong EScanOrder nhưng chưa cài ở TrayState.RowCol,
+                         không phơi ra UI. -->
+                    <Separator/>
+                    <TextBlock Text="{l:T Teach.ScanOrder}" Margin="0,0,0,4" FontSize="12" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Content="{l:T Teach.ScanSequential}" GroupName="ScanOrder" VerticalAlignment="Center"
+                                     IsChecked="{Binding IsRowMajorMode}" Margin="0,0,20,0"/>
+                        <RadioButton Content="Zig zag" GroupName="ScanOrder" VerticalAlignment="Center"
+                                     IsChecked="{Binding IsZigZagMode}"/>
+                    </StackPanel>
+
+                    <!-- Hình minh hoạ nhỏ, cố định kích thước (KHÔNG theo Rows/Cols thật của tray)
+                         — chỉ để hình dung nhanh 2 mode ngay tại chỗ chọn, vẽ lại mỗi khi đổi
+                         RadioButton — xem TeachingView.xaml.cs RedrawTraversal(). Không khung viền: card không lồng hộp
+                         (2026-10-07). -->
+                    <Canvas x:Name="TraversalCanvas" Height="80" Margin="0,8,0,0" ClipToBounds="True"
+                            SizeChanged="TraversalCanvas_SizeChanged"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Mốc CAM top-down của Assy Tray — vị trí gantry khi camera nằm đúng tâm Ô (1,1),
+                 dùng để tính vị trí trigger cho các ô còn lại khi quét trước (S05_ScanAssy). Chỉ
+                 hiện khi đang chọn Tray lắp ráp — Input Tray không quét top-down. Camera gắn cố
+                 định trên gantry (không theo từng đầu hút) nên chỉ có MỘT mốc dùng chung cho cả 2
+                 Tool (Tuấn xác nhận 2026-09-05). Đặt ngay dưới "Chọn tray/Chọn Tool" thay vì cuối
+                 trang — đây cũng là một lựa chọn cấp-tray, không phải cấp-Tool.  -->
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8"
+                    Visibility="{Binding UseInputTray, Converter={StaticResource InverseBoolToVis}}">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Teach.CamAnchorHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{l:T Teach.CamAnchorHint1}"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{l:T Teach.CamAnchorHint2}"/>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="X / Y2:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.AssyTray.CamTopDownAnchorX, StringFormat='{}{0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text=" / "/>
+                            <Run Text="{Binding Model.AssyTray.CamTopDownAnchorY, StringFormat='{}{0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="Teach" Command="{Binding TeachCamTopDownAnchorCommand}" Width="80" Height="30"/>
+                    </Grid>
+                    <Button Content="{l:T Teach.GoCamAnchor}" Command="{Binding MoveCamTopDownAnchorCommand}"
+                            HorizontalAlignment="Left" Width="180" Height="28" Style="{StaticResource CompactButtonStyle}"
+                            PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                            ToolTip="{l:T Teach.GoCamAnchorTip}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Teach.ThreePointHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{l:T Teach.ThreePointHint}"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Command="{Binding TeachP00Command}"
+                                ToolTip="{l:T Teach.P1Tip}">
+                            <StackPanel>
+                                <TextBlock Text="P1" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{l:T Teach.P1Sub}" FontSize="10" HorizontalAlignment="Center"/>
+                                <!-- X và Y xuống hai dòng: một dòng "X / Y" dài ~16 ký tự Consolas, rộng hơn bề ngang nút
+                                     nên bị cắt mất mấy chữ số cuối — Tuấn báo 2026-09-16, chụp màn hình "318.100 / 55.000"
+                                     hiện thành "000 / 0.0". Chữ số là thứ phải đọc đúng từng chữ số, không được cắt. -->
+                                <TextBlock FontSize="10" HorizontalAlignment="Center" FontFamily="Consolas">
+                                    <Run Text="X "/><Run Text="{Binding CurrentGeometry.P00.X, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock FontSize="10" HorizontalAlignment="Center" FontFamily="Consolas">
+                                    <Run Text="Y "/><Run Text="{Binding CurrentGeometry.P00.Y, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource TeachStepButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentGeometry.P00.Taught}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource VisionOkBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <!-- Số cột xen giữa P1→P2: "cuối hàng 1" (P2) chính là ô cuối theo Số cột. -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,0">
+                            <TextBlock Text="→" FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{l:T Teach.Cols}" FontSize="10" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            <TextBox Text="{Binding ColsInput}" Width="50" MinHeight="30" Padding="4,4" HorizontalContentAlignment="Center" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Command="{Binding TeachP0CCommand}"
+                                ToolTip="{l:T Teach.P2Tip}">
+                            <StackPanel>
+                                <TextBlock Text="P2" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{l:T Teach.P2Sub}" FontSize="10" HorizontalAlignment="Center"/>
+                                <TextBlock FontSize="10" HorizontalAlignment="Center" FontFamily="Consolas">
+                                    <Run Text="X "/><Run Text="{Binding CurrentGeometry.P0C.X, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock FontSize="10" HorizontalAlignment="Center" FontFamily="Consolas">
+                                    <Run Text="Y "/><Run Text="{Binding CurrentGeometry.P0C.Y, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource TeachStepButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentGeometry.P0C.Taught}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource VisionOkBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <!-- Số hàng xen giữa P2→P3: "cuối cột 1" (P3) chính là ô cuối theo Số hàng. -->
+                        <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,0">
+                            <TextBlock Text="→" FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{l:T Teach.Rows}" FontSize="10" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            <TextBox Text="{Binding RowsInput}" Width="50" MinHeight="30" Padding="4,4" HorizontalContentAlignment="Center" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="4" Command="{Binding TeachPR0Command}"
+                                ToolTip="{l:T Teach.P3Tip}">
+                            <StackPanel>
+                                <TextBlock Text="P3" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{l:T Teach.P3Sub}" FontSize="10" HorizontalAlignment="Center"/>
+                                <TextBlock FontSize="10" HorizontalAlignment="Center" FontFamily="Consolas">
+                                    <Run Text="X "/><Run Text="{Binding CurrentGeometry.PR0.X, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock FontSize="10" HorizontalAlignment="Center" FontFamily="Consolas">
+                                    <Run Text="Y "/><Run Text="{Binding CurrentGeometry.PR0.Y, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource TeachStepButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentGeometry.PR0.Taught}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource VisionOkBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <Button Grid.Column="5" Content="{l:T Teach.ApplySize}" Command="{Binding ApplySizeCommand}"
+                                Width="70" Height="30" Margin="8,0,0,0" Padding="6,4" VerticalAlignment="Center"
+                                ToolTip="{l:T Teach.ApplySizeTip}"/>
+                    </Grid>
+
+                    <Separator Margin="0,8,0,8"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{l:T Teach.VerifyOptional}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Margin="2" Text="{Binding CurrentGeometry.PRC_Verify.X, StringFormat='{}{0:0.000}', Mode=OneWay}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Margin="2" Text="{Binding CurrentGeometry.PRC_Verify.Y, StringFormat='{}{0:0.000}', Mode=OneWay}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="3" Content="Teach" Height="26" Command="{Binding TeachVerifyCommand}"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding VerifyText}" TextWrapping="Wrap" FontSize="12" Margin="0,10,0,0"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Góc hút: tư thế trục A để gờ đầu hút ăn khớp sản phẩm nằm trong hốc tray. Chỉ teach ở
+                 Tray đầu vào — góc ĐẶT ở tray lắp ráp do vision tính (CmdA), không teach được. Xem
+                 ModelData.PickAngle và McFunction.MoveToCellForPickAsync. -->
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8"
+                    Visibility="{Binding UseInputTray, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Teach.PickAngleHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{l:T Teach.PickAngleHint}"/>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="A1:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.PickAngleA1, StringFormat=&apos;{}{0:0.00}°&apos;, Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachFromA1}" Command="{Binding TeachPickAngleA1Command}" Width="110" Height="30"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="A2:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.PickAngleA2, StringFormat=&apos;{}{0:0.00}°&apos;, Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachFromA2}" Command="{Binding TeachPickAngleA2Command}" Width="110" Height="30"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{Binding ZPickSectionTitle}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{Binding ZPickSectionHint}"/>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="Z1:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Layout.Z_PickZ1, StringFormat='{}{0:0.000} mm', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachFromZ1}" Command="{Binding TeachZPickZ1Command}" Width="110" Height="30"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="Z2:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Layout.Z_PickZ2, StringFormat='{}{0:0.000} mm', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachFromZ2}" Command="{Binding TeachZPickZ2Command}" Width="110" Height="30"/>
+                    </Grid>
+
+                    <!-- Điểm giảm tốc: Z chạy mức Auto CAO từ cao độ an toàn xuống tới đây rồi mức
+                         Auto THẤP nốt đoạn còn lại (McFunction.MoveZDownAsync). Teach riêng từng tay
+                         và từng tray như cao độ hút/đặt; bỏ trống = hạ một mạch ở mức cao. Giá trị
+                         của ba mức tốc độ nằm ở trang Setting, bảng Cấu hình 7 trục. -->
+                    <Separator Margin="0,8,0,8"/>
+                    <TextBlock Text="{Binding ZSlowSectionTitle}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,2"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{Binding ZSlowSectionHint}"/>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="Z1:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Layout.Z_SlowZ1, StringFormat='{}{0:0.000} mm', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachFromZ1}" Command="{Binding TeachZSlowZ1Command}" Width="110" Height="30"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="Z2:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Layout.Z_SlowZ2, StringFormat='{}{0:0.000} mm', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachFromZ2}" Command="{Binding TeachZSlowZ2Command}" Width="110" Height="30"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding ZSlowText}" TextWrapping="Wrap" FontSize="11" Margin="0,8,0,0"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Vị trí soi CAM1 (bottom-up) của từng tay hút — sau khi hút xong cả 2 tay, máy đưa
+                 lần lượt tay #1 rồi tay #2 ra giữa khung hình CAM cố định để trigger AlignBottom
+                 (S20_Align1/S21_Align2, xem Routine_Auto.S2x_Align). Model.AlignPosX_Nozzle1/2
+                 trước đây chỉ có số giả từ CreateSimulation, chưa có chỗ teach trên UI. -->
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Teach.AlignPosHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{l:T Teach.AlignPosHint}"/>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="{l:T Teach.Nozzle1Label}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.AlignPosX_Nozzle1, StringFormat='{}{0:0.000} mm', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachNozzle1}" Command="{Binding TeachAlignNozzle1Command}" Width="110" Height="30"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                            <Run Text="{l:T Teach.Nozzle2Label}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.AlignPosX_Nozzle2, StringFormat='{}{0:0.000} mm', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="{l:T Teach.TeachNozzle2}" Command="{Binding TeachAlignNozzle2Command}" Width="110" Height="30"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Cơ cấu kẹp dùng cho bước xác định hand-eye (Tuấn chốt 2026-09-25). Cơ cấu kẹp CHI TIẾT ĐÍCH
+                 cho nó không xê dịch khi gắp con can mẫu lên; gá ở đâu trên bàn tray lắp ráp cũng được nên
+                 không trùng ô nào, vì thế Jog X/Y2 rồi lưu riêng ba điểm.
+
+                 KHÔNG có binding Visibility: ba điểm này không thuộc tray nào — sao đúng card "Vị trí soi CAM1"
+                 ở trên, là card duy nhất trên trang không đi qua phép ba ngôi UseInputTray. Đừng thêm gì vào
+                 setter của UseInputTray, và đừng bind qua Layout/CurrentGeometry. -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Teach.JigHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{l:T Teach.JigHint}"/>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap">
+                            <Run Text="{l:T Teach.JigPick1Label}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.HandEyePick_Nozzle1.X, StringFormat='{}X {0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text="{Binding Model.HandEyePick_Nozzle1.Y, StringFormat='{}· Y2 {0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="Teach" Command="{Binding TeachHandEyePick1Command}" Width="86" Height="30" Margin="0,0,4,0"/>
+                        <Button Grid.Column="2" Content="{l:T Teach.Go}" Command="{Binding MoveHandEyePick1Command}" Width="58" Height="30"
+                                Style="{StaticResource CompactButtonStyle}"
+                                IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Teach.GoJigPick1Tip}"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap">
+                            <Run Text="{l:T Teach.JigPick2Label}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.HandEyePick_Nozzle2.X, StringFormat='{}X {0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text="{Binding Model.HandEyePick_Nozzle2.Y, StringFormat='{}· Y2 {0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="Teach" Command="{Binding TeachHandEyePick2Command}" Width="86" Height="30" Margin="0,0,4,0"/>
+                        <Button Grid.Column="2" Content="{l:T Teach.Go}" Command="{Binding MoveHandEyePick2Command}" Width="58" Height="30"
+                                Style="{StaticResource CompactButtonStyle}"
+                                IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Teach.GoJigPick2Tip}"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap">
+                            <Run Text="{l:T Teach.JigCamLabel}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Run Text="{Binding Model.HandEyeCamPos.X, StringFormat='{}X {0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text="{Binding Model.HandEyeCamPos.Y, StringFormat='{}· Y2 {0:0.000}', Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <Button Grid.Column="1" Content="Teach" Command="{Binding TeachHandEyeCamPosCommand}" Width="86" Height="30" Margin="0,0,4,0"/>
+                        <Button Grid.Column="2" Content="{l:T Teach.Go}" Command="{Binding MoveHandEyeCamPosCommand}" Width="58" Height="30"
+                                Style="{StaticResource CompactButtonStyle}"
+                                IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Teach.GoJigCamTip}"/>
+                    </Grid>
+                    <TextBlock Text="{Binding HandEyeJigText}" TextWrapping="Wrap" FontSize="11" Margin="0,8,0,0"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        </ScrollViewer>
+
+        <!-- Hàng dưới (Jog + khí nén) Auto, lưới ô bên trên (có ScrollViewer riêng) nhận phần còn lại. Từ 2026-09-28 card
+             Jog gọn trong ba hàng (Tuấn: ưu tiên lưới ô tray): trái là trục gantry X/Z1/Z2 kèm nút chạy tới vị trí, giữa là
+             trục tray Y1/Y2 và tốc độ Jog, dưới là khí nén/đèn, nút Lưu ở góc phải. -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Jog trục (rút gọn) + khí nén — chỉ phần thật sự cần khi teach, đặt ngay cạnh
+                 lưới ô cho tiện nhìn khi vừa jog vừa Move thử. Điều khiển đầy đủ (Stop/Home/SVO/
+                 RST/Move) vẫn ở trang Manual, không nhân đôi ở đây (2026-08-19). -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.ColumnSpan="3" Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Teach.JogHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+
+                    <StackPanel Grid.Row="1" Grid.Column="0">
+                        <ItemsControl ItemsSource="{Binding GantryX}" ItemTemplate="{StaticResource XJogRowTemplate}"/>
+                        <ItemsControl ItemsSource="{Binding GantryZ}" ItemTemplate="{StaticResource ZJogRowTemplate}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="20,0,0,0">
+                        <ItemsControl ItemsSource="{Binding Tray}" ItemTemplate="{StaticResource JogOnlyRowTemplate}"/>
+                        <!-- Tốc độ Jog Chậm/Nhanh — chung cho cả 7 trục. Giá trị mm/s hoặc °/s của mỗi mức chỉnh ở trang
+                             Setting (AxisConfig.JogSpeedSlow/JogSpeedFast). -->
+                        <StackPanel Orientation="Horizontal" Margin="0,2">
+                            <TextBlock Text="{l:T Teach.JogSpeed}" Width="46" VerticalAlignment="Center" FontSize="12"/>
+                            <Button Content="{l:T Teach.JogSlow}" Command="{Binding SetJogSlowCommand}" Width="62" Height="30" MinHeight="30"
+                                    Padding="4,3" Margin="0,0,4,0" Style="{StaticResource JogSlowButtonStyle}"/>
+                            <Button Content="{l:T Teach.JogFast}" Command="{Binding SetJogFastCommand}" Width="62" Height="30" MinHeight="30"
+                                    Padding="4,3" Style="{StaticResource JogFastButtonStyle}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Separator Grid.Row="2" Grid.ColumnSpan="3" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                    <WrapPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,11,0,0">
+                        <Button Content="{l:T Teach.Vacuum1}" Command="{Binding Vacuum1ToggleCommand}" Width="70" Margin="0,0,4,0"
+                                Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Vacuum1On}" Height="30" MinHeight="30"/>
+                        <Button Content="{l:T Teach.Vacuum2}" Command="{Binding Vacuum2ToggleCommand}" Width="70" Margin="0,0,4,0"
+                                Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Vacuum2On}" Height="30" MinHeight="30"/>
+                        <Button Content="{l:T Teach.Blow1}" Command="{Binding Blow1ToggleCommand}" Width="70" Margin="0,0,4,0"
+                                Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Blow1On}" Height="30" MinHeight="30"/>
+                        <Button Content="{l:T Teach.Blow2}" Command="{Binding Blow2ToggleCommand}" Width="70" Margin="0,0,16,0"
+                                Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Blow2On}" Height="30" MinHeight="30"/>
+                        <Button Content="CAM BTM-UP LIGHT" Command="{Binding ToggleCam1LampCommand}" Width="140" Margin="0,0,4,0"
+                                Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Cam1LampOn}" Height="30" MinHeight="30"
+                                ToolTip="{l:T Teach.Cam1LightTip}"/>
+                        <Button Content="CAM TOP-DOWN LIGHT" Command="{Binding ToggleCam2LampCommand}" Width="164"
+                                Style="{StaticResource IoOnButtonStyle}" Tag="{Binding Cam2LampOn}" Height="30" MinHeight="30"
+                                ToolTip="{l:T Teach.Cam2LightTip}"/>
+                    </WrapPanel>
+
+                    <!-- Nút Lưu góc dưới-phải trang (2026-09-09, Tuấn yêu cầu vì hay quên bấm Lưu ở card Model trên đầu
+                         trang sau khi Teach ở các card xa bên dưới) — cùng lệnh SaveModelCommand, lưu toàn bộ Model đang mở.
+                         Nằm TRONG card này chứ không nổi đè lên trang (Tuấn báo 2026-09-25). -->
+                    <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="3" Content="{l:T Teach.Save}" Command="{Binding SaveModelCommand}"
+                            VerticalAlignment="Bottom" Margin="8,0,0,0" Width="130" Height="48"
+                            FontSize="16" FontWeight="Bold" Style="{StaticResource PrimaryButton}"
+                            ToolTip="{l:T Teach.SaveTip}">
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.4"/>
+                        </Button.Effect>
+                    </Button>
+                </Grid>
+            </Border>
+
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}">
+            <DockPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Teach.CellsHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+
+                <!-- Chọn ô trực tiếp bằng nút thay vì cuộn bảng DataGrid — bấm một ô để chọn,
+                     thao tác Move/Set Offset/Xoá áp dụng cho ô đang chọn ở dải dưới cùng. Nút tô
+                     xanh nhạt (VisionOkBrush) đánh dấu ô đã có offset riêng. -->
+                <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0"
+                        Margin="0,8,0,0" Padding="0,8,0,0"
+                        IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock FontSize="13" FontWeight="Bold"
+                                       Text="{Binding SelectedCellTitle}"/>
+                            <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                                <Run Text="{l:T Teach.VisitOrderPrefix}"/><Run Text="{Binding SelectedCell.VisitOrder, Mode=OneWay}"/>
+                                <Run Text="   X="/><Run Text="{Binding SelectedCell.X, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                <Run Text="  Y="/><Run Text="{Binding SelectedCell.Y, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                <Run Text="  Offset="/><Run Text="{Binding SelectedCell.Dx, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                                <Run Text="/"/><Run Text="{Binding SelectedCell.Dy, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                            </TextBlock>
+                            <!-- Chỗ đứng soi của CAM top-down cho ô đang chọn — chỉ hiện ở Tray lắp
+                                 ráp × Tool 2, xem TeachingViewModel.ShowCamMove. -->
+                            <TextBlock FontSize="11" Margin="0,2,0,0" TextWrapping="Wrap"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="{Binding CamPosText}"
+                                       Visibility="{Binding ShowCamMove, Converter={StaticResource BoolToVis}}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Move" Width="64" Height="26" Margin="6,0,0,0"
+                                    Command="{Binding MoveToCellCommand}" CommandParameter="{Binding SelectedCell}"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Teach.MoveCellTip}"/>
+                            <!-- Hạ Z ngay tại khu nút Move (Tuấn yêu cầu 2026-09-26): trục theo Tool đang chọn, Pick/Place
+                                 theo tray. Bấm đúp như nút Tới Pick/Tới Place ở thanh Jog Z. -->
+                            <Button Content="{Binding ZCellMoveLabel}" Width="76" Height="26" Margin="6,0,0,0" Padding="4,3"
+                                    Command="{Binding MoveZAtCellCommand}"
+                                    IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Teach.ZCellMoveTip}"/>
+                            <Button Content="Move CAM" Width="88" Height="26" Margin="6,0,0,0" Padding="4,3"
+                                    Command="{Binding MoveCamToCellCommand}" CommandParameter="{Binding SelectedCell}"
+                                    Visibility="{Binding ShowCamMove, Converter={StaticResource BoolToVis}}"
+                                    PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                    ToolTip="{l:T Teach.MoveCamTip}"/>
+                            <Button Content="Set Offset" Width="86" Height="26" Margin="6,0,0,0" Padding="4,3"
+                                    Command="{Binding SetOffsetCommand}" CommandParameter="{Binding SelectedCell}"
+                                    ToolTip="{l:T Teach.SetOffsetTip}"/>
+                            <Button Content="{l:T Teach.ClearOffset}" Width="54" Height="26" Margin="6,0,0,0"
+                                    Command="{Binding ClearOffsetCommand}" CommandParameter="{Binding SelectedCell}"
+                                    IsEnabled="{Binding SelectedCell.HasOffset, FallbackValue=False, TargetNullValue=False}"
+                                    ToolTip="{l:T Teach.ClearOffsetTip}"/>
+                        </StackPanel>
+
+                        <!-- Bù đặt (chỉ Tray lắp ráp): lượng cộng thêm vào ĐÍCH gửi VisionMaster, của riêng Tool đang
+                             chọn. Hàng trên là bù chung cho mọi ô, hàng dưới là bù riêng của ô đang chọn; App cộng dồn
+                             hai lượng (bù chung thêm 2026-09-15). Khác offset teach ở trên — offset teach sửa lưới
+                             nội suy, còn điểm đặt thì camera đo lại nên phải có lượng bù riêng. Ngăn bằng vạch mờ phía
+                             trên, không khung viền (2026-10-07: card không lồng hộp). -->
+                        <Border Grid.Row="1" Grid.ColumnSpan="2" Margin="0,8,0,0" Padding="0,8,0,0"
+                                BorderThickness="0,1,0,0" BorderBrush="{StaticResource DividerBrush}"
+                                Visibility="{Binding IsAssyTray, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="{l:T Teach.ApplyTrim}" Width="72" Height="26" Margin="6,0,0,0"
+                                                Command="{Binding ApplyPlaceTrimAllCommand}"
+                                                ToolTip="{l:T Teach.ApplyTrimAllTip}"/>
+                                        <Button Content="{l:T Teach.ClearTrim}" Width="72" Height="26" Margin="6,0,0,0"
+                                                Command="{Binding ClearPlaceTrimAllCommand}"
+                                                IsEnabled="{Binding HasPlaceTrimAll}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{l:T Teach.TrimAllLabel}" Width="110" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="X" FontSize="12" Margin="10,0,3,0" VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding TrimAllDxText, UpdateSourceTrigger=PropertyChanged}" Width="64" MinHeight="26"
+                                                 VerticalContentAlignment="Center" TextAlignment="Right"/>
+                                        <TextBlock Text="Y" FontSize="12" Margin="10,0,3,0" VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding TrimAllDyText, UpdateSourceTrigger=PropertyChanged}" Width="64" MinHeight="26"
+                                                 VerticalContentAlignment="Center" TextAlignment="Right"/>
+                                        <TextBlock Text="{l:T Teach.Angle}" FontSize="12" Margin="10,0,3,0" VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding TrimAllDaText, UpdateSourceTrigger=PropertyChanged}" Width="64" MinHeight="26"
+                                                 VerticalContentAlignment="Center" TextAlignment="Right"/>
+                                        <TextBlock Text="{l:T Teach.TrimUnits}" FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <DockPanel Margin="0,6,0,0">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="{l:T Teach.ApplyTrim}" Width="72" Height="26" Margin="6,0,0,0"
+                                                Command="{Binding ApplyPlaceTrimCommand}" CommandParameter="{Binding SelectedCell}"
+                                                ToolTip="{l:T Teach.ApplyTrimCellTip}"/>
+                                        <Button Content="{l:T Teach.ClearTrim}" Width="72" Height="26" Margin="6,0,0,0"
+                                                Command="{Binding ClearPlaceTrimCommand}" CommandParameter="{Binding SelectedCell}"
+                                                IsEnabled="{Binding SelectedCell.HasPlaceTrim, FallbackValue=False, TargetNullValue=False}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{l:T Teach.TrimCellLabel}" Width="110" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="X" FontSize="12" Margin="10,0,3,0" VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding TrimDxText, UpdateSourceTrigger=PropertyChanged}" Width="64" MinHeight="26"
+                                                 VerticalContentAlignment="Center" TextAlignment="Right"/>
+                                        <TextBlock Text="Y" FontSize="12" Margin="10,0,3,0" VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding TrimDyText, UpdateSourceTrigger=PropertyChanged}" Width="64" MinHeight="26"
+                                                 VerticalContentAlignment="Center" TextAlignment="Right"/>
+                                        <TextBlock Text="{l:T Teach.Angle}" FontSize="12" Margin="10,0,3,0" VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding TrimDaText, UpdateSourceTrigger=PropertyChanged}" Width="64" MinHeight="26"
+                                                 VerticalContentAlignment="Center" TextAlignment="Right"/>
+                                        <TextBlock Text="{l:T Teach.TrimUnits}" FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <TextBlock FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Text="{l:T Teach.TrimHint}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Cells}" Margin="4">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="{Binding Layout.Rows}" Columns="{Binding Layout.Cols}"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Margin="2" MinWidth="40" MinHeight="40"
+                                            Command="{Binding DataContext.SelectCellCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="{Binding Cell}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasOffset}" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource VisionOkBrush}"/>
+                                                    </DataTrigger>
+                                                    <!-- Tô viền đậm cho ô đang chọn — so trực tiếp 2 binding (item hiện
+                                                         tại vs SelectedCell của ViewModel) cần MultiBinding vì DataTrigger
+                                                         đơn chỉ so được với 1 giá trị hằng. -->
+                                                    <DataTrigger Value="True">
+                                                        <DataTrigger.Binding>
+                                                            <MultiBinding Converter="{StaticResource RefEquals}">
+                                                                <Binding/>
+                                                                <Binding Path="DataContext.SelectedCell" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                            </MultiBinding>
+                                                        </DataTrigger.Binding>
+                                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="BorderThickness" Value="2.5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding VisitOrder}" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                            <!-- Chấm nhỏ = ô có bù đặt riêng (khác nền xanh = có offset teach) -->
+                                            <TextBlock Text="&#x25CF;" FontSize="8" HorizontalAlignment="Center"
+                                                       Foreground="{StaticResource AccentBrush}"
+                                                       Visibility="{Binding HasPlaceTrim, Converter={StaticResource BoolToVis}}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </DockPanel>
+        </Border>
+        </Grid>
+    </Grid>
+</UserControl>

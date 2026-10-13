@@ -1,0 +1,227 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-6DBC256A-8DFF-4B77-85AD-F71F7873EBB4.html
+
+Single Point Map Alignment
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Single Point Map Alignment
+
+ Single Point Map Alignment
+
+ The Single Point Map Alignment module is mainly
+ used for the alignment of the object photographed by the upper camera and the object
+ photographed by the lower camera. When the upper camera is used to photograph the material
+ and the lower camera for the material tray, this module can calculate the positional and
+ angular shifts
+ required
+ by the object point alignment to the target point according to the input
+ position and angle of the object point and target point.
+
+ How It Works
+
+ The Single Point Map Alignment module can be used
+ with Translation Calibration and Mapping Calibration as the predecessors. The translation calibration
+ provides the transformation relationship between the image coordinate system of the
+ lower camera and the physical coordinate system of the motion mechanism, and the
+ mapping calibration provides the transformation relationship between the image
+ coordinate systems of the lower camera and upper camera. Then the Single
+ Point Map Alignment module can convert the image feature points to
+ the physical coordinate system of the motion mechanism according to the two
+ calibration matrics and the input feature point information, and then calculate the
+ alignment coordinates to guide the motion mechanism for alignment.
+
+ The motion mechanism carries the reference material to the teaching
+ physical point P1 of the static lower camera, and the lower camera captures images
+ of the pixel coordinate p1 of the feature point and the alignment line and angle;
+ The
+ upper camera returns to photographing position P2 to capture images of the object
+ that needs to be aligned, and extracts the object point and the origin point and
+ terminal point of the alignment line.
+
+ The object point and the origin point and terminal point of the
+ alignment line taken by the upper camera are mapped to the image coordinate system
+ of the lower camera through the mapping calibration file. And then the image
+ coordinate system is converted to the physical coordinate system of the motion
+ mechanism through the translation and rotation calibration matrix of the lower
+ camera and the motion mechanism, so as to calculate the alignment deviation.
+
+ How To Use
+
+ This module should also be used with the Image Source module that can provide image input and the Locating modules that can provide the information of image
+ feature points and angles. The Single Point Map Alignment
+ module can subscribe to the object image point, angles, target image feature points,
+ the startpoint and endpoint of the target image line, teaching and grasp physical
+ point, and align file to calculate the relative offset from the object to the target
+ position and the absolute grab coordinate.
+
+ [img:GUID-938DD1A0-FE0F-40CA-AA2D-40BD7B16D7F0-high.png] 
+ Figure 1 Single Point Map Alignment
+ Application Example
+
+ Parameter Configuration
+
+ This part introduces the configuration of basic parameters. For the
+ result parameters, see Result Show.
+
+ Input Mode
+
+ Optional by point or by coordinate.
+
+ ObjImagePoint
+
+ Set the image point coordinate and angle of the object
+ position (generally refers to the photographing position of the lower
+ camera).
+
+ TarImagePoint
+
+ Set the image point coordinate of the target position
+ (generally refers to the photographing position of the upper
+ camera).
+
+ TarImageLineS
+
+ TarImageLineE
+
+ Set the startpoint and endpoint of the target alignment line,
+ which is mapped to the lower camera coordinate system to ensure a
+ uniform alignment angle.
+
+ Teaching and grasp physical point
+
+ Set the absolute physical coordinate and angle at which the
+ motion mechanism grasps the calibration board during the mapping
+ calibration between the upper camera and lower camera.
+
+ Align File
+
+ You can set relevant settings for loading and refreshing
+ calibration files.
+
+ Calib Load Type
+
+ You can set the loading type of calibration file,
+ including calibration matrix or load calibration file.
+
+ N Point Calib Matrix
+
+ Map Calib Matrix
+
+ Subscribe to the calibration matrix
+ of N-point Calibration and
+ Mapping Calibration.
+
+ N Calibration File
+
+ Load MapCalibration File
+
+ Click [img:GUID-A67293D7-03B2-4F66-80BE-40ADC56B8280-high.png] to
+ load the calibration file.
+
+ Refresh Signal
+
+ Enter or subscribe to data as a signal of whether to
+ refresh the calibration file.
+ 
+- 
+ When the parameter is set to 0 or null,
+ the selected calibration file is loaded only during
+ the first run of the module and is not updated
+ thereafter.
+
+- 
+ When the parameters are not 0 or null,
+ the selected calibration file is reloaded each time
+ the module runs. Ensure that the calibration file to
+ be read is up to date.
+
+ Module Result
+
+ Module Result of
+ SinglePointMapAlignModu is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ OffsetX
+
+ Float. The offset X-coordinate of the material grasped by the
+ robot machine relative to reference position 
+
+ OffsetY
+
+ Float. The offset Y-coordinate of the material grasped by the
+ robot machine relative to reference position 
+
+ OffsetR
+
+ Float. The offset of angle of the robot arm grasping objects
+ relative to base location.
+
+ AbssetX
+
+ Float.
+ The offset of angle of the robot arm grasping objects relative to base
+ location.
+
+ Float. The absolute physical position X-coordinate of the object
+ grasped by the mechanism.
+
+ AbssetY
+
+ Float. The absolute physical position Y-coordinate of the object
+ grasped by the mechanism.
+
+ AbssetR
+
+ Float. The absolute physical position angle captured by the
+ mechanism.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

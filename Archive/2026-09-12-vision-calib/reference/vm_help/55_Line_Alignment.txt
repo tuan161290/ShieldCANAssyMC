@@ -1,0 +1,145 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-FDB35A90-E2C7-408C-930A-04D860F5DEAA.html
+
+Line Alignment
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Line Alignment
+
+ Line Alignment
+
+ The Line Alignment module has the similar function
+ with the Point Set Alignment. The difference is that the ailgnment
+ target for this module is a line not a point.
+
+ This section contains:
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How
+ To
+ Use
+
+ This module should be used with Image Source, Line Search, and Calibration Transformation as the
+ predecessors.
+
+ [img:GUID-8D7AD0E4-502B-4674-B7FB-A4BA00105BC0-high.png] 
+ Figure 1 Line Alignment Application
+ Example
+
+ In the figure above, the Image Source module can
+ provide the image, the Line Search module can provide
+ multiple groups of feature lines in the image coordinate system, and the
+ Calibration Transformation module
+ convert
+ the startpoint and endpoint of a straight line from the image coordinate to the
+ physical coordinates, Geometry Generation module can connect
+ the startpoint and endpoint in the physical coordinate to form a teaching line and a
+ running line, then the Line Alignment module can calculate
+ the offset of the running line alignment to the teaching line in the physical
+ coordinate system.
+
+ Parameter Configuration
+
+- 
+ Basic Parameters: Refer to the parameter configuration of the
+ Point Set Alignment module.
+
+- 
+ Run Parameters: Set the Alignment
+ Shape. Optional opening or closing.
+
+- 
+ Closing: The feature lines must form a closed shape
+ before they can be detected. For example, if the image has four
+ feature lines, the four lines must be sequentially formed into a
+ closed rectangle.
+
+- 
+ Opening: The feature lines can be detected without
+ forming a closed shape.
+
+- 
+ Result Show: For the result parameters, see Result Show.
+
+ Module Result
+
+ Module Result of Line
+ Alignment is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ DeltaX
+
+ Float. The offset value X from the origin of the image coordinate
+ system to the origin of the physical coordinate system of the mechanism, in
+ pixels.
+
+ DeltaY
+
+ Float. The offset value Y from the origin of the image
+ coordinate system to the origin of the physical coordinate system of the
+ mechanism, in pixels.
+
+ DeltaTheta
+
+ Float. The angle offset experienced when an image point moves
+ from a reference position (teaching point) to a target position (running
+ point), and the clockwise angle is positive.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How
+ To
+ Use
+
+- Parameter Configuration
+
+- Module Result

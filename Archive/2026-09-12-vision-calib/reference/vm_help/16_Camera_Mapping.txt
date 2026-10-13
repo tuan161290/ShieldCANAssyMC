@@ -1,0 +1,240 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-CC3DB2DB-FC0B-4410-A58B-DDAC72E2360B.html
+
+Camera Mapping
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calibration
+
+- Camera Mapping
+
+ Camera Mapping
+
+ The Camera Mapping module is mainly used to
+ calculate the mapping relationship between two image coordinate
+ systems and generate
+ an
+ affine transformation matrix (or so-called calibration file)
+ based on
+ a series of
+ input
+ point
+ pairs.
+ It
+ is widely used in
+ vision-guided
+ applications that involve multiple cameras, such as object positioning and
+ grasping.
+
+ How It Works
+
+ Note 
+ The Camera Mapping has the same module
+ principle as that of the Mapping Calibration.
+
+ How To Use
+
+ This module is mainly used with the modules of feature extraction. For
+ example, the Camera Mapping module, as a successor, can
+ subscribe to the one-to-one corresponding points in the two image coordinate systems
+ extracted by the predecessors, and then calculate the affine transformation
+ matrix.
+
+ In the following application example, the feature extraction module is
+ Edge Intersection. The edge intersection point 1/2/3/4 of
+ the upper camera is mapped with the edge intersection point 5/6/7/8 of the lower
+ camera.
+
+ [img:GUID-D3FD35E0-1CB5-46FD-9CAA-5C329A1C1932-high.png] 
+ Figure 1 Camera Mapping
+ Application
+
+ Parameter Configuration
+
+ This section introduces the configuration of basic parameters and run
+ parameters. For the result parameters, see Result Show.
+
+- 
+ Basic Parameters:
+
+ Input Mode
+
+ Set the input method of point information in the
+ Demonstrate Point*-Run
+ Point* from by point or by coordinate. When
+ selecting By Point, enter or
+ subscribe to the point coordinates;
+ when
+ selecting By
+ Coordinate, enter or subscribe to point X and
+ point Y which then constitute the point coordinates.
+
+ Demonstrate Point*-Run Point*
+
+ Set the point-to-point mapping in two image
+ coordinate systems. You can set at least two mapping
+ relationships or add mapping relationships by clicking [img:GUID-A476EB73-A27A-4014-927D-18756C0F932A-high.png] .
+
+ Note 
+ Make sure that the points to the left of each
+ set of parameters belong to the same image coordinate
+ system, and the points to the right also follow this
+ principle.
+ However,
+ the left and right points should belong to different image
+ coordinate systems.
+
+ Set Calibration File Path
+
+ Update File
+
+ Create Calibration File
+
+ For the three common parameters of calibration
+ modules, see N-point Calibration Parameter
+ Configuration.
+
+- 
+ Run Parameters:
+
+ DOF
+
+ Set the degree of freedom when fitting the homo
+ matrix. Optional Scale, Rotation, Aspect
+ Ratio, Tilt, Translation, and Transmission
+ (perspective transformation), Scale,
+ Rotation, Aspect Ratio, Tilt and Translation
+ (affine transformation), and Scale,
+ Rotation and Translation (similarity
+ transformation). The degree of freedom is gradually reduced in
+ the three modes above. You are recommended to use the default
+ option.
+
+ For example, a square may become a trapezoid in
+ perspective transformation, a rectangle in affine
+ transformation,
+ and a square with different sizes in
+ similarity transformation.
+
+ Weighting Function
+
+ Optional Least Squares, Huber, and Tukey. You are
+ recommended to use the default value. 
+
+ When selecting Huber or Tukey, you need to configure
+ the Weighting Coefficient.
+
+ Weighting Coefficient
+
+ Select the Sigma Clip of the function.
+ It is recommended to use the default value.
+
+ Module Result
+
+ Module Result of Camera
+ Mapping is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ ScaleX
+
+ Float. The X-coordinate ratio of the coordinate system of the
+ running point and that of the teaching point.
+
+ ScaleY
+
+ Float. The Y-coordinate ratio of the coordinate system of the
+ running point and that of the teaching point.
+
+ CalibStatus
+
+ Float. 0 indicates failed calibration while 1 indicates
+ successful calibration.
+
+ TranslateX
+
+ Float. The X-coordinate of the point in the image coordinate
+ system mapped from the original point in the world coordinate system
+ calculated by calibration matrix.
+
+ TranslateY
+
+ Float. The Y-coordinate of the point in the image coordinate
+ system mapped from the original point in the world coordinate system
+ calculated by calibration matrix.
+
+ Rotate
+
+ Float. The rotation angle (in radians) of the machine in the
+ physical coordinate system relative to the image coordinate system. 
+ 
+- 
+ When the rotation angle is positive, the X-axis of
+ the physical coordinate system of the mechanism rotates
+ counterclockwise by this angle, and its X-axis is consistent
+ with the X-axis of the image coordinate system.
+
+- 
+ When the rotation angle is negative, the X-axis of
+ the physical coordinate system of the mechanism
+ rotates
+ clockwise by this angle, and its X-axis is
+ consistent with the X-axis of the image coordinate system.
+
+ Scale
+
+ Float. The number of pixels per unit length in the image
+ coordinate system relative to the world coordinate system.
+
+ Skew
+
+ Float. The difference between the rotation angle of the Y-axis
+ and that of the X-axis in the world coordinate system. (Unit: radian)
+
+ Aspect
+
+ Float. The ratio of zoom amount of the Y-axis and that of the
+ X-axis in the world coordinate system.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

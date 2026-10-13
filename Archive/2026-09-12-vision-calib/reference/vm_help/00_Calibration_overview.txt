@@ -1,0 +1,44 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-77CAFA2C-CD7B-47FA-9282-23E84CE70B1D.html
+
+Calibration
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calibration
+
+ Calibration
+
+Calibration modules are mainly used to generate the transformation
+ relationship between two coordinate systems and to take the generated calibration file for
+ actual use.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->

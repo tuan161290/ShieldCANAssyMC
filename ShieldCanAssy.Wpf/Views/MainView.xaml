@@ -1,0 +1,826 @@
+﻿<UserControl x:Class="ShieldCanAssy.Wpf.Views.MainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ShieldCanAssy.Wpf.ViewModels"
+             xmlns:l="clr-namespace:ShieldCanAssy.Wpf.Mvvm"
+             xmlns:log="clr-namespace:ShieldCanAssy.Utility.Log;assembly=ShieldCanAssy.Core"
+             xmlns:vmui="clr-namespace:VMControls.WPF.Release;assembly=VMControls.WPF.Release">
+    <UserControl.DataContext>
+        <vm:MainViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <!-- Nút nhỏ ở góc tiêu đề mỗi card CAM: ẩn/hiện thanh công cụ của VmRenderControl (chọn ảnh, phóng to/thu nhỏ) —
+             Tuấn 2026-10-07. Tag = khung ảnh của card đó; xử lý ở MainView.xaml.cs ToggleRenderToolbar_Click. -->
+        <Style x:Key="RenderToolbarToggleStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+            <Setter Property="DockPanel.Dock" Value="Right"/>
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="ToolTip" Value="{l:T Main.RenderToolbarTip}"/>
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="&#xf0c9;" FontFamily="{StaticResource FontAwesome}" FontSize="10"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Khung ảnh CAM bo góc (Tuấn 2026-10-07): viền màu viền card thay cho viền xám vuông của VmRenderControl. Control
+             đặt Margin="-3" tràn ra ngoài, nội dung cắt theo góc bo ở HolderContent_SizeChanged nên viền của nó bị cắt mất. -->
+        <Style x:Key="RenderHolderStyle" TargetType="Border">
+            <Setter Property="MinHeight" Value="140"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardStrokeBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+
+        <!-- Kết quả soi mới nhất của khung CAM chia thành bảng, kiểu bộ đếm tray (Tuấn 2026-10-07): tiêu đề cột nhỏ màu
+             xám, số đậm bên dưới, nhãn hàng bên trái, ô được nhắm ở góc trái hàng tiêu đề. Giờ chụp đã có trên tiêu đề
+             card ("Chụp lúc"), ghi chú khi có bảng (bỏ ô, không đặt, chưa có master) cũng lên tiêu đề card — bảng không
+             tốn thêm dòng nào (Tuấn: chữ to hơn ảnh). Không có bảng (chưa trigger, lỗi, không thấy) thì ghi chú chiếm chỗ
+             bảng. Chiều cao cố định đặt ở chỗ dùng — số dòng đổi thì khung ảnh bên dưới không co giãn theo (Tuấn 01/10). -->
+        <!-- Ghi chú của lần soi trên tiêu đề card CAM, giữa tên card và "Chụp lúc": cam, cắt "…" khi dài, rê chuột xem đủ. -->
+        <Style x:Key="ReadoutNoteStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource CautionBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Right"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Margin" Value="8,0,8,0"/>
+        </Style>
+
+        <!-- Chỗ đặt bảng của khung CAM bottom-up: 2 hàng (Lệch, Đích) cao 52; bảng Đích tách phần có 3 hàng (X, Y, θ)
+             nên cao 70 — chỉ đổi khi bấm đổi kiểu, không đổi theo từng lần soi. -->
+        <Style x:Key="ToolReadoutHostStyle" TargetType="ContentControl">
+            <Setter Property="DockPanel.Dock" Value="Top"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ShowBreakdown}" Value="True">
+                    <Setter Property="Height" Value="70"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="ReadoutTemplate">
+            <Grid>
+                <TextBlock Text="{Binding Note}" FontSize="12" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                           Visibility="{Binding HasRows, Converter={StaticResource InverseBoolToVis}}"/>
+                <StackPanel Visibility="{Binding HasRows, Converter={StaticResource BoolToVis}}">
+                    <!-- Hàng tiêu đề bấm được ở khung CAM bottom-up (CanToggle): đổi Lệch/Đích ↔ Đích tách phần
+                         (MainView.xaml.cs ReadoutHeader_Click, Tuấn 2026-10-07). Nền trong suốt để bấm trúng cả khoảng trống. -->
+                    <DockPanel Background="Transparent" MouseLeftButtonUp="ReadoutHeader_Click">
+                        <DockPanel.Style>
+                            <Style TargetType="DockPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CanToggle}" Value="True">
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="ToolTip" Value="{l:T Main.ReadoutToggleTip}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DockPanel.Style>
+                        <TextBlock Width="64" Text="{Binding Cell}" FontSize="11" FontWeight="SemiBold"/>
+                        <ItemsControl ItemsSource="{Binding Columns}" Focusable="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontSize="11" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                    <ItemsControl ItemsSource="{Binding Rows}" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel>
+                                    <TextBlock Width="64" Text="{Binding Label}" FontSize="11" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <ItemsControl ItemsSource="{Binding Values}" Focusable="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Rows="1"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" FontSize="13" FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <!-- Mẫu lưới tray: kích thước lấy từ Rows/Cols lúc chạy, KHÔNG có con số nào
+             hardcode trong XAML (PLAN.md §8.1) -->
+        <!-- Một card mỗi tray (Tuấn 2026-10-07): lưới ô trên, hàng dưới là nút nạp lại và bộ đếm OK/NG/Tổng của tray căn
+             phải, ngăn bằng vạch mờ dọc. Nhãn trên số dưới cho hàng gọn — số cộng dồn qua nhiều tray (chỉ Clear sản lượng
+             mới xoá), 4 chữ số vẫn vừa mà chữ trên nút không bị cắt. -->
+        <DataTemplate x:Key="TrayGridTemplate">
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <DockPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <DockPanel>
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock Text="{Binding Summary}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
+                        </DockPanel>
+                    </Border>
+                    <!-- Nút nạp lại và bộ đếm rộng bằng nhau (Tuấn 2026-10-07), ba số chia đều nửa bên phải. -->
+                    <Grid DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="{Binding ResetText}" Command="{Binding ResetCommand}" Height="32"
+                                Margin="0,0,6,0"/>
+                        <Border Grid.Column="1" Margin="6,0,0,0" Padding="6,0,0,0" VerticalAlignment="Center"
+                                BorderBrush="{StaticResource DividerBrush}" BorderThickness="1,0,0,0">
+                            <UniformGrid Rows="1" Columns="3">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="OK" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding CountOk}" FontSize="16" FontWeight="Bold"
+                                               Foreground="{StaticResource SuccessBrush}"/>
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="NG" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding CountNg}" FontSize="16" FontWeight="Bold"
+                                               Foreground="{StaticResource CriticalBrush}"/>
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="{l:T Common.Total}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding CountTotal}" FontSize="16" FontWeight="Bold"/>
+                                </StackPanel>
+                            </UniformGrid>
+                        </Border>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding Cells}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="{Binding Rows}" Columns="{Binding Cols}"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Ô kiểu nút Calculator Windows 11 (Tuấn yêu cầu, 2026-09-15): không bóng
+                                     đổ, viền 1px rất nhạt (6% đen) đậm hơn ở mép dưới (16% đen) — viền
+                                     "elevation" của Fluent — bo góc 4, khe hở 2px giữa các ô. Ô hiện tại
+                                     vẫn giữ quầng xanh accent vì viền mảnh không đủ đánh dấu. MinWidth 30, không phải
+                                     42: tray lắp ráp 8 cột chỉ còn ~40 px mỗi ô, ép 42 là ô nào cũng bị cắt mép phải
+                                     (Tuấn báo 2026-09-28). -->
+                                <Border Margin="1" MinWidth="30" MinHeight="34" CornerRadius="4"
+                                        Background="{Binding Look, Converter={StaticResource TrayCellBrush}}" BorderThickness="1"
+                                        SnapsToDevicePixels="True">
+                                    <Border.BorderBrush>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Offset="0" Color="{StaticResource ControlStrokeColorDefault}"/>
+                                            <GradientStop Offset="0.9" Color="{StaticResource ControlStrokeColorDefault}"/>
+                                            <GradientStop Offset="1" Color="{StaticResource ControlStrokeColorSecondary}"/>
+                                        </LinearGradientBrush>
+                                    </Border.BorderBrush>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                    <Setter Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect Color="#0078D4" ShadowDepth="0"
+                                                                              BlurRadius="9" Opacity="0.9"/>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Label}" FontSize="12"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- Cột trái/phải thu nhỏ, ưu tiên độ rộng cho cột giữa (2 khung ảnh CAM) — màn hình
+             thực tế đang dùng là 4:3, hẹp ngang hơn hẳn 16:9 lúc thiết kế ban đầu nên 320+380px
+             cố định 2 bên ăn mất quá nhiều chỗ, bóp khung CAM nhỏ lại (2026-08-19). -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ═══ Cột trái: nút vận hành + bộ đếm ═══
+             Cuộn được: ở màn 1280×1024 ba card cao hơn cột, khung Tay hút bị cắt mất hẳn (Tuấn báo
+             2026-09-25) — mà khung đó là chỗ duy nhất so sổ phần mềm với cảm biến trước khi START
+             lúc Paused. Nút đã thu thấp lại nên ở 1280×976 (1024 trừ taskbar) bật cả chạy rà vẫn vừa
+             khít; thanh cuộn là chỗ dự phòng khi hiện thêm banner chờ người vận hành. -->
+        <ScrollViewer Grid.Column="0" Margin="0,0,8,0" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Main.Operation}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+
+                    <!-- Máy không có công tắc chìa AUTO/MANUAL vật lý — chọn chế độ bằng 2 nút
+                         này (McControl.RequestSetMode). Nút đang chọn tô theo màu đèn tháp
+                         tương ứng (AUTO=xanh lá, MANUAL=cam) để khớp trực giác với đèn tháp
+                         vật lý, thay vì màu accent trung tính. Style phẳng: nút đang chọn tô
+                         đặc + chữ trắng, nút còn lại chữ đen, viền xám, nền trong suốt — cùng kiểu SVO
+                         on/off bên ManualView (Tuấn yêu cầu, 2026-09-11). -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="AUTO" Command="{Binding SetAutoModeCommand}"
+                                Height="40" Margin="0,0,3,0" FontSize="14" FontWeight="Bold">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status.Mode}" Value="Auto">
+                                            <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Grid.Column="1" Content="MANUAL" Command="{Binding SetManualModeCommand}"
+                                Height="40" Margin="3,0,0,0" FontSize="14" FontWeight="Bold">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status.Mode}" Value="Manual">
+                                            <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            <Setter Property="Effect" Value="{StaticResource CautionGlowEffect}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+
+                    <!-- Đèn báo RUN kiêm nút bấm — CỐ Ý bấm vào chỉ vào Armed (Cặp
+                         A), KHÔNG chạy máy trực tiếp: máy chạy thật bắt buộc phải bấm đủ Cặp B
+                         (2 tay) ngoài jig, không có đường nào từ màn hình cảm ứng bỏ qua được yêu
+                         cầu an toàn 2 tay (2026-08-20). Chữ LUÔN là RUN, MÀU mới là cái báo trạng
+                         thái: xám khi máy đứng, xanh lá khi đang chạy (Tuấn đổi 2026-09-24) — đúng
+                         quy ước đèn RUN trên bảng điều khiển, và vẫn chỉ phân biệt 2 mức chứ không
+                         hiện đủ StateText. Effect chỉ đặt trong Trigger, KHÔNG đặt ở base: Trigger
+                         chỉ THÊM Effect chứ không gỡ được, đặt ở base rồi xoá bằng {x:Null} trong
+                         Trigger làm WPF ném XamlParseException (xem nút RESET bên dưới). -->
+                    <Button Command="{Binding ArmCommand}" Height="44" Margin="0,0,0,6"
+                            FontSize="16" FontWeight="Bold"
+                            ToolTip="{l:T Main.RunTip}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                <Setter Property="Content" Value="RUN"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource StatusOffBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                <Setter Property="Background" Value="{StaticResource StatusOffBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status.State}" Value="Running">
+                                        <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                                        <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                                    </DataTrigger>
+                                    <!-- Armed (đã bấm RUN, chờ bấm Cặp B): xanh NHẤP NHÁY 1 Hz, cùng lúc đèn nút Start
+                                         Cụm B ngoài máy nháy (McControl.UpdateOutputs) — Tuấn yêu cầu 2026-09-26. Nháy
+                                         bằng Opacity rời rạc (sáng 0.5 s / mờ 0.5 s), không đổi màu Brush: Brush trong
+                                         Setter của Style bị đóng băng, không animate được. -->
+                                    <DataTrigger Binding="{Binding Status.State}" Value="Armed">
+                                        <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard x:Name="ArmedBlink">
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:1">
+                                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
+                                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0.5" Value="0.3"/>
+                                                    </DoubleAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <StopStoryboard BeginStoryboardName="ArmedBlink"/>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <!-- STOP đỏ khi máy không chạy (giống đèn nút STOP cứng), Origin xanh dương khi cả 7 trục đã về
+                         gốc (Tuấn 2026-09-28). Effect chỉ thêm trong Trigger — xem ghi chú nút RESET. -->
+                    <Button Content="STOP" Command="{Binding StopCommand}" Height="44" Margin="0,0,0,6"
+                            FontSize="16" FontWeight="SemiBold">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStopped}" Value="True">
+                                        <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                        <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
+                                        <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <!-- Init cạnh Về gốc (Tuấn 2026-09-29): nâng Z rồi đưa mọi trục về vị trí chờ, không về gốc lại — sau khi
+                         tạm dừng, chuyển MANUAL và thao tác tay. Cam khi bắt buộc Init trước khi chạy tiếp (RunData.UnsafePause). -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="72"/>
+                        </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="{l:T Main.Origin}" Command="{Binding OriginCommand}" Height="44" Margin="0,0,3,0"
+                            FontSize="16" FontWeight="SemiBold">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status.OrgOk}" Value="True">
+                                        <Setter Property="BorderBrush" Value="{StaticResource BlueOnBrush}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                        <Setter Property="Background" Value="{StaticResource BlueOnBrush}"/>
+                                        <Setter Property="Effect" Value="{StaticResource BlueGlowEffect}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Column="1" Content="Init" Command="{Binding InitCommand}" Height="44" Margin="3,0,0,0"
+                            FontSize="16" FontWeight="SemiBold"
+                            PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                            ToolTip="{l:T Main.InitTip}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding NeedInit}" Value="True">
+                                        <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                        <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                                        <Setter Property="Effect" Value="{StaticResource CautionGlowEffect}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    </Grid>
+                    <!-- RESET và Tắt còi chung một hàng — cả hai là việc xử lý alarm, và bớt một hàng nút
+                         để cột trái vừa màn 1280×1024. -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="RESET" Command="{Binding ResetCommand}" Height="44" Margin="0,0,3,0"
+                            FontSize="16" FontWeight="SemiBold">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                <!-- Đỏ đặc chữ trắng + glow khi còn alarm (style phẳng, 2026-09-11) — nút
+                                     RESET phải tự chỉ ra là đang có việc cần làm, xem ShellViewModel.
+                                     HasActiveAlarms. Mặc định (chưa có alarm) KHÔNG đặt Effect gì —
+                                     Trigger chỉ THÊM Effect, không bao giờ gỡ: dùng Setter
+                                     Property="Effect" Value="{x:Null}" trong Trigger để "xoá" Effect
+                                     đã gán ở base làm WPF ném XamlParseException
+                                     "'{DependencyProperty.UnsetValue}' is not a valid value for
+                                     property 'Effect'" ngay lúc MainWindow.InitializeComponent
+                                     (Tuấn báo lỗi kèm ảnh, 2026-09-10). -->
+                                <Setter Property="BorderBrush" Value="{StaticResource ButtonStrokeBrush}"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasActiveAlarms}" Value="True">
+                                        <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                        <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
+                                        <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Column="1" Content="{l:T Main.Mute}" Command="{Binding MuteCommand}" Height="44" Margin="3,0,0,0"
+                            FontSize="16" FontWeight="SemiBold" Style="{StaticResource OutlineButtonStyle}"/>
+                    </Grid>
+
+                    <!-- Nút chạy rà và chọn tay hút chạy Auto đã chuyển sang trang Setting (Tuấn 2026-10-08). Ở đây chỉ còn
+                         hai dòng nhắc: chạy rà đang bật (cam, kèm tiến độ) và chỉ chạy một tay — để không ai nhìn nhầm ra
+                         chu trình thật hay quên máy đang chạy nửa công suất (lý do cũ của màu cam, 2026-09-29). -->
+                    <Border CornerRadius="4" Padding="8,6" Margin="0,6,0,0" Background="{StaticResource CautionOnBrush}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding OnlyNozzle}" Value="0">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding OnlyNozzleText}"
+                                   TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextOnAccentBrush}"/>
+                    </Border>
+                    <Border Background="{StaticResource CautionBrush}" CornerRadius="4"
+                            Padding="8,6" Margin="0,6,0,0"
+                            Visibility="{Binding Status.DryRun, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <TextBlock Text="{l:T Main.DryRunBanner}" FontWeight="Bold" FontSize="13"
+                                       Foreground="{StaticResource TextOnAccentBrush}"/>
+                            <TextBlock Text="{Binding DryRunText}" TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{StaticResource TextOnAccentBrush}"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- KHÔNG phải nút bấm được (2026-08-20) — nạp tray bằng nút cứng cụm B:
+                         Start 1 cho tray đầu vào, Start 2 cho tray lắp ráp (2026-09-26). Banner chỉ NHẮC. -->
+                    <Border Background="{StaticResource CustomLightYellowBrush}" CornerRadius="4"
+                            Padding="8,6" Margin="0,6,0,0"
+                            Visibility="{Binding WaitingOperator, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{l:T Main.WaitTrayBanner}"
+                                   TextWrapping="Wrap" FontWeight="Bold" FontSize="13" Foreground="#5A3D00"/>
+                    </Border>
+
+                    <Border Background="{StaticResource CustomLightYellowBrush}" CornerRadius="4"
+                            Padding="8,6" Margin="0,6,0,0"
+                            Visibility="{Binding Status.Message, Converter={StaticResource StringToVis}}">
+                        <TextBlock Text="{Binding Status.Message}" TextWrapping="Wrap" FontSize="12" Foreground="#5A3D00"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <DockPanel>
+                            <TextBlock Text="{l:T Main.Production}" Style="{StaticResource SectionHeaderStyle}"/>
+                            <Button DockPanel.Dock="Right" Content="Clear" Width="80" Height="32"
+                                    HorizontalAlignment="Right" Command="{Binding ResetCountersCommand}"/>
+                        </DockPanel>
+                    </Border>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="OK" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding CountOk}" FontSize="26" FontWeight="Bold"
+                                       Foreground="{StaticResource SuccessBrush}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="NG" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding CountNg}" FontSize="26" FontWeight="Bold"
+                                       Foreground="{StaticResource CriticalBrush}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="{l:T Common.Total}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding CountTotal}" FontSize="26" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Grid>
+                    <Rectangle Height="1" Margin="0,6,0,6" Fill="{StaticResource DividerBrush}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{l:T Main.NgRate}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding NgRate, StringFormat='{}{0:0.00} %'}" FontSize="16" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{l:T Main.NgStreak}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding ConsecutiveNg}" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="{Binding HasConsecutiveNg, Converter={StaticResource NgStreakBrush}}"
+                                       ToolTip="{l:T Main.NgStreakTip}"/>
+                        </StackPanel>
+                    </Grid>
+                    <!-- Cycle time theo tray lắp ráp (Tuấn 2026-10-09, thay hàng CT theo lượt): CT tray = GIỜ THỰC từ lúc máy
+                         chạy với tray tới lúc tray hết ô trống, tính cả lúc chờ tray đầu vào và lúc STOP; CT TB = CT tray ÷ số ô
+                         đặt OK. Bảng kẻ ô theo hình Tuấn vẽ 12/10. Tuấn định nghĩa: Tack Time = trung bình một sản phẩm (CT TB),
+                         Cycle Time = tổng thời gian tray (CT tray). Dòng 1 Pre-Tack Time (tray vừa xong), dòng 2 Tack Time (tray
+                         đang làm), dòng 3 Cycle Time tray đang làm rồi Pre-Cycle Time tray vừa xong trên cùng một ô. -->
+                    <Border Margin="0,8,0,0" BorderThickness="1" BorderBrush="{StaticResource DividerBrush}">
+                        <Grid>
+                            <Grid.Resources>
+                                <!-- Cột trái chỉ 250 px: bảng còn ~218 px, ~201 px khi hiện thanh cuộn. Cỡ chữ/đệm dưới đây
+                                     để ô Cycle Time chứa vừa hai số "mm:ss.f" cả khi có thanh cuộn (đo 12/10). -->
+                                <Style x:Key="CtCell" TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+                                    <Setter Property="Padding" Value="6,3"/>
+                                </Style>
+                                <Style x:Key="CtLabel" TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="11"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                </Style>
+                                <Style x:Key="CtValue" TargetType="TextBlock">
+                                    <Setter Property="FontSize" Value="15"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </Grid.Resources>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,1">
+                                <TextBlock Text="{l:T Main.CtAvgPrevious}" Style="{StaticResource CtLabel}"/>
+                            </Border>
+                            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CtCell}" BorderThickness="0,0,0,1"
+                                    ToolTip="{l:T Main.CtAvgPreviousTip}">
+                                <TextBlock Text="{Binding LastAssyTrayAvg}" Style="{StaticResource CtValue}"/>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,1">
+                                <TextBlock Text="{l:T Main.CtAvgCurrent}" Style="{StaticResource CtLabel}"/>
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CtCell}" BorderThickness="0,0,0,1"
+                                    ToolTip="{l:T Main.CtAvgCurrentTip}">
+                                <TextBlock Text="{Binding AssyTrayAvg}" Style="{StaticResource CtValue}"/>
+                            </Border>
+
+                            <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,0">
+                                <TextBlock Text="{l:T Main.CtTrayCurrent}" Style="{StaticResource CtLabel}"/>
+                            </Border>
+                            <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CtCell}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding AssyTrayElapsed}" Style="{StaticResource CtValue}"
+                                               ToolTip="{l:T Main.CtTrayCurrentTip}"/>
+                                    <!-- Pre-Cycle Time không có nhãn riêng trên bảng — tooltip ghi tên. -->
+                                    <TextBlock Text="{Binding LastAssyTray}" Style="{StaticResource CtValue}" Margin="8,0,0,0">
+                                        <TextBlock.ToolTip>
+                                            <StackPanel>
+                                                <TextBlock Text="{l:T Main.CtTrayPrevious}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{l:T Main.CtTrayPreviousTip}"/>
+                                            </StackPanel>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <TextBlock Text="{Binding UphText}" Margin="0,6,0,0" FontSize="12" ToolTip="{l:T Main.UphTip}"/>
+                    <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="{l:T Main.StepPrefix}"/><Run Text="{Binding Status.AutoStepText, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="{Binding LastCompensation}" ToolTip="{l:T Main.LastCompensationTip}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Main.Nozzles}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="#1" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Nozzle1Text}" FontSize="12" Margin="0,0,0,6"
+                                   TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Grid.Row="1" Text="#2" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Nozzle2Text}" FontSize="12"
+                                   TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        </ScrollViewer>
+
+        <!-- ═══ Cột giữa: hai tray, dưới là ba khung ảnh CAM ═══
+             DockPanel: khối tray+nút (Dock=Top, bọc ScrollViewer phòng khi tray lớn hơn màn
+             hình) đứng trên, khối ảnh CAM (không Dock — tự giãn) lấp hết phần cao còn lại,
+             thay vì dừng lại giữa chừng như StackPanel/ScrollViewer cũ. -->
+        <DockPanel Grid.Column="1" Margin="0,0,8,0" LastChildFill="True">
+            <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Hai card tray — nút nạp lại nằm trong card (TrayGridTemplate) từ 2026-10-07. -->
+                    <ContentControl Grid.Column="0" Margin="0,0,4,0"
+                                     Content="{Binding InputTray}" ContentTemplate="{StaticResource TrayGridTemplate}"/>
+                    <ContentControl Grid.Column="1" Margin="4,0,0,0"
+                                     Content="{Binding AssyTray}" ContentTemplate="{StaticResource TrayGridTemplate}"/>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- Ba khung ảnh CAM (2026-09-28): bên trái, dưới tray đầu vào, là CAM bottom-up của TỪNG tay xếp chồng;
+                 bên phải, dưới tray lắp ráp — tray mà LocateTop soi —, là CAM top-down cao hết cột. Ảnh camera gần vuông
+                 nên khung cao-hẹp cho ảnh top-down to hơn khung trải ngang. Giãn lấp hết chiều cao còn lại. Mỗi khung: VmRenderControl
+                 do VisionMaster vẽ (bind trong MainView.xaml.cs) đứng TRÊN ảnh Bitmap chụp gần nhất — control tự vẽ
+                 được thì che mất ảnh dự phòng; nếu không vẽ được gì (nền trong suốt) thì ảnh dự phòng lộ ra. -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,4,8" Style="{StaticResource CardBorderStyle}">
+                    <DockPanel>
+                        <Border Style="{StaticResource CardHeaderStyle}">
+                        <DockPanel>
+                            <Button Style="{StaticResource RenderToolbarToggleStyle}" Tag="{Binding ElementName=Tool1Render}"
+                                    Click="ToggleRenderToolbar_Click"/>
+                            <TextBlock Text="{l:T Main.CamTool1}" Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Tool1CapturedText}" VerticalAlignment="Center" FontSize="11"
+                                       Foreground="{StaticResource TextTertiaryBrush}"/>
+                            <!-- Ghi chú của lần soi (bỏ ô, không đặt) khi có bảng số — xem ReadoutTemplate. -->
+                            <TextBlock Text="{Binding Tool1Card.Note}" ToolTip="{Binding Tool1Card.Note}" Style="{StaticResource ReadoutNoteStyle}"
+                                       Visibility="{Binding Tool1Card.HasRows, Converter={StaticResource BoolToVis}}"/>
+                        </DockPanel>
+                        </Border>
+                        <!-- Kết quả Trigger mới nhất: ô được gán, độ lệch, điểm đích tuyệt đối (Tuấn 2026-10-01), dạng bảng
+                             (ReadoutTemplate, 2026-10-07). Rê chuột xem bản chữ đầy đủ. -->
+                        <ContentControl Style="{StaticResource ToolReadoutHostStyle}"
+                                        Content="{Binding Tool1Card}" ContentTemplate="{StaticResource ReadoutTemplate}"
+                                        ToolTip="{Binding Tool1Readout}"/>
+                        <Border Style="{StaticResource RenderHolderStyle}">
+                            <Grid SizeChanged="HolderContent_SizeChanged">
+                                <TextBlock Text="{l:T Main.NoImage}" Foreground="{StaticResource TextTertiaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding Tool1Image, Converter={StaticResource NullToVis}}"/>
+                                <Image Source="{Binding Tool1Image}" Stretch="Uniform"/>
+                                <vmui:VmRenderControl x:Name="Tool1Render" Margin="-3"/>
+                            </Grid>
+                        </Border>
+                    </DockPanel>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="0" Margin="0,0,4,0" Style="{StaticResource CardBorderStyle}">
+                    <DockPanel>
+                        <Border Style="{StaticResource CardHeaderStyle}">
+                        <DockPanel>
+                            <Button Style="{StaticResource RenderToolbarToggleStyle}" Tag="{Binding ElementName=Tool2Render}"
+                                    Click="ToggleRenderToolbar_Click"/>
+                            <TextBlock Text="{l:T Main.CamTool2}" Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Tool2CapturedText}" VerticalAlignment="Center" FontSize="11"
+                                       Foreground="{StaticResource TextTertiaryBrush}"/>
+                            <TextBlock Text="{Binding Tool2Card.Note}" ToolTip="{Binding Tool2Card.Note}" Style="{StaticResource ReadoutNoteStyle}"
+                                       Visibility="{Binding Tool2Card.HasRows, Converter={StaticResource BoolToVis}}"/>
+                        </DockPanel>
+                        </Border>
+                        <ContentControl Style="{StaticResource ToolReadoutHostStyle}"
+                                        Content="{Binding Tool2Card}" ContentTemplate="{StaticResource ReadoutTemplate}"
+                                        ToolTip="{Binding Tool2Readout}"/>
+                        <Border Style="{StaticResource RenderHolderStyle}">
+                            <Grid SizeChanged="HolderContent_SizeChanged">
+                                <TextBlock Text="{l:T Main.NoImage}" Foreground="{StaticResource TextTertiaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding Tool2Image, Converter={StaticResource NullToVis}}"/>
+                                <Image Source="{Binding Tool2Image}" Stretch="Uniform"/>
+                                <vmui:VmRenderControl x:Name="Tool2Render" Margin="-3"/>
+                            </Grid>
+                        </Border>
+                    </DockPanel>
+                </Border>
+
+                <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="4,0,0,0" Style="{StaticResource CardBorderStyle}">
+                    <DockPanel>
+                        <Border Style="{StaticResource CardHeaderStyle}">
+                        <DockPanel>
+                            <Button Style="{StaticResource RenderToolbarToggleStyle}" Tag="{Binding ElementName=TopDownRender}"
+                                    Click="ToggleRenderToolbar_Click"/>
+                            <TextBlock Text="{l:T Main.CamTop}" Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding TopDownCapturedText}" VerticalAlignment="Center" FontSize="11"
+                                       Foreground="{StaticResource TextTertiaryBrush}"/>
+                            <TextBlock Text="{Binding TopDownCard.Note}" ToolTip="{Binding TopDownCard.Note}" Style="{StaticResource ReadoutNoteStyle}"
+                                       Visibility="{Binding TopDownCard.HasRows, Converter={StaticResource BoolToVis}}"/>
+                        </DockPanel>
+                        </Border>
+                        <!-- Kết quả LocateTop mới nhất và Δ so với điểm teach hand-eye (master) của từng tay — bảng 3 hàng -->
+                        <ContentControl DockPanel.Dock="Top" Margin="0,0,0,4" Height="70" Focusable="False"
+                                        Content="{Binding TopDownCard}" ContentTemplate="{StaticResource ReadoutTemplate}"
+                                        ToolTip="{Binding TopDownReadout}"/>
+                        <Border Style="{StaticResource RenderHolderStyle}">
+                            <Grid SizeChanged="HolderContent_SizeChanged">
+                                <TextBlock Text="{l:T Main.NoImage}" Foreground="{StaticResource TextTertiaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding TopDownImage, Converter={StaticResource NullToVis}}"/>
+                                <Image Source="{Binding TopDownImage}" Stretch="Uniform"/>
+                                <vmui:VmRenderControl x:Name="TopDownRender" Margin="-3"/>
+                            </Grid>
+                        </Border>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </DockPanel>
+
+        <!-- ═══ Cột phải: log trực tiếp ═══
+             Ẩn/hiện được (Tuấn 06/10): nút ở góc tiêu đề cho card trượt ra mép phải, cột giữa giãn ra lấp chỗ; ẩn rồi thì
+             còn nút nhỏ "‹" giữa mép phải, bấm vào hiện lại. Hoạt ảnh chạy trong MainView.xaml.cs (ToggleLog_Click).
+             LogHost co giãn còn LogCard giữ nguyên bề rộng — phần thừa bị cắt — để chữ trong log không xuống dòng lại
+             từng khung hình. -->
+        <Grid Grid.Column="2">
+            <Button x:Name="LogTab" Width="22" Height="52" MinHeight="0" Padding="0"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Visibility="Collapsed" Opacity="0" Click="ToggleLog_Click" ToolTip="{l:T Main.ShowLog}">
+                <TextBlock Text="&#xf053;" FontFamily="{StaticResource FontAwesome}" FontSize="11"/>
+            </Button>
+        <Border x:Name="LogHost" Width="290" ClipToBounds="True">
+        <Border x:Name="LogCard" Width="290" HorizontalAlignment="Left" Style="{StaticResource CardBorderStyle}">
+            <DockPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Width="36" Height="28" MinHeight="0" Padding="0"
+                            Click="ToggleLog_Click" ToolTip="{l:T Main.HideLog}">
+                        <TextBlock Text="&#xf054;" FontFamily="{StaticResource FontAwesome}" FontSize="12"/>
+                    </Button>
+                    <TextBlock Text="{l:T Main.Log}" Style="{StaticResource SectionHeaderStyle}"/>
+                </DockPanel>
+                </Border>
+                <ListBox x:Name="LogBox" BorderThickness="0" Background="Transparent"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0,1"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <!-- Màu theo mức log (Tuấn 02/10): vạch trái + chữ. Info xanh dương, Warning cam, Error đỏ,
+                             Debug xám. Cùng tông với màu alarm (AlarmLevelToBrushConverter). -->
+                        <DataTemplate DataType="{x:Type log:LogData}">
+                            <Border x:Name="Bar" BorderThickness="3,0,0,0" BorderBrush="{StaticResource AccentBrush}" Padding="5,0,0,0">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding UpdateTime, StringFormat='HH:mm:ss'}"
+                                                   FontFamily="Consolas" FontSize="11"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"/>
+                                        <TextBlock x:Name="Src" Text="{Binding Source}" FontSize="11" Margin="6,0,0,0"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="Msg" Text="{Binding Message}" TextWrapping="Wrap" FontSize="12"/>
+                                </StackPanel>
+                            </Border>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Level}" Value="{x:Static log:LogLevel.Warning}">
+                                    <Setter TargetName="Bar" Property="BorderBrush" Value="#E8A317"/>
+                                    <Setter TargetName="Src" Property="Foreground" Value="#9D5D00"/>
+                                    <Setter TargetName="Msg" Property="Foreground" Value="#9D5D00"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Level}" Value="{x:Static log:LogLevel.Error}">
+                                    <Setter TargetName="Bar" Property="BorderBrush" Value="#E94949"/>
+                                    <Setter TargetName="Src" Property="Foreground" Value="#C42B1C"/>
+                                    <Setter TargetName="Msg" Property="Foreground" Value="#C42B1C"/>
+                                    <Setter TargetName="Msg" Property="FontWeight" Value="SemiBold"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Level}" Value="{x:Static log:LogLevel.Debug}">
+                                    <Setter TargetName="Bar" Property="BorderBrush" Value="#A0A0A0"/>
+                                    <Setter TargetName="Msg" Property="Foreground" Value="#707070"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+        </Border>
+        </Grid>
+    </Grid>
+</UserControl>

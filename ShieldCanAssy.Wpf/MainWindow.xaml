@@ -1,0 +1,432 @@
+<Window x:Class="ShieldCanAssy.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ShieldCanAssy.Wpf.ViewModels"
+        xmlns:views="clr-namespace:ShieldCanAssy.Wpf.Views"
+        xmlns:l="clr-namespace:ShieldCanAssy.Wpf.Mvvm"
+        Title="Shield CAN Assy MC — SO1C86-SCAM"
+        Height="1024" Width="1280"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="{StaticResource SegoeUI}"
+        Foreground="{StaticResource TextPrimaryBrush}"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        Background="Transparent">
+
+    <!-- Frameless + Mica/Acrylic (Windows 11) — xem MainWindow.xaml.cs.WindowBlurHelper. Port từ
+         Ama_Actro_HousingCorrosion.Wpf (dự án WPF chị em), lý do bắt buộc: DWM chỉ composite
+         backdrop vào phần client area do WPF tự vẽ khi cửa sổ từ bỏ hẳn title bar chuẩn của OS
+         (WindowStyle="None") — giữ chrome chuẩn thì Mica chỉ blur được title bar do chính DWM vẽ,
+         không lan vào nội dung app được, bất kể chỉnh Background/CompositionTarget kiểu gì.
+         CaptionHeight=0: không có vùng kéo tự động của WindowChrome, tự xử lý kéo/thả + double-
+         click Maximize qua TitleBar_MouseDown gắn trên Border header sẵn có bên dưới.
+
+         ĐÃ THỬ CaptionHeight="60" để lấy lại animation minimize/restore về taskbar — không có
+         tác dụng (vẫn ẩn/hiện tức thì), chỉ thêm tác dụng phụ (chuột phải vào header tự bật menu
+         hệ thống) nên rút lại. Nguyên nhân animation mất nhiều khả năng nằm ở chỗ khác — có thể
+         do DwmExtendFrameIntoClientArea/SYSTEMBACKDROP_TYPE khiến DWM không tạo được thumbnail
+         cho hiệu ứng "genie" của cửa sổ composite kiểu này — chưa có cách sửa chắc chắn. -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" CornerRadius="8" ResizeBorderThickness="6" GlassFrameThickness="-1"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.DataContext>
+        <vm:ShellViewModel/>
+    </Window.DataContext>
+
+    <!-- KHÔNG co margin khi Maximized: hook WM_GETMINMAXINFO (MainWindow.xaml.cs) đã tự tính
+         đúng ptMaxSize/ptMaxPosition theo WorkArea của màn hình chứa cửa sổ nên cửa sổ Maximized
+         không bao giờ tràn qua mép màn hình/taskbar — không cần "phòng hờ" bằng margin co lại
+         nữa. Từng thử margin=7 khi Maximized (khớp Ama_Actro_HousingCorrosion.Wpf) nhưng lại lộ
+         ra đúng lỗi ngược: một dải nền desktop lộ ra quanh cửa sổ lúc Maximized, phá luôn yêu cầu
+         header tràn hết mép/không margin (2026-08-19). -->
+    <!-- Grid NGOÀI, KHÔNG margin — Header (title bar) VÀ overlay toàn màn hình (bảng alarm, hộp
+         thoại) đặt trực tiếp ở đây thay vì bên trong Grid Margin="8" bên dưới: đặt trong Grid có
+         margin sẽ hụt đúng dải 8px viền quanh cửa sổ (thấy nền Mica không bị làm mờ/tô accent ở
+         viền) và góc vuông thay vì bo tròn theo đúng WindowChrome CornerRadius="8" của cả cửa sổ
+         — tham khảo PartronCamTestAuto.Wpf/MainWindow.xaml, cùng kiến trúc (2026-08-19). -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- Header — tràn hết mép cửa sổ -->
+            <RowDefinition Height="*"/>      <!-- Nav tab + Nội dung + Status bar — margin riêng -->
+        </Grid.RowDefinitions>
+
+        <!-- ══════════ Header — title bar frameless kiểu Windows 11 thật: tràn hết chiều rộng
+             cửa sổ, KHÔNG lơ lửng trong margin/card như trước. Góc trên bo theo đúng
+             CornerRadius=8 của WindowChrome, góc dưới vuông vì tiếp giáp thẳng với nội dung bên
+             dưới. Accent CẢ VÙNG header (nền tint mờ + viền dưới đặc) ăn theo đúng
+             Status.TowerLamp — màu đèn tháp THẬT đang chạy, không phải một bảng màu trạng thái
+             suy diễn riêng, để tránh 2 nơi trên cùng máy nói khác màu nhau. ══════════ -->
+        <Border Grid.Row="0" Padding="16,10"
+                Background="{Binding Status.TowerLamp, Converter={StaticResource TowerLampTintBrush}}"
+                BorderBrush="{Binding Status.TowerLamp, Converter={StaticResource TowerLampBrush}}"
+                BorderThickness="0,0,0,2"
+                CornerRadius="8,8,0,0"
+                MouseDown="TitleBar_MouseDown">
+            <!-- DockPanel thay Grid 4 cột Auto/Star/Auto/Auto: 7 ô trục cộng tên máy dài đủ đẩy
+                 tổng chiều rộng nội dung vượt cửa sổ ở kích thước nhỏ, Grid không tự co cột Auto
+                 lại nên phần vượt lặng lẽ tràn ra ngoài, cắt mất 3 nút điều khiển cửa sổ. Đặt nút
+                 cửa sổ VÀ toạ độ trục docked trước (Right) nên luôn chắc chắn có chỗ; phần duy
+                 nhất hy sinh không gian khi chật là badge trạng thái (LastChildFill), tự co lại
+                 quanh tâm chứ không đẩy gì khác ra khỏi cửa sổ. -->
+            <DockPanel LastChildFill="True">
+                <!-- Nút điều khiển cửa sổ — thay title bar chuẩn đã tắt (WindowStyle="None").
+                     Glyph FontAwesome 4 (fontawesome-webfont.ttf, xem Controls.xaml) — bản FA4 cổ
+                     điển không có icon window-minimize/maximize riêng (chỉ có từ FA5+), dùng bộ
+                     thay thế chuẩn: fa-minus/fa-square-o/fa-times. Content bọc trong TextBlock đặt
+                     FontFamily TRỰC TIẾP (không dựa vào FontFamily Setter của Style) — Content=
+                     string thô trên Button không nhận đúng font qua ContentPresenter mặc định,
+                     hiển thị tofu. -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Style="{StaticResource WindowControlButton}" Click="MinimizeButton_Click">
+                        <TextBlock Text="&#xf068;" FontFamily="{StaticResource FontAwesome}"/>
+                    </Button>
+                    <Button Style="{StaticResource WindowControlButton}" Click="MaximizeButton_Click">
+                        <TextBlock Text="&#xf096;" FontFamily="{StaticResource FontAwesome}"/>
+                    </Button>
+                    <Button Style="{StaticResource WindowCloseButton}" Click="CloseButton_Click">
+                        <TextBlock Text="&#xf00d;" FontFamily="{StaticResource FontAwesome}"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Logo công ty Hoyeon — góc trên bên phải, sát trái 3 nút cửa sổ (Tuấn 2026-09-30). Nền trắng quanh
+                     logo đã tách trong suốt như LogoActro, để tint của header ăn qua. -->
+                <Image DockPanel.Dock="Right" Source="Resources/Images/LogoHoyeon.png" Height="44" Margin="16,0,12,0"
+                       VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                <!-- Đổi ngôn ngữ Việt/Anh (Tuấn 2026-10-09): hiện ngôn ngữ đang dùng, bấm là đổi, App nhớ trong system.json. -->
+                <Button DockPanel.Dock="Right" Style="{StaticResource WindowControlButton}" Width="64" VerticalAlignment="Center"
+                        Command="{Binding ToggleLanguageCommand}" ToolTip="{l:T Shell.LanguageTip}"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xf0ac;" FontFamily="{StaticResource FontAwesome}" FontSize="14" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding LanguageCode}" FontFamily="{StaticResource SegoeUI}" FontSize="12"
+                                   FontWeight="SemiBold" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Toạ độ 7 trục hiện tại — MotionConnect/IAxis đều Bindable nên tự cập nhật
+                     realtime, không cần timer poll (xem ShellViewModel.Motion). Mỗi trục nằm
+                     trong 1 ô rộng CỐ ĐỊNH (Width="58") thay vì gộp chung 1 TextBlock nhiều Run:
+                     Run co giãn theo đúng số ký tự của giá trị, số càng đổi (vd 5.00 → 123.45)
+                     độ rộng cả cụm đổi theo, đẩy lệch mọi thứ cùng hàng. Docked NGAY SAU nút cửa
+                     sổ — luôn đủ chỗ. -->
+                <ItemsControl DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0"
+                              ItemsSource="{Binding Motion.AxisList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Width="58">
+                                <TextBlock Text="{Binding Name}" FontSize="10" HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding CurrentPos, StringFormat={}{0:0.000}, Mode=OneWay}"
+                                           FontSize="12" FontWeight="SemiBold" TextAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="Resources/Images/LogoActro.png" Height="34" Margin="0,0,16,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding MachineName}" FontSize="20" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Status.ModelName, StringFormat='Model: {0}'}"
+                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+            </DockPanel>
+        </Border>
+
+        <!-- ══════════ Nav tab / Nội dung / Status bar — khối riêng có margin 8px quanh nội dung,
+             tách biệt khỏi header (header tràn hết mép, không margin — xem ghi chú Header ở
+             trên). ══════════ -->
+        <Grid Grid.Row="1" Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- Nav tab -->
+            <RowDefinition Height="*"/>      <!-- Nội dung -->
+            <RowDefinition Height="Auto"/>   <!-- Status bar -->
+        </Grid.RowDefinitions>
+
+        <!-- ══════════ Nav tab ══════════ -->
+        <!-- DockPanel thay StackPanel: RESET Dock="Right" đẩy sát mép phải, StackPanel Nav tab
+             (không Dock) chiếm hết phần còn lại nhờ LastChildFill mặc định (Tuấn yêu cầu đưa
+             RESET ra ngoài cùng bên phải, 2026-09-10). -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,4">
+            <!-- RESET — dùng chung ResetCommand với nút RESET trong bảng chi tiết alarm
+                 (McControl.RequestReset). Style phẳng + glow giống các nút Vận hành (MainView RESET/
+                 AUTO/MANUAL/...): mặc định cam đặc chữ trắng (CautionOnBrush), chuyển đỏ (RedOnBrush)
+                 khi HasActiveAlarms=True — xem ghi chú "…OnBrush" ở Controls.xaml. Đặt Background/
+                 Effect trực tiếp trên Button vì đây là FlatButtonStyle thường (không ControlTemplate
+                 TemplateBinding riêng như NavTabButtonStyle) nên an toàn, không dính lỗi UnsetValue
+                 đã gặp với nút Alarm. -->
+            <Button DockPanel.Dock="Right" Content="RESET" Command="{Binding ResetCommand}"
+                    VerticalAlignment="Center" Padding="16,8" FontWeight="SemiBold">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                        <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                        <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                        <Setter Property="Effect" Value="{StaticResource CautionGlowEffect}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasActiveAlarms}" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
+                                <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
+                                <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+        <StackPanel Orientation="Horizontal">
+            <Button Content="Main" Command="{Binding ShowMainCommand}"
+                    Style="{StaticResource NavTabButtonStyle}" Tag="{Binding IsMain}"/>
+            <Button Content="Manual" Command="{Binding ShowManualCommand}"
+                    Style="{StaticResource NavTabButtonStyle}" Tag="{Binding IsManual}" Click="Button_Click"/>
+            <Button Content="Teaching" Command="{Binding ShowTeachingCommand}"
+                    Style="{StaticResource NavTabButtonStyle}" Tag="{Binding IsTeaching}"/>
+            <Button Content="Setting" Command="{Binding ShowSettingCommand}"
+                    Style="{StaticResource NavTabButtonStyle}" Tag="{Binding IsSetting}"/>
+            <Button Content="Vision Edit" Command="{Binding ShowVisionEditCommand}"
+                    Style="{StaticResource NavTabButtonStyle}" Tag="{Binding IsVisionEdit}"/>
+            <!-- Alarm — cùng hàng Nav tab thay vì đứng riêng ở status bar (Tuấn yêu cầu,
+                 2026-09-10). Icon "⚠" đặt cố định trong Content (luôn hiện, không theo trạng
+                 thái) để nổi bật hơn hẳn các tab chữ suông còn lại (Tuấn phản hồi 2026-09-10: đổi
+                 chữ đỏ chưa đủ bắt mắt).
+                 Nền đỏ đặc + glow phẳng (2026-09-11 — trước là nền tint + glow) khi
+                 HasActiveAlarms=True đặt HẲN trên Border BỌC NGOÀI (CornerRadius
+                 khớp Bd bên trong style nút, 5), KHÔNG đặt Background/Effect trực tiếp lên Button
+                 dùng AlarmNavTabButtonStyle — NavTabButtonStyle có "Bd" Border dùng
+                 Background="{TemplateBinding Background}" trong ControlTemplate riêng của nó; một
+                 Style-level Trigger ghi đè ĐÚNG property mà template đang TemplateBinding, kết hợp
+                 điều kiện trigger đã đúng NGAY lúc phần tử vừa tạo (máy luôn có alarm Fatal sẵn lúc
+                 khởi động, chưa nối COM/IO), làm WPF (.NET Framework) ném XamlParseException
+                 "'{DependencyProperty.UnsetValue}' is not a valid value for property 'Background'"
+                 (và trước đó là 'Effect') ngay lúc InitializeComponent/Window.Show (Tuấn báo lỗi
+                 kèm ảnh + log 2 lần, 2026-09-10 — đã thử cả hai, cùng dính lỗi). Border ở đây
+                 KHÔNG có ControlTemplate/TemplateBinding riêng nên an toàn — cùng cách các đèn
+                 IoLampEllipseStyle/PotLampStyle/NotLampStyle (ManualView.xaml) vẫn dùng Effect qua
+                 Trigger an toàn trên Ellipse (cũng không Template riêng). Chỉ Foreground (chữ) là
+                 đổi được trực tiếp trên Button — Foreground không TemplateBinding trong template
+                 này, được kế thừa tự nhiên xuống ContentPresenter. -->
+            <Border CornerRadius="5">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasActiveAlarms}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
+                                <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Button Content="⚠ Alarm" Command="{Binding ShowAlarmCommand}"
+                        Style="{StaticResource AlarmNavTabButtonStyle}" Tag="{Binding IsAlarm}"/>
+            </Border>
+        </StackPanel>
+        </DockPanel>
+
+        <!-- ══════════ Nội dung ══════════
+             TabControl thay cho Grid + Visibility: mỗi View tự đặt DataContext riêng nên
+             Visibility bind từ ngoài sẽ resolve nhầm sang DataContext của View đó và fail
+             âm thầm, khiến cả 5 màn cùng hiện chồng lên nhau. -->
+        <TabControl Grid.Row="1" SelectedIndex="{Binding CurrentSectionIndex, Mode=OneWay}"
+                    BorderThickness="0" Background="Transparent" Padding="0">
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <ContentPresenter ContentSource="SelectedContent"/>
+                </ControlTemplate>
+            </TabControl.Template>
+            <TabItem><views:MainView/></TabItem>
+            <TabItem><views:ManualView/></TabItem>
+            <TabItem><views:TeachingView/></TabItem>
+            <TabItem><views:SettingView/></TabItem>
+            <TabItem><views:VisionEditView/></TabItem>
+            <!-- Alarm — thêm CUỐI danh sách TabItem, khớp ShellSection.Alarm = 5 (thêm ở cuối
+                 enum để không đổi số thứ tự 5 trang trước, xem ShellViewModel). Mở qua nút
+                 "Alarm" ở dải Nav tab phía trên (cùng hàng Main/Manual/..., Tuấn yêu cầu
+                 2026-09-10) — không còn nút riêng ở status bar nữa. -->
+            <TabItem><views:AlarmView/></TabItem>
+        </TabControl>
+
+        <!-- ══════════ Status bar ══════════ — nằm thẳng trên nền, không card (Tuấn 2026-10-07). -->
+        <Border Grid.Row="2" Padding="10,2,10,0" Margin="0,6,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <StackPanel.Resources>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Width" Value="12"/><Setter Property="Height" Value="12"/>
+                            <Setter Property="Margin" Value="10,0,4,0"/><Setter Property="Stroke" Value="#40000000"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/><Setter Property="FontSize" Value="12"/>
+                        </Style>
+                    </StackPanel.Resources>
+
+                    <Border Background="#FFC800" CornerRadius="4" Padding="8,2" Margin="0,0,8,0"
+                            Visibility="{Binding Status.Simulation, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{l:T Shell.SimulationMode}" FontWeight="Bold" FontSize="11" Foreground="#5A3D00"/>
+                    </Border>
+
+                    <Ellipse Fill="{Binding Status.MotionConnected, Converter={StaticResource StatusBrush}}"/>
+                    <TextBlock Text="Motion"/>
+                    <Ellipse Fill="{Binding Status.IoConnected, Converter={StaticResource StatusBrush}}"/>
+                    <TextBlock Text="I/O"/>
+                    <Ellipse Fill="{Binding Status.VisionConnected, Converter={StaticResource StatusBrush}}"/>
+                    <TextBlock Text="Vision"/>
+                    <!-- Thời gian vòng quét (điều khiển/Motion/I/O) đã bỏ khỏi status bar (Tuấn 2026-10-01, tối ưu CPU): ba số
+                         đổi mỗi 20 ms bắt giao diện vẽ lại liên tục. -->
+                </StackPanel>
+
+                <!-- Tắt còi/RESET chỉ còn ở trang Main (MainViewModel) — bỏ khỏi status bar để
+                     tránh 2 bản trùng nhau; MuteCommand/ActiveAlarms trên ShellViewModel vẫn giữ
+                     nguyên, phòng khi cần gắn lại chỗ khác sau này. Nút "Alarm" đã chuyển lên dải
+                     Nav tab cùng hàng Main/Manual/... (Tuấn yêu cầu, 2026-09-10) — không còn ở
+                     status bar nữa, xem AlarmNavTabButtonStyle. -->
+                <TextBlock Grid.Column="1" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center">
+                    <Run Text="{l:T Shell.DataPrefix}"/><Run Text="{Binding DataRoot, Mode=OneWay}"/>
+                </TextBlock>
+            </Grid>
+        </Border>
+        </Grid>
+    <!-- Từ đây là con của Grid NGOÀI (không margin, 2 hàng Header+Rest) — xem ghi chú ở khai báo
+         Grid đó. RowSpan="2" để phủ được cả header lẫn phần nội dung bên dưới. -->
+
+        <!-- ══════════ Banner alarm — nổi GIỮA cửa sổ, KHÔNG chiếm chỗ trong layout như
+             trước (trước đây nằm hẳn một Grid.Row cố định, đẩy nav tab + toàn bộ nội dung
+             xuống mỗi khi có alarm). Border chỉ to bằng nội dung của nó (không Stretch) và
+             không có lớp nền phủ cả cửa sổ, nên phần còn lại của trang vẫn bấm được bình
+             thường — khác hẳn bảng chi tiết bên dưới, vốn CỐ Ý chặn hết để bắt xử lý ngay. -->
+        <Border Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                CornerRadius="8" Padding="16,10" MinWidth="440" Background="#F0C42B1C"
+                BorderBrush="White" BorderThickness="1"
+                Visibility="{Binding ShowAlarmBanner, Converter={StaticResource BoolToVis}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="28" ShadowDepth="0" Opacity="0.5" Color="Black"/>
+            </Border.Effect>
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="{l:T Shell.Details}" Width="90" Height="32" Margin="0,0,6,0"
+                            Command="{Binding ToggleAlarmPanelCommand}"/>
+                    <Button Content="{l:T Shell.Hide}" Width="60" Height="32"
+                            Command="{Binding HideAlarmBannerCommand}"
+                            ToolTip="{l:T Shell.HideBannerTip}"/>
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Left" Text="⚠" FontSize="20" Foreground="White" Margin="0,0,10,0"
+                           VerticalAlignment="Center"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding ActiveAlarmCountText}"
+                               Foreground="#DDFFFFFF" FontSize="11"/>
+                    <TextBlock Text="{Binding BannerAlarm.Display}" Foreground="White"
+                               FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ══════════ Bảng chi tiết alarm ══════════ -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="#60000000"
+                Visibility="{Binding AlarmPanelOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="900" MaxHeight="560" Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <DockPanel Margin="16">
+                    <TextBlock DockPanel.Dock="Top" Text="{l:T Shell.ActiveAlarmList}"
+                               FontSize="17" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                                HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <TextBlock Text="{Binding Status.Message}" VerticalAlignment="Center"
+                                   Foreground="{StaticResource CriticalBrush}" Margin="0,0,16,0"
+                                   MaxWidth="480" TextWrapping="Wrap"/>
+                        <Button Content="RESET" Width="120" Height="40" Margin="0,0,8,0"
+                                Command="{Binding ResetCommand}" Style="{StaticResource PrimaryButton}"/>
+                        <Button Content="{l:T Shell.Close}" Width="100" Height="40" Command="{Binding ToggleAlarmPanelCommand}"/>
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding ActiveAlarms}" IsReadOnly="True" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{l:T Alarm.ColTime}" Binding="{Binding RaisedAt, StringFormat='HH:mm:ss'}" Width="70"/>
+                            <DataGridTextColumn Header="{l:T Alarm.ColCode}" Binding="{Binding Code}" Width="55"/>
+                            <DataGridTemplateColumn Header="{l:T Alarm.ColLevel}" Width="70">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="3" Padding="6,1"
+                                                Background="{Binding Level, Converter={StaticResource AlarmLevelBrush}}">
+                                            <TextBlock Text="{Binding Level}" Foreground="White" FontSize="11"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="{l:T Alarm.ColSource}" Binding="{Binding Source}" Width="70"/>
+                            <DataGridTextColumn Header="{l:T Alarm.ColRoot}" Binding="{Binding IsRootCause}" Width="52"/>
+                            <DataGridTextColumn Header="{l:T Alarm.ColConditionActive}" Binding="{Binding ConditionActive}" Width="115"/>
+                            <DataGridTextColumn Header="{l:T Alarm.ColMessage}" Binding="{Binding Message, Mode=OneWay}" Width="*"/>
+                            <DataGridTextColumn Header="{l:T Alarm.ColDetail}" Binding="{Binding Detail}" Width="180"/>
+                        </DataGrid.Columns>
+                        <DataGrid.RowDetailsTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="20,4,8,10">
+                                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}">
+                                        <Run Text="{l:T Alarm.CausePrefix}"/><Run Text="{Binding CauseText, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,3,0,0">
+                                        <Run Text="{l:T Alarm.RemedyPrefix}"/><Run Text="{Binding RemedyText, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGrid.RowDetailsTemplate>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Border>
+
+        <!-- ══════════ Overlay hộp thoại (thay MessageBox — xem DialogHost) ══════════
+             Đặt SAU CÙNG trong Grid nên luôn vẽ đè lên trên mọi thứ khác kể cả banner/bảng chi
+             tiết alarm — không mở cửa sổ Win32 riêng như MessageBox.Show nên MainWindow không
+             bao giờ mất activation, Mica/Acrylic không bị DWM ngừng vẽ giữa chừng. -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Background="#60000000"
+                Visibility="{Binding DialogOpen, Converter={StaticResource BoolToVis}}">
+            <Border Width="440" MinHeight="140" Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource CardStrokeBrush}" BorderThickness="1" CornerRadius="10"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20,16">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="28" ShadowDepth="0" Opacity="0.4" Color="Black"/>
+                </Border.Effect>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="{Binding CurrentDialog.Kind, Converter={StaticResource DialogKindGlyph}}"
+                                   FontSize="22" Margin="0,0,10,0" VerticalAlignment="Center"
+                                   Foreground="{Binding CurrentDialog.Kind, Converter={StaticResource DialogKindBrush}}"/>
+                        <TextBlock Text="{Binding CurrentDialog.Title}" FontSize="16" FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Content="{l:T Shell.Yes}" Width="90" Height="34" Margin="0,0,8,0"
+                                Command="{Binding DialogYesCommand}" Style="{StaticResource PrimaryButton}"
+                                Visibility="{Binding DialogIsConfirm, Converter={StaticResource BoolToVis}}"/>
+                        <Button Content="{l:T Shell.No}" Width="90" Height="34"
+                                Command="{Binding DialogNoCommand}"
+                                Visibility="{Binding DialogIsConfirm, Converter={StaticResource BoolToVis}}"/>
+                        <Button Content="OK" Width="90" Height="34"
+                                Command="{Binding DialogOkCommand}" Style="{StaticResource PrimaryButton}"
+                                Visibility="{Binding DialogIsConfirm, Converter={StaticResource InverseBoolToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding CurrentDialog.Message}" TextWrapping="Wrap" FontSize="13"/>
+                </DockPanel>
+            </Border>
+        </Border>
+    </Grid>
+</Window>

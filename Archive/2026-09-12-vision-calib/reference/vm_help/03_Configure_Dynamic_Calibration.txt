@@ -1,0 +1,167 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-A0D446C2-5F8C-44E2-8C68-A36F373AC806.html
+
+Configure Dynamic Calibration
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Auxiliary Tool Guide
+
+- Calibration Configuration Guide
+
+- Configure Dynamic Calibration
+
+ Configure Dynamic Calibration
+
+ Dynamic calibration is mainly realized through N-image
+ Calibration module or N-point Calibration
+ module.
+
+ In the Calibration Configuration Guide tool,
+ select Dynamic Calibration and then click
+ Create to open the configuration window.
+
+- 
+ Complete Communication Configuration.
+
+- 
+ Click Config to the right of Equipment management, and you can open the
+ Communication Management window to
+ add and configure external communication devices.
+ 
+ Note 
+ Enable the selected communication device before you
+ start calibration.
+
+- 
+ In the drop-down list of Device
+ Selection, select the communication device to be
+ associated.
+ 
+ Note 
+ Only TCP or UDP devices are supported.
+
+- 
+ Set the Communication Signal
+ parameters including the input of Start
+ Signal, Calibration
+ Signal, End Signal, and
+ Teach Signal.
+ 
+ Note 
+
+- 
+ The X, Y, and R of the Calibration Signal corresponds to the
+ horizontal coordinate, vertical coordinate and angle of
+ the physical coordinate point.
+
+- 
+ The OKOutput
+ and NGOutput signals
+ that are output to external communication devices when
+ each signal is OK or NG.
+
+- 
+ Determine whether to use the terminator. When the Use
+ terminator is checked, you need to select the end
+ character. Optional \r (enter), \n (newline), or \r\n (enter and new
+ line character).
+
+- 
+ Click Next Step to configure the Image
+ Source. 
+
+- 
+ Click Config to the right of Camera Set, and you can open the Camera Set window to add and
+ configure the global camera.
+
+- 
+ Click Image source configuration to configure
+ the Image Source module.
+
+- 
+ Click Next Step to configure the Calibration
+ method.
+
+- 
+ Select the Calibration method.
+ Optional CalibBoard Calibration or Feature Point Calibration.
+ 
+ The next step depends on the calibration method that you
+ choose.
+
+- 
+ When selecting CalibBoard
+ Calib, click N Picture
+ Calibration to configure the N-image Calibration module.
+
+- 
+ When selecting Feature point
+ calibration, take the following step.
+
+- 
+ Click [img:GUID-8C395E1B-A48E-4400-90CE-067E3FA03CF3-high.png] to the right of Module Config to select one or multiple modules that
+ will provide the feature points. Then click the added modules to
+ configure them.
+
+- 
+ Click N-point Calibration to configure the N-point Calibration module.
+
+- 
+ Click [img:GUID-7B669A6A-2CC9-4C39-8FB3-60D6CCCF048B-high.png] to view the added modules in the
+ calibration flow.
+
+- 
+ Switch to the Boot Mode and click Next
+ Step to open the Results view
+ window.
+
+- 
+ Check Start
+ Calibrate.
+
+- 
+ Send specific trigger signals through the selected external
+ communication device. Now the calibration starts and the signal content
+ and result state are displayed.
+ 
+ Note 
+ When sending the trigger signal, ensure that the
+ external communication device in the device list of Equipment management is enabled and
+ can communicate properly.
+
+- 
+ Click Create Calibration File to save the
+ calibration file. Also the specific information is displayed in the
+ Calib Matrix.
+
+ After you complete the calibration, the generated calibration file can be
+ loaded in calibration modules and other related modules.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->

@@ -1,0 +1,613 @@
+<UserControl x:Class="ShieldCanAssy.Wpf.Views.SettingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ShieldCanAssy.Wpf.ViewModels"
+             xmlns:l="clr-namespace:ShieldCanAssy.Wpf.Mvvm">
+
+    <UserControl.DataContext>
+        <vm:SettingViewModel/>
+    </UserControl.DataContext>
+
+    <!-- Chia tab con (Tuấn 2026-10-10): Hệ thống — Vision — Servo — Thời gian chờ — Nhật ký. Trước đó là một trang cuộn
+         dài cộng hàng cố định 330 px cho bảng 7 trục + nhật ký, màn 1280×1024 cắt ngang khối Vision. Hàng Lưu nằm ngoài
+         tab nên tab nào cũng thấy: một nút lưu cả system.json. Chọn chế độ Auto và các nút solution có hiệu lực ngay,
+         không qua Lưu. Binding các ô giữ nguyên. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0" Style="{StaticResource SubTabControlStyle}">
+
+        <!-- ================= HỆ THỐNG ================= -->
+        <TabItem Header="{l:T Setting.TabSystem}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+        <!-- Chế độ chạy Auto — chuyển từ trang Main sang (Tuấn 2026-10-08). Chỉ CHỌN chế độ, không chạy máy: chạy vẫn phải
+             qua Start 1/Start 2 cụm B (luật 2026-08-20). Có hiệu lực ngay, không qua nút Lưu; máy đang chạy thì McControl từ
+             chối và báo lý do ở dòng vàng dưới nút. Màu giữ như trang Main cũ: cả hai tay xanh, một tay cam, chạy rà cam. -->
+        <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+            <StackPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Setting.AutoModeHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+                <WrapPanel>
+                    <WrapPanel.Resources>
+                        <Style x:Key="NozzleModeButton" TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                            <Setter Property="Width" Value="110"/>
+                            <Setter Property="Height" Value="36"/>
+                            <Setter Property="MinHeight" Value="36"/>
+                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Command" Value="{Binding SetOnlyNozzleCommand}"/>
+                        </Style>
+                    </WrapPanel.Resources>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.AutoNozzles}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="{l:T Setting.BothNozzles}" CommandParameter="0" Margin="0,0,4,0">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NozzleModeButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding OnlyNozzle}" Value="0">
+                                                <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Content="{l:T Setting.Nozzle1}" CommandParameter="1" Margin="0,0,4,0">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NozzleModeButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding OnlyNozzle}" Value="1">
+                                                <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button Content="{l:T Setting.Nozzle2}" CommandParameter="2">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NozzleModeButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding OnlyNozzle}" Value="2">
+                                                <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.DryRunLabel}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                        <Button Command="{Binding ToggleDryRunCommand}" Width="160" Height="36" MinHeight="36"
+                                FontSize="13" FontWeight="SemiBold"
+                                ToolTip="{l:T Setting.DryRunTip}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                    <Setter Property="Content" Value="{l:T Setting.DryRunOff}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status.DryRun}" Value="True">
+                                            <Setter Property="Content" Value="{l:T Setting.DryRunOn}"/>
+                                            <Setter Property="Background" Value="{StaticResource CautionBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource CautionBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                </WrapPanel>
+                <TextBlock Text="{l:T Setting.AutoModeNote}"
+                           FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                <Border Style="{StaticResource NoticeBannerStyle}" Margin="0,6,0,0"
+                        Visibility="{Binding Status.Message, Converter={StaticResource StringToVis}}">
+                    <TextBlock Text="{Binding Status.Message}" TextWrapping="Wrap" Foreground="#5A3D00"/>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardBorderStyle}">
+            <StackPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Setting.SystemParams}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+                <WrapPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="Z_SAFE (mm)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="110" MinHeight="32" Text="{Binding ZSafe, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.PickRetry}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="110" MinHeight="32" Text="{Binding Sys.PickRetryCount}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.MaxConsecutiveNg}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="110" MinHeight="32" Text="{Binding Sys.MaxConsecutiveNg}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.ControlTick}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="130" MinHeight="32" Text="{Binding Sys.ControlTickMs}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="Watchdog (ms)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="110" MinHeight="32" Text="{Binding Sys.WatchdogTimeoutMs}"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <Separator/>
+                <WrapPanel>
+                    <CheckBox Content="{l:T Setting.SimulationMode}" IsChecked="{Binding Sys.SimulationMode}"
+                              VerticalAlignment="Center" Margin="0,0,24,0"/>
+                    <CheckBox Content="{l:T Setting.RequireHomeAfterEmg}" IsChecked="{Binding Sys.RequireHomeAfterEmg}"
+                              VerticalAlignment="Center" Margin="0,0,24,0"/>
+                    <CheckBox Content="{l:T Setting.HomeRotateSequential}" IsChecked="{Binding Sys.HomeRotateSequential}"
+                              VerticalAlignment="Center" Margin="0,0,24,0"/>
+                    <CheckBox Content="{l:T Setting.HasLightCurtain}" IsChecked="{Binding Sys.HasLightCurtain}"
+                              VerticalAlignment="Center" Margin="0,0,24,0">
+                        <CheckBox.ToolTip>
+                            <TextBlock TextWrapping="Wrap" MaxWidth="440"
+                                       Text="{l:T Setting.HasLightCurtainTip}"/>
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <CheckBox Content="{l:T Setting.ScanAssyByRow}" IsChecked="{Binding Sys.ScanAssyByRow}"
+                              VerticalAlignment="Center">
+                        <CheckBox.ToolTip>
+                            <TextBlock TextWrapping="Wrap" MaxWidth="440"
+                                       Text="{l:T Setting.ScanAssyByRowTip}"/>
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+        </StackPanel>
+        </ScrollViewer>
+        </TabItem>
+
+        <!-- ================= VISION ================= -->
+        <TabItem Header="{l:T Setting.TabVision}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+        <!-- Trước 23/09 cả khối Vision nằm trong MỘT card: ba đoạn văn xám dài xếp liền nhau ở đầu
+             (đường dẫn solution, biến toàn cục, kiểm tra Flow+Script) làm trang rối mắt (Tuấn phản hồi
+             23/09, kèm ảnh). Nay tách làm ba card theo việc: dựng solution — ngưỡng và dung sai —
+             tên Flow/biến. Văn dài chuyển vào ToolTip, ngoài chỉ còn một dòng. Không đổi binding nào. -->
+        <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+            <StackPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Setting.VisionSolutionHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+
+                <TextBlock Text="{l:T Setting.SolutionPath}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{l:T Setting.SolutionPathNote}">
+                    <TextBlock.ToolTip>
+                        <TextBlock TextWrapping="Wrap" MaxWidth="460"
+                                   Text="{l:T Setting.SolutionPathTip}"/>
+                    </TextBlock.ToolTip>
+                </TextBlock>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBox Width="360" MinHeight="32" Text="{Binding VisionSolutionPath, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Content="{l:T Setting.Browse}" Command="{Binding BrowseVisionSolutionCommand}" Width="80" Height="32" Margin="8,0,0,0"/>
+                    <Button Content="{l:T Setting.ReloadSolution}" Command="{Binding ReloadVisionSolutionCommand}" Width="130" Height="32" Margin="8,0,0,0"
+                            Style="{StaticResource PrimaryButton}"/>
+                    <TextBlock Text="{Binding VisionReloadResult}" VerticalAlignment="Center" Margin="12,0,0,0"
+                               FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+
+                <!-- Ba công cụ chỉ dùng lúc dựng solution, gom một hàng. Không cái nào chạy Flow hay kích
+                     camera: hai cái đầu đọc/tạo biến toàn cục, cái thứ ba chỉ đọc khai báo Output Params
+                     và tham số Script. -->
+                <Separator/>
+                <TextBlock Text="{l:T Setting.SolutionTools}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{l:T Setting.SolutionToolsNote}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <Button Content="{l:T Setting.CheckVars}" Command="{Binding CheckGlobalVarsCommand}" Width="120" Height="32">
+                        <Button.ToolTip>
+                            <TextBlock TextWrapping="Wrap" MaxWidth="460"
+                                       Text="{l:T Setting.CheckVarsTip}"/>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="{l:T Setting.CreateVars}" Command="{Binding CreateGlobalVarsCommand}" Width="150" Height="32" Margin="8,0,0,0"
+                            Style="{StaticResource PrimaryButton}">
+                        <Button.ToolTip>
+                            <TextBlock TextWrapping="Wrap" MaxWidth="460"
+                                       Text="{l:T Setting.CreateVarsTip}"/>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="{l:T Setting.CheckFlowScript}" Command="{Binding CheckFlowOutputsCommand}" Width="180" Height="32" Margin="16,0,0,0">
+                        <Button.ToolTip>
+                            <TextBlock TextWrapping="Wrap" MaxWidth="460"
+                                       Text="{l:T Setting.CheckFlowScriptTip}"/>
+                        </Button.ToolTip>
+                    </Button>
+                </StackPanel>
+                <TextBox Text="{Binding GlobalVarReport, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontSize="11"
+                         MaxHeight="160" VerticalScrollBarVisibility="Auto" BorderThickness="0" Background="Transparent"/>
+                <TextBox Text="{Binding FlowOutputReport, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" FontSize="11"
+                         FontFamily="Consolas" MaxHeight="320" VerticalScrollBarVisibility="Auto" BorderThickness="0"
+                         Background="Transparent"/>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+            <StackPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Setting.VisionThresholdsHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{l:T Setting.VisionThresholdsNote}"/>
+
+                <TextBlock Text="{l:T Setting.PlaceGuards}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <WrapPanel Margin="0,0,0,6">
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.MaxCompAngle}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.MaxCompensationAngleDeg}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.MaxCompDistance}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.MaxCompensationDistance}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.PlaceTargetGuard}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.PlaceTargetGuardMm}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.MaxGuardSkipStreak}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.MaxGuardSkipStreak}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.AlignXTol}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.AlignXTolMm}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.ACapTol}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.ACapTolDeg}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="Timeout Flow (ms)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.VisionTriggerTimeoutMs}"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <Separator/>
+                <TextBlock Text="{l:T Setting.VerifyHeader}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <WrapPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.CalibResidualTol}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.CalibMaxResidualThresholdMm}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.VerifyAngleTol}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.AlignVerifyAngleTolDeg}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.VerifyMinEcc}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="140" MinHeight="32" Text="{Binding Sys.AlignVerifyMinEccMm}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.VerifyMinTurn}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="120" MinHeight="32" Text="{Binding Sys.AlignVerifyMinTurnDeg}"/>
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardBorderStyle}">
+            <StackPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Setting.VisionNamesHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{l:T Setting.VisionNamesNote}"/>
+
+                <!-- Ba Flow (Tuấn chốt 2026-10-08): mỗi Flow vừa soi vừa nạp điểm hiệu chuẩn, rẽ nhánh bằng biến
+                     IsTriggerLocate — bỏ TopDownCalib, AlignCalib_ToolN, MeasurePlaced. -->
+                <TextBlock Text="{l:T Setting.FlowNames}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,2"/>
+                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,4" Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{l:T Setting.FlowNamesNote}"/>
+                <WrapPanel Margin="0,0,0,6">
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="Flow LocateTop" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="150" MinHeight="32" Text="{Binding Sys.VisionOutputs.FlowLocateTop}"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- AlignBottom tách riêng từng tay hút — Flow đã tự hiệu chuẩn tâm xoay + Teach Master bên
+                     trong VisionMaster (PLAN.md §6.4, Tuấn chốt 2026-09-08). -->
+                <Separator/>
+                <TextBlock Text="{l:T Setting.FlowsPerNozzle}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <WrapPanel Margin="0,0,0,6">
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="Flow AlignBottom Tool1" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="150" MinHeight="32" Text="{Binding Sys.VisionOutputs.FlowAlignBottomTool1}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="Flow AlignBottom Tool2" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="150" MinHeight="32" Text="{Binding Sys.VisionOutputs.FlowAlignBottomTool2}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.OutFoundShared}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="150" MinHeight="32" Text="{Binding Sys.VisionOutputs.OutFound}"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- Module hiện ở ba khung ảnh trang Main (2026-09-28) — chỉ để xem, không ảnh hưởng chu trình.
+                     Đường dẫn tính ở VisionOutputNames.RenderPath, bind ở MainView.xaml.cs. -->
+                <Separator/>
+                <TextBlock Text="{l:T Setting.MainViews}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{l:T Setting.MainViewsNote}"/>
+                <WrapPanel Margin="0,0,0,6">
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.RenderTool1}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="200" MinHeight="32" Text="{Binding Sys.VisionOutputs.RenderTool1}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.RenderTool2}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="200" MinHeight="32" Text="{Binding Sys.VisionOutputs.RenderTool2}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.RenderTopDown}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="200" MinHeight="32" Text="{Binding Sys.VisionOutputs.RenderTopDown}"/>
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- Bỏ khung tên biến trục (Tuấn 2026-10-10): App vẫn ghi vị trí encoder vào X_mm / Y2_mm / A1_deg / A2_deg
+                     trước mỗi Flow, tên lấy từ system.json (VisionOutputNames.GvAxis*), module Global Variable tự dò. -->
+            </StackPanel>
+        </Border>
+        </StackPanel>
+        </ScrollViewer>
+        </TabItem>
+
+        <!-- ================= SERVO ================= -->
+        <TabItem Header="{l:T Setting.TabServo}">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <DockPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Setting.AxisConfigHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+
+                    <!-- Card I/O Ezi-IO Ethernet: HAI module riêng — 32Di và 32Do, mỗi cái một IP
+                         (xem IoConnect.Connect: _sys.IoDiIpAddress / IoDoIpAddress), khác 7 trục
+                         nên không nằm trong DataGrid bên dưới. -->
+                    <TextBlock DockPanel.Dock="Top" Text="Card I/O Ezi-IO Ethernet" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <StackPanel Margin="0,0,24,8">
+                            <TextBlock Text="IP module 32Di" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBox Width="130" MinHeight="32" Text="{Binding Sys.IoDiIpAddress}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,24,8">
+                            <TextBlock Text="IP module 32Do" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBox Width="130" MinHeight="32" Text="{Binding Sys.IoDoIpAddress}"/>
+                        </StackPanel>
+                    </WrapPanel>
+
+                    <!-- Chặng Z nào của Auto/chạy rà đi qua điểm giảm tốc (Tuấn 2026-10-07) — xem SystemData.InputZSlowDown…
+                         Mặc định đúng nhịp 30/09. -->
+                    <Separator DockPanel.Dock="Top"/>
+                    <TextBlock DockPanel.Dock="Top" Text="{l:T Setting.ZSlowHeader}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"
+                               ToolTip="{l:T Setting.ZSlowTip}"/>
+                    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                        <CheckBox Content="{l:T Setting.InputZDown}" IsChecked="{Binding Sys.InputZSlowDown}"
+                                  VerticalAlignment="Center" Margin="0,0,24,0"/>
+                        <CheckBox Content="{l:T Setting.InputZUp}" IsChecked="{Binding Sys.InputZSlowUp}"
+                                  VerticalAlignment="Center" Margin="0,0,24,0"/>
+                        <CheckBox Content="{l:T Setting.AssyZDown}" IsChecked="{Binding Sys.AssyZSlowDown}"
+                                  VerticalAlignment="Center" Margin="0,0,24,0"/>
+                        <CheckBox Content="{l:T Setting.AssyZUp}" IsChecked="{Binding Sys.AssyZSlowUp}"
+                                  VerticalAlignment="Center"/>
+                    </WrapPanel>
+
+                    <DataGrid ItemsSource="{Binding AxisConfigs}" HeadersVisibility="Column" CanUserSortColumns="False"
+                              AutoGenerateColumns="False" VerticalAlignment="Top">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{l:T Setting.ColAxis}" Binding="{Binding Name}" IsReadOnly="True" Width="60"/>
+                            <DataGridTextColumn Header="Driver" Binding="{Binding Kind}" IsReadOnly="True" Width="90"/>
+                            <DataGridTextColumn Header="COM (A6SF)" Binding="{Binding ComPort}" Width="110"/>
+                            <DataGridTextColumn Header="IP (Fastech)" Binding="{Binding IpAddress}" Width="130"/>
+                            <!-- Jog chậm/nhanh: 2 mức tốc độ jog tay, chọn bằng nút Chậm/Nhanh ở trang
+                                 Manual/Teaching (McFunction.JogFast) — số ở đây chỉ định NGHĨA của mỗi
+                                 mức, không phải bật/tắt. Về gốc dùng riêng JogSpeedSlow.
+
+                                 Ba mức Auto (AxisConfig.MoveSpeed / MoveSpeedMid / MoveSpeedLow), riêng
+                                 từng trục:
+                                   · Cao  — mọi lệnh MoveAbs: chạy tới ô, chu trình Auto, nâng Z lên.
+                                   · Vừa  — CHƯA gắn vào đoạn chạy nào, để dành (Tuấn chốt 2026-09-18).
+                                   · Thấp — đoạn Z từ điểm giảm tốc (teach ở trang Teaching) xuống cao độ
+                                            hút/đặt, xem McFunction.MoveZDownAsync; Y2 tới điểm bù lúc đặt,
+                                            gia tốc giảm theo (2026-09-30).
+                                 Bỏ trống hai mức mới thì lấy 50% / 20% mức cao. -->
+                            <DataGridTextColumn Header="{l:T Setting.ColJogSlow}" Binding="{Binding JogSpeedSlow}" Width="80"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColJogFast}" Binding="{Binding JogSpeedFast}" Width="80"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColAutoHigh}" Binding="{Binding MoveSpeed}" Width="76"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColAutoMid}" Binding="{Binding MoveSpeedMid}" Width="76"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColAutoLow}" Binding="{Binding MoveSpeedLow}" Width="80"/>
+                            <!-- Offset gốc + vị trí chờ — trước chỉ sửa được bằng tay trong system.json,
+                                 không có ô nào trên UI (Tuấn hỏi 2026-09-08). HomeOffset = toạ độ gán cho
+                                 gốc cơ khí (AxisConfig.HomeOffset); StandbyPos = vị trí chờ sau khi về
+                                 gốc xong, bước O6 (AxisConfig.StandbyPos). -->
+                            <DataGridTextColumn Header="{l:T Setting.ColHomeOffset}" Binding="{Binding HomeOffset}" Width="80"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColStandby}" Binding="{Binding StandbyPos}" Width="80"/>
+                            <!-- Soft limit — cùng lý do thêm như Offset gốc/Vị trí chờ ở trên (Tuấn yêu
+                                 cầu, 2026-09-09, sau khi Y1 về vị trí chờ -10mm bị chặn vì SoftLimitNeg
+                                 mặc định -1mm và phải sửa tay JSON). Có hiệu lực ngay sau khi bấm Lưu,
+                                 không cần khởi động lại app — cùng cơ chế với StandbyPos/HomeOffset vì
+                                 AxisConfigs là chính các object AxisConfig sống mà MotionConnect đang
+                                 dùng, không phải bản sao. -->
+                            <DataGridTextColumn Header="Soft Limit −" Binding="{Binding SoftLimitNeg}" Width="90"/>
+                            <DataGridTextColumn Header="Soft Limit +" Binding="{Binding SoftLimitPos}" Width="90"/>
+                            <!-- Thời gian tăng/giảm tốc của lệnh chạy tới vị trí, ms (Tuấn yêu cầu
+                                 2026-09-09). Là thời gian THẬT từ 0 tới tốc độ Auto cao; lệnh chậm hơn
+                                 dùng cùng gia tốc nên ramp ngắn hơn theo tỉ lệ (2026-09-25, để thư viện
+                                 ghi thanh ghi acc/dec một lần thay vì trước mọi lệnh, xem
+                                 AxisConfig.AccelTimeMs). CHỈ tác dụng với 5 trục Panasonic; A1/A2
+                                 (Fastech) dùng tham số nạp sẵn trong driver, để số ở đây không ảnh hưởng
+                                 gì. Ăn ngay từ lệnh kế tiếp, không cần khởi động lại app. -->
+                            <DataGridTextColumn Header="Acc (ms)" Binding="{Binding AccelTimeMs}" Width="80">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                        <Setter Property="ToolTip" Value="{l:T Setting.AccTip}"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Dec (ms)" Binding="{Binding DecelTimeMs}" Width="80">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                        <Setter Property="ToolTip" Value="{l:T Setting.DecTip}"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </TabItem>
+
+        <!-- ================= THỜI GIAN CHỜ ================= -->
+        <TabItem Header="{l:T Setting.TabDelay}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Border Style="{StaticResource CardBorderStyle}" VerticalAlignment="Top">
+            <StackPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Setting.DelayHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+
+                <!-- Chờ trước khi chụp, mỗi camera một bộ số (Tuấn 2026-10-07) — xem SystemData.BottomSettleMs/TopSettleMs,
+                     BottomLampMs/TopLampMs và McFunction.WaitSettleAsync. Hàng = camera, cột = khoảng chờ. -->
+                <TextBlock Text="{l:T Setting.Capture}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <Grid HorizontalAlignment="Left">
+                    <Grid.Resources>
+                        <!-- x:Shared="False": mỗi chỗ dùng một bản riêng — một TextBlock không làm tooltip cho hai ô cùng lúc được. -->
+                        <TextBlock x:Key="SettleTip" x:Shared="False" TextWrapping="Wrap" MaxWidth="420"
+                                   Text="{l:T Setting.SettleTip}"/>
+                        <TextBlock x:Key="LampTip" x:Shared="False" TextWrapping="Wrap" MaxWidth="420"
+                                   Text="{l:T Setting.LampTip}"/>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="1" Text="{l:T Setting.SettleMs}" FontSize="11" Margin="0,0,24,0"
+                               Foreground="{StaticResource TextSecondaryBrush}" ToolTip="{StaticResource SettleTip}"/>
+                    <TextBlock Grid.Column="2" Text="{l:T Setting.LampMs}" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" ToolTip="{StaticResource LampTip}"/>
+
+                    <TextBlock Grid.Row="1" Text="CAM bottom-up" VerticalAlignment="Center" Margin="0,0,16,8"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Width="150" MinHeight="32" Margin="0,0,24,8" HorizontalAlignment="Left"
+                             Text="{Binding Sys.BottomSettleMs}" ToolTip="{StaticResource SettleTip}"/>
+                    <TextBox Grid.Row="1" Grid.Column="2" Width="150" MinHeight="32" Margin="0,0,0,8" HorizontalAlignment="Left"
+                             Text="{Binding Sys.BottomLampMs}" ToolTip="{StaticResource LampTip}"/>
+
+                    <TextBlock Grid.Row="2" Text="CAM top-down" VerticalAlignment="Center" Margin="0,0,16,8"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Width="150" MinHeight="32" Margin="0,0,24,8" HorizontalAlignment="Left"
+                             Text="{Binding Sys.TopSettleMs}" ToolTip="{StaticResource SettleTip}"/>
+                    <TextBox Grid.Row="2" Grid.Column="2" Width="150" MinHeight="32" Margin="0,0,0,8" HorizontalAlignment="Left"
+                             Text="{Binding Sys.TopLampMs}" ToolTip="{StaticResource LampTip}"/>
+                </Grid>
+
+                <Separator/>
+                <TextBlock Text="{l:T Setting.Vacuum}" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                <WrapPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.VacuumTimeout}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="170" MinHeight="32" Text="{Binding Sys.VacuumTimeoutMs}">
+                            <TextBox.ToolTip>
+                                <TextBlock TextWrapping="Wrap" MaxWidth="420"
+                                           Text="{l:T Setting.VacuumTimeoutTip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.VacuumSettle}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="180" MinHeight="32" Text="{Binding Sys.VacuumSettleMs}">
+                            <TextBox.ToolTip>
+                                <TextBlock TextWrapping="Wrap" MaxWidth="420"
+                                           Text="{l:T Setting.VacuumSettleTip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,24,8">
+                        <TextBlock Text="{l:T Setting.BlowTime}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBox Width="150" MinHeight="32" Text="{Binding Sys.BlowTimeMs}">
+                            <TextBox.ToolTip>
+                                <TextBlock TextWrapping="Wrap" MaxWidth="420"
+                                           Text="{l:T Setting.BlowTimeTip}"/>
+                            </TextBox.ToolTip>
+                        </TextBox>
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+        </ScrollViewer>
+        </TabItem>
+
+        <!-- ================= NHẬT KÝ ================= -->
+        <TabItem Header="{l:T Setting.TabLog}">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <DockPanel>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock Text="{l:T Setting.LogHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <DataGrid ItemsSource="{Binding LogList}" IsReadOnly="True" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{l:T Setting.ColTime}" Binding="{Binding UpdateTime, StringFormat='HH:mm:ss'}" Width="70"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColLevel}" Binding="{Binding Level}" Width="60"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColSource}" Binding="{Binding Source}" Width="65"/>
+                            <DataGridTextColumn Header="{l:T Setting.ColMessage}" Binding="{Binding Message}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </TabItem>
+        </TabControl>
+
+        <!-- Hàng Lưu — ngoài tab, tab nào cũng thấy. -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <Button Content="{l:T Setting.SaveSystem}" Command="{Binding SaveCommand}" Width="150" Height="34"
+                            Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                    <Button Content="{l:T Setting.OpenDataFolder}" Command="{Binding OpenDataFolderCommand}" Width="160" Height="34"/>
+                </StackPanel>
+                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SaveResult}" Foreground="{StaticResource TextSecondaryBrush}"
+                               Visibility="{Binding SaveResult, Converter={StaticResource StringToVis}}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,20,0"><Run Text="{l:T Setting.DataFolderPrefix}"/><Run Text="{Binding DataRoot, Mode=OneWay}"/></TextBlock>
+                        <TextBlock Text="{l:T Setting.UsingFallbackRoot}" FontSize="11"
+                                   Foreground="{StaticResource CautionBrush}"
+                                   Visibility="{Binding UsingFallbackRoot, Converter={StaticResource BoolToVis}}"/>
+                        <TextBlock Text="{l:T Setting.AlarmCatalogNotLoaded}" FontSize="11"
+                                   Foreground="{StaticResource CriticalBrush}"
+                                   Visibility="{Binding AlarmCatalogLoaded, Converter={StaticResource InverseBoolToVis}}"/>
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

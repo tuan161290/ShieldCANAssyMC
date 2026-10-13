@@ -1,0 +1,525 @@
+<UserControl x:Class="ShieldCanAssy.Wpf.Views.ManualView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ShieldCanAssy.Wpf.ViewModels"
+             xmlns:l="clr-namespace:ShieldCanAssy.Wpf.Mvvm">
+
+    <UserControl.DataContext>
+        <vm:ManualViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <!-- Nút hẹp (bảng trục) — FlatButtonStyle mặc định Padding="10,5" ăn hết chỗ của nút rộng
+             ~40-80px, chữ tràn ra ngoài Border/ContentPresenter (không tự cắt) và đè lên control
+             cạnh bên. KHÔNG đặt Width ở đây: bảng trục một hàng (2026-09-11) đặt Width riêng cho
+             từng nút theo đúng cột của nó, khớp với dòng tiêu đề cột — xem AxisRowTemplate. Nền
+             Transparent khi TẮT (viền xám, chữ ĐEN — TextPrimaryBrush mặc định của FlatButtonStyle;
+             trước là chữ xám, Tuấn đổi 2026-09-11); khi ON các style bên dưới tô ĐẶC màu trạng thái +
+             chữ trắng — style phẳng (Tuấn yêu cầu, 2026-09-11), thay quy ước cũ 2026-09-04 "không
+             bao giờ tô đặc nền, chỉ đổi viền/chữ + glow" (hồi đó từ chối nền pastel nhạt; nền đặc
+             đậm + chữ trắng là kiểu khác). Xem "…OnBrush" ở Controls.xaml. -->
+        <Style x:Key="CompactButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+            <Setter Property="Padding" Value="4,3"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Đèn bảng I/O (DI/DO) — trước dùng chung StatusBrush (xanh lá/xám đậm) với các chấm
+             kết nối Motion/IO/Vision và ZSafeOk, nhưng ý nghĩa khác hẳn: đây là tín hiệu bit thô
+             (rất nhiều bit ON là BÌNH THƯỜNG, ví dụ NC như EmgOk — không phải "tốt=xanh").
+             Tách style riêng: OFF xám nhạt trung tính, ON đỏ + glow để bắt mắt ngay bit nào đang
+             lên mà không cần đọc từng dòng chữ (Tuấn yêu cầu, 2026-09-08). -->
+
+        <!-- Glow riêng cho chấm đèn 11px (bảng I/O, POT/NOT) — nhỏ vừa khoảng hở quanh chấm xếp
+             sát nhau (Margin="0,1"); glow cỡ nút (…GlowEffect ở Controls.xaml, dành cho nút bấm)
+             to hơn nhiều, sẽ bị viewport của ScrollViewer/GroupBox cắt cụt ở mép danh sách (Tuấn
+             phản hồi 2026-09-08, kèm ảnh). -->
+        <DropShadowEffect x:Key="LampGlowEffect" Color="#FF5C5C" BlurRadius="6" ShadowDepth="0" Opacity="1"/>
+
+        <Style x:Key="IoLampEllipseStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="LightGray"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding On}" Value="True">
+                    <Setter Property="Fill" Value="{StaticResource CriticalBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource LampGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Đèn POT/NOT — đọc sống Axis.FLS/RLS mỗi vòng quét (Tuấn yêu cầu, 2026-09-09, sau khi
+             RESET không xoá được alarm hard limit dù đã Jog ra khỏi cữ: cần thấy đúng lúc nào
+             driver thật sự nhả bit, không phải đoán qua bảng alarm). Cùng kiểu xám/đỏ+glow với
+             IoLampEllipseStyle, chỉ khác nguồn binding. Ẩn ở A1/A2 — xem HasHardLimitSwitch. -->
+        <Style x:Key="PotLampStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="LightGray"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Axis.FLS}" Value="True">
+                    <Setter Property="Fill" Value="{StaticResource CriticalBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource LampGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="NotLampStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="LightGray"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Axis.RLS}" Value="True">
+                    <Setter Property="Fill" Value="{StaticResource CriticalBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource LampGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Màu nút ON (GreenOnBrush, RedOnBrush, CautionOnBrush) khai ở Themes/Controls.xaml
+             (global) — MainView.xaml/TeachingView.xaml/MainWindow.xaml dùng chung cho các nút
+             trạng thái kiểu SVO on/off. StaticResource bên dưới resolve qua App.xaml merge. -->
+
+        <!-- SVO — MỘT nút toggle thay vì 2 nút on/off tách riêng (Tuấn yêu cầu, 2026-09-04): Content
+             VÀ màu cùng đổi theo Axis.ServoOn thật (không phải cờ lạc quan phía UI) — bấm gọi
+             AxisRowVm.ServoToggleCommand, tự quyết định SetServoOnAsync(true/false) theo trạng thái
+             hiện tại. -->
+        <Style x:Key="SvoToggleButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
+            <Setter Property="Content" Value="SVO off"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Axis.ServoOn}" Value="True">
+                    <Setter Property="Content" Value="SVO on"/>
+                    <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Home — gộp luôn đèn báo ORG vào chính nút Home thay vì Ellipse+TextBlock riêng (Tuấn
+             yêu cầu, 2026-09-04): tô xanh đặc + chữ trắng khi Axis.OrgOk (đã về gốc). -->
+        <Style x:Key="HomeButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Axis.OrgOk}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- RST — reset alarm của RIÊNG trục này (Axis.ResetAlarmAsync). Tô đỏ đặc + chữ trắng
+             đúng lúc Axis.Alarm để không phải nhìn đèn ALM cạnh bên mới biết trục nào cần bấm. -->
+        <Style x:Key="RstButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Axis.Alarm}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Mở phanh — chỉ Z1/Z2 (HasBrakeButton). Bấm nhanh (nhả trước 3s) = nghi thức bình
+             thường trước khi Jog/Home/Move/Về gốc (McFunction.RequestBrakeRelease, đòi ServoOn).
+             GIỮ đủ 3s = nhả phanh KHẨN CẤP kiểu người-chết, hoạt động cả khi Alarm/Servo OFF để
+             đẩy tay được trục Z lúc sự cố (McFunction.PingEmergencyBrakeRelease) — mất ngay khi
+             buông tay, không "tắt" bằng lệnh riêng (Tuấn yêu cầu, 2026-09-04). Xanh đặc = DO đang
+             nhả thật (BrakeReleased); cam đặc (trạng thái tạm/đang đếm) = đang giữ dưới 3s
+             (EmergencyArming); đỏ đặc = đã kích hoạt khẩn cấp, đang giữ (EmergencyArmed) — đặt SAU
+             nên đỏ luôn thắng xanh khi cả hai cùng đúng (DO=1 do đang nhả khẩn cấp). Cả 3 trạng
+             thái chữ trắng + glow cùng màu, style phẳng (2026-09-11) — trạng thái đang đếm cũng có
+             glow (cam) để không dính glow xanh còn sót của BrakeReleased khi cả hai cùng đúng. -->
+        <Style x:Key="BrakeReleaseButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding BrakeReleased}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EmergencyArming}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource CautionGlowEffect}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EmergencyArmed}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ══ Bảng trục — MỖI TRỤC ĐÚNG MỘT HÀNG, nút xếp thành cột theo nhóm chức năng ══
+             Thay bản 2 tầng/trục cũ (tầng trên −/+/Stop/Home/SVO/RST, tầng dưới Move Abs/Inching/
+             Mở phanh): 2 tầng không thẳng cột nhau, cộng 7 trục là tràn màn hình phải cuộn (Tuấn
+             yêu cầu gom nhóm + không cần cuộn, kèm ảnh, 2026-09-11). Thứ tự cột theo đúng trình tự
+             thao tác: Servo (SVO/RST/Mở phanh) → Gốc → Jog → Inching → Move Abs → Dừng.
+
+             Mỗi nhóm là một Border AxisGroupCellStyle có Width CỐ ĐỊNH (= bề rộng nút bên trong
+             + 6px padding/vạch) — dòng tiêu đề cột dùng ĐÚNG các Width đó nên cột luôn thẳng hàng.
+             Đổi Width một nút thì sửa cả Width của Border nhóm ở AxisRowTemplate LẪN ô tiêu đề
+             tương ứng. Tổng ~874px, vừa cột trái khi cột đèn I/O rộng 340 (kể cả khi hiện thanh
+             cuộn dọc) — nới thêm cột nào thì phải thu lại chỗ khác.
+
+             Nút "Mở phanh" (chỉ Z1/Z2) đặt CUỐI nhóm Servo nên dòng không có nút này không lệch
+             cột. Jog −/+ dùng PreviewMouseDown/Up (code-behind) chứ không dùng Command: jog phải là
+             giữ-để-chạy, nhả-là-dừng. -->
+        <Style x:Key="AxisGroupCellStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+            <Setter Property="BorderThickness" Value="1,0,0,0"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+            <Setter Property="Padding" Value="5,3,0,3"/>
+        </Style>
+
+        <Style x:Key="AxisHeaderTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="AxisSectionTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <DataTemplate x:Key="AxisRowTemplate">
+            <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,1">
+                <StackPanel Orientation="Horizontal">
+                    <!-- Trục / Vị trí / Cữ -->
+                    <TextBlock Width="30" Text="{Binding Name}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Width="84" VerticalAlignment="Center" FontFamily="Consolas" FontSize="15">
+                        <Run Text="{Binding Axis.CurrentPos, StringFormat='{}{0:0.000}', Mode=OneWay}"/>
+                        <Run Text="{Binding Unit, Mode=OneWay}" FontSize="10"
+                             Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </TextBlock>
+                    <!-- POT/NOT — sống theo Axis.FLS/RLS, ẩn ở A1/A2 (HasHardLimitSwitch). Grid bọc
+                         ngoài giữ nguyên bề rộng cột kể cả khi 2 đèn bị ẩn. -->
+                    <Grid Width="40" VerticalAlignment="Center">
+                        <StackPanel Visibility="{Binding HasHardLimitSwitch, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                <Ellipse Width="10" Height="10" Stroke="#40000000" Style="{StaticResource PotLampStyle}"/>
+                                <TextBlock Text="POT" FontSize="9" Margin="4,0,0,0" VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="10" Height="10" Stroke="#40000000" Style="{StaticResource NotLampStyle}"/>
+                                <TextBlock Text="NOT" FontSize="9" Margin="4,0,0,0" VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Servo: SVO (1 nút toggle, xem SvoToggleButtonStyle) / RST / Mở phanh -->
+                    <Border Width="202" Style="{StaticResource AxisGroupCellStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Width="66" Style="{StaticResource SvoToggleButtonStyle}" Command="{Binding ServoToggleCommand}"/>
+                            <Button Content="RST" Width="48" Margin="3,0,0,0" Style="{StaticResource RstButtonStyle}"
+                                    Command="{Binding ResetAlarmCommand}"
+                                    ToolTip="{l:T Manual.RstTip}"/>
+                            <Button Content="{l:T Manual.BrakeRelease}" Width="76" Margin="3,0,0,0" Style="{StaticResource BrakeReleaseButtonStyle}"
+                                    PreviewMouseLeftButtonDown="BrakeRelease_Down" PreviewMouseLeftButtonUp="BrakeRelease_Up"
+                                    LostMouseCapture="BrakeRelease_LostCapture"
+                                    Visibility="{Binding HasBrakeButton, Converter={StaticResource BoolToVis}}"
+                                    ToolTip="{l:T Manual.BrakeReleaseTip}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Gốc — đèn báo ORG gộp vào chính nút Home (xanh + glow khi đã về gốc). -->
+                    <Border Width="64" Style="{StaticResource AxisGroupCellStyle}">
+                        <Button Content="Home" Width="58" HorizontalAlignment="Left"
+                                Style="{StaticResource HomeButtonStyle}" Command="{Binding HomeCommand}"/>
+                    </Border>
+
+                    <!-- Jog — giữ để chạy, nhả là dừng -->
+                    <Border Width="93" Style="{StaticResource AxisGroupCellStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="−" Width="42" Tag="-1" Style="{StaticResource CompactButtonStyle}"
+                                    PreviewMouseLeftButtonDown="Jog_Down" PreviewMouseLeftButtonUp="Jog_Up"
+                                    MouseLeave="Jog_Leave" ToolTip="{l:T Manual.JogMinusTip}"/>
+                            <Button Content="+" Width="42" Margin="3,0,0,0" Tag="1" Style="{StaticResource CompactButtonStyle}"
+                                    PreviewMouseLeftButtonDown="Jog_Down" PreviewMouseLeftButtonUp="Jog_Up"
+                                    MouseLeave="Jog_Leave" ToolTip="{l:T Manual.JogPlusTip}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Inching (Move Increment) — dịch một BƯỚC từ vị trí hiện tại, tiện nudge từng
+                         chút lúc Calibration thay vì phải gõ toạ độ tuyệt đối hoặc giữ Jog liên tục.
+                         Trục có lệnh gốc riêng (Fastech A1/A2) thì dùng thẳng lệnh đó chứ không tự
+                         cộng dồn rồi gọi Move Abs — xem McFunction.MoveIncAsync (Tuấn chỉ ra,
+                         2026-09-07).
+                         KHÔNG dùng UpdateSourceTrigger=PropertyChanged cho 2 ô nhập (ở đây và Move
+                         Abs): bind thẳng double thì mỗi phím gõ đều parse-rồi-format-ngược ngay lập
+                         tức, gõ "0." bị rút gọn về "0" trước khi kịp gõ số thập phân tiếp theo (Tuấn
+                         báo lỗi kèm ảnh, 2026-09-09). Mặc định LostFocus là đủ — bấm nút cũng tự rời
+                         focus khỏi ô trước đó rồi. -->
+                    <Border Width="132" Style="{StaticResource AxisGroupCellStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Text="{Binding StepSize}" Width="44" MinHeight="36"
+                                     ToolTip="{l:T Manual.StepSizeTip}"/>
+                            <Button Content="−" Width="38" Margin="3,0,0,0" Style="{StaticResource CompactButtonStyle}"
+                                    Command="{Binding IncrementMinusCommand}" ToolTip="{l:T Manual.IncMinusTip}"/>
+                            <Button Content="+" Width="38" Margin="3,0,0,0" Style="{StaticResource CompactButtonStyle}"
+                                    Command="{Binding IncrementPlusCommand}" ToolTip="{l:T Manual.IncPlusTip}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Move Abs — chạy tới toạ độ tuyệt đối gõ tay -->
+                    <Border Width="137" Style="{StaticResource AxisGroupCellStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Text="{Binding TargetPos}" Width="70" MinHeight="36"
+                                     ToolTip="{l:T Manual.TargetPosTip}"/>
+                            <Button Content="Move" Width="58" Margin="3,0,0,0" Style="{StaticResource CompactButtonStyle}"
+                                    Command="{Binding MoveCommand}" ToolTip="{l:T Manual.MoveTip}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Dừng riêng trục này -->
+                    <Border Width="62" Style="{StaticResource AxisGroupCellStyle}">
+                        <Button Content="Stop" Width="56" HorizontalAlignment="Left"
+                                Style="{StaticResource CompactButtonStyle}" Command="{Binding StopCommand}"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- Cột đèn I/O 420 → 340 (2026-09-11) để nhường chỗ cho bảng trục một hàng/trục — nhãn
+             dài nhất ("DO 0x09  Đèn RESET (lắp trong nút STOP)", Consolas 11) cần ~300px kể cả
+             chấm đèn, khung GroupBox và thanh cuộn, vẫn còn dư. -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="340"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ScrollViewer giữ lại làm lưới an toàn (Auto — chỉ hiện khi thật sự tràn, vd khi hiện cả
+             2 banner vàng bên dưới cùng lúc, hoặc thêm Bảng mô phỏng lúc chạy mô phỏng). Bình
+             thường trên máy thật toàn bộ trang vừa một màn hình, không cần cuộn. -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,8,0">
+            <StackPanel>
+                <!-- Card lệnh chung (2026-10-07, 3 lớp Nền — Card — Control): hai banner vàng và thanh lệnh trước đứng
+                     thẳng trên nền trang, banner lại vẽ như một card riêng. Giờ chung một card, banner là lớp control. -->
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8" Padding="10,8,10,4">
+                <StackPanel>
+                <Border Style="{StaticResource NoticeBannerStyle}" Margin="0,0,0,6"
+                        Visibility="{Binding BlockReason, Converter={StaticResource StringToVis}}">
+                    <TextBlock TextWrapping="Wrap" Foreground="#5A3D00">
+                        <Run Text="{l:T Manual.BlockedPrefix}" FontWeight="Bold"/>
+                        <Run Text="{Binding BlockReason, Mode=OneWay}"/>
+                    </TextBlock>
+                </Border>
+
+                <!-- Status.Message chỉ trước đây hiện ở trang Main — bấm Home/Move bị McFunction
+                     từ chối (vd "Z1/Z2 phải về gốc xong trước") ghi thẳng vào đây, đứng ở Manual
+                     thì không thấy gì cả, tưởng nút không phản ứng (Tuấn báo lỗi, 2026-09-09).
+                     Thêm ở đây để thấy ngay lý do đúng chỗ đang thao tác, không cần chuyển qua Main. -->
+                <Border Style="{StaticResource NoticeBannerStyle}" Margin="0,0,0,6"
+                        Visibility="{Binding Status.Message, Converter={StaticResource StringToVis}}">
+                    <TextBlock Text="{Binding Status.Message}" TextWrapping="Wrap" Foreground="#5A3D00"/>
+                </Border>
+
+                <!-- ══ Thanh lệnh chung — MỘT dòng (Tuấn yêu cầu, 2026-09-11) ══
+                     Trái: 4 lệnh áp dụng cho TẤT CẢ trục cùng lúc, chia 2 cặp — dừng/xoá lỗi
+                     (STOP tất cả, RESET) và chuẩn bị chạy (SVO ON tất cả, Mở phanh tất cả). STOP gọi
+                     McControl.RequestStop, RESET gọi McControl.RequestReset — cùng logic hệt nút STOP và
+                     RESET trang Main (STOP từ 2026-10-07), để khỏi phải chuyển trang mỗi lần dừng khẩn/xoá alarm lúc
+                     đang thao tác tay (Tuấn yêu cầu, 2026-09-09). SVO ON tất cả tự bỏ qua trục đang
+                     Alarm (báo ở Status.Message), không chặn các trục còn lại; Mở phanh tất cả chỉ
+                     tác động Z1/Z2 và vẫn đòi ServoOn (Tuấn yêu cầu, 2026-09-08).
+                     Về gốc (Tuấn yêu cầu, 2026-09-15) đứng cuối, đúng trình tự RESET → SVO ON → Mở
+                     phanh → Về gốc. Cùng McControl.RequestOrigin với nút trang Main nên cùng điều kiện
+                     chặn (chu trình đang chạy, mạch an toàn, còn hàng trên tay hút) — lý do từ chối hiện
+                     ở dòng vàng Status.Message ngay trên. WrapPanel thay StackPanel: thêm nút thứ năm
+                     có thể vượt bề rộng cột trái ở màn 1280px, thà xuống dòng còn hơn bị cắt mất nút.
+                     Phải: đèn trigger CAM — bật/tắt tay, độc lập với Auto (Tuấn yêu cầu, 2026-09-09).
+                     Luôn hiện (không gate theo IsSimulation) vì ghi thẳng DO thật qua McControl.Io.
+                     Trạng thái ON/OFF xem ở bảng "Ngõ ra (DO)" bên phải, bit DoLampCam1/2. -->
+                <DockPanel Margin="0,0,0,4">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                        <TextBlock Text="{l:T Manual.CamLamp}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0"/>
+                        <Button Content="Bottom-up" Command="{Binding ToggleCamBtmLampCommand}" Width="110" Margin="0,0,6,0"
+                                ToolTip="{l:T Manual.CamBtmLampTip}"/>
+                        <Button Content="Top-down" Command="{Binding ToggleCamTopLampCommand}" Width="110"
+                                ToolTip="{l:T Manual.CamTopLampTip}"/>
+                    </StackPanel>
+                    <WrapPanel>
+                        <Button Content="{l:T Manual.StopAll}" Command="{Binding StopAllCommand}" Width="130" Margin="0,0,6,4"
+                                ToolTip="{l:T Manual.StopAllTip}"/>
+                        <Button Content="RESET" Command="{Binding ResetCommand}" Width="130" Margin="0,0,16,4"
+                                ToolTip="{l:T Manual.ResetTip}"/>
+                        <Button Content="{l:T Manual.ServoOnAll}" Command="{Binding ServoOnAllCommand}" Width="130" Margin="0,0,6,4"
+                                ToolTip="{l:T Manual.ServoOnAllTip}"/>
+                        <Button Content="{l:T Manual.BrakeReleaseAll}" Command="{Binding BrakeReleaseAllCommand}" Width="130" Margin="0,0,16,4"
+                                ToolTip="{l:T Manual.BrakeReleaseAllTip}"/>
+                        <Button Content="{l:T Manual.Origin}" Command="{Binding OriginCommand}" Width="130" Margin="0,0,6,4"
+                                ToolTip="{l:T Manual.OriginTip}"/>
+                    </WrapPanel>
+                </DockPanel>
+                </StackPanel>
+                </Border>
+
+                <!-- ══ Bảng trục ══ — xem ghi chú AxisRowTemplate ở Resources. Width các ô tiêu đề
+                     dưới đây PHẢI khớp Width các Border nhóm trong AxisRowTemplate. -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="10,6,10,8" Margin="0,0,0,8">
+                    <StackPanel>
+                        <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,1">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Width="30" Text="{l:T Manual.ColAxis}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                <TextBlock Width="84" Text="{l:T Manual.ColPosition}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                <TextBlock Width="40" Text="{l:T Manual.ColLimit}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                <Border Width="202" Style="{StaticResource AxisGroupCellStyle}" Padding="5,0,0,4">
+                                    <TextBlock Text="Servo" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="64" Style="{StaticResource AxisGroupCellStyle}" Padding="5,0,0,4">
+                                    <TextBlock Text="{l:T Manual.ColHome}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="93" Style="{StaticResource AxisGroupCellStyle}" Padding="5,0,0,4">
+                                    <TextBlock Text="{l:T Manual.ColJog}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="132" Style="{StaticResource AxisGroupCellStyle}" Padding="5,0,0,4">
+                                    <TextBlock Text="{l:T Manual.ColInching}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="137" Style="{StaticResource AxisGroupCellStyle}" Padding="5,0,0,4">
+                                    <TextBlock Text="{l:T Manual.ColMoveAbs}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="62" Style="{StaticResource AxisGroupCellStyle}" Padding="5,0,0,4">
+                                    <TextBlock Text="{l:T Manual.ColStop}" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Đèn Z an toàn đặt ngay trên dòng tên nhóm Gantry (thay vì một dòng riêng
+                             bên dưới như trước) — cùng ngữ cảnh Z1/Z2, đỡ tốn thêm một hàng. -->
+                        <DockPanel Margin="0,8,0,2">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Ellipse Width="12" Height="12" VerticalAlignment="Center" Stroke="#40000000"
+                                         Fill="{Binding ZSafeOk, Converter={StaticResource StatusBrush}}"/>
+                                <TextBlock Text="{l:T Manual.ZSafe}"
+                                           FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Gantry — X, Z1, Z2" Style="{StaticResource AxisSectionTextStyle}"/>
+                        </DockPanel>
+                        <ItemsControl ItemsSource="{Binding Gantry}" ItemTemplate="{StaticResource AxisRowTemplate}"/>
+
+                        <TextBlock Text="Tray — Y1, Y2" Style="{StaticResource AxisSectionTextStyle}" Margin="0,10,0,2"/>
+                        <ItemsControl ItemsSource="{Binding Tray}" ItemTemplate="{StaticResource AxisRowTemplate}"/>
+
+                        <TextBlock Text="{l:T Manual.SectionRotate}" Style="{StaticResource AxisSectionTextStyle}" Margin="0,10,0,2"/>
+                        <ItemsControl ItemsSource="{Binding Rotate}" ItemTemplate="{StaticResource AxisRowTemplate}"/>
+                    </StackPanel>
+                </Border>
+
+                <GroupBox Header="{l:T Manual.SimPanel}" Margin="0,0,0,8"
+                          Visibility="{Binding IsSimulation, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,0,0,8"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="{l:T Manual.SimPanelNote}"/>
+                        <!-- Nút cứng (Cặp A/Cặp B/STOP/Tắt còi) rồi tín hiệu an toàn (EMG/rèm/khí),
+                             cách nhau một khoảng rộng hơn — chung một WrapPanel cho đỡ tốn hàng. -->
+                        <WrapPanel>
+                            <Button Content="{l:T Manual.SimArm}" Command="{Binding SimPressArmCommand}" Width="120" Margin="0,0,6,6"
+                                    ToolTip="{l:T Manual.SimArmTip}"/>
+                            <Button Content="{l:T Manual.SimStart1}" Command="{Binding SimPressStart1Command}" Width="150" Margin="0,0,6,6"
+                                    ToolTip="{l:T Manual.SimStart1Tip}"/>
+                            <Button Content="{l:T Manual.SimStart2}" Command="{Binding SimPressStart2Command}" Width="150" Margin="0,0,6,6"
+                                    ToolTip="{l:T Manual.SimStart2Tip}"/>
+                            <Button Content="{l:T Manual.SimStop}" Command="{Binding SimPressStopCommand}" Width="110" Margin="0,0,6,6"/>
+                            <Button Content="{l:T Manual.SimBuzzer}" Command="{Binding SimPressBuzzerCommand}" Width="90" Margin="0,0,16,6"/>
+                            <Button Content="EMG" Command="{Binding SimToggleEmgCommand}" Width="90" Margin="0,0,6,6"/>
+                            <Button Content="{l:T Manual.SimLightCurtain}" Command="{Binding SimToggleLightCurtainCommand}" Width="150" Margin="0,0,6,6"
+                                    ToolTip="{l:T Manual.SimLightCurtainTip}"/>
+                            <Button Content="{l:T Manual.SimAir}" Command="{Binding SimToggleAirCommand}" Width="110" Margin="0,0,6,6"/>
+                        </WrapPanel>
+
+                        <!-- Lỗi driver giả lập theo trục — trước là một tầng riêng dưới MỖI dòng trục
+                             (chỉ hiện khi mô phỏng); gom về đây cùng các nút mô phỏng khác để bảng
+                             trục luôn đúng một hàng/trục (2026-09-11). -->
+                        <Separator/>
+                        <TextBlock Text="{l:T Manual.SimDriverFaults}" FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <ItemsControl ItemsSource="{Binding Axes}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,14,6"
+                                                Visibility="{Binding IsSimulated, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Width="28" VerticalAlignment="Center"/>
+                                        <Button Content="ALM" Width="56" Style="{StaticResource CompactButtonStyle}"
+                                                Command="{Binding ToggleSimAlarmCommand}" ToolTip="{l:T Manual.SimAlarmTip}"/>
+                                        <Button Content="{l:T Manual.SimDisconnect}" Width="56" Margin="3,0,0,0" Style="{StaticResource CompactButtonStyle}"
+                                                Command="{Binding ToggleSimDisconnectCommand}" ToolTip="{l:T Manual.SimDisconnectTip}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Công cụ cho ngày đầu ra máy: xem giá trị THÔ đọc về từ thiết bị. -->
+                <GroupBox Header="{l:T Manual.Diagnostics}">
+                    <StackPanel>
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,0,0,6"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="{l:T Manual.DiagnosticsNote}"/>
+                        <TextBlock Text="{Binding RawDiText}" FontFamily="Consolas" FontSize="12"/>
+                        <TextBlock Text="{Binding RawDoText}" FontFamily="Consolas" FontSize="12" Margin="0,2,0,6"/>
+                        <ItemsControl ItemsSource="{Binding FastechStatus}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Bảng đèn I/O -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <GroupBox Grid.Row="0" Header="{l:T Manual.Inputs}" Margin="0,0,0,4">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding DiLamps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="4,2">
+                                    <Ellipse Width="11" Height="11" Stroke="#40000000" VerticalAlignment="Center"
+                                             Style="{StaticResource IoLampEllipseStyle}"/>
+                                    <TextBlock Text="{Binding Caption}" FontSize="11" Margin="6,0,0,0"
+                                               FontFamily="Consolas" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </GroupBox>
+
+            <GroupBox Grid.Row="1" Header="{l:T Manual.Outputs}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding DoLamps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="4,2">
+                                    <Ellipse Width="11" Height="11" Stroke="#40000000" VerticalAlignment="Center"
+                                             Style="{StaticResource IoLampEllipseStyle}"/>
+                                    <TextBlock Text="{Binding Caption}" FontSize="11" Margin="6,0,0,0"
+                                               FontFamily="Consolas" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</UserControl>

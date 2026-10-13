@@ -1,0 +1,183 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-8D5DF72C-7CAA-4F7A-9D83-AED1EEE8AD5B.html
+
+Single Point Alignment
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Single Point Alignment
+
+ Single Point Alignment
+
+ The Single Point Alignment module can calculate
+ the offset required by the
+ alignment
+ of the object point to the target point according to the input coordinate
+ and angle of the target point and the object point. The offset includes the displacement in
+ the X and Y directions and the angle.
+
+ Note 
+
+- 
+ The
+ input of the module is the physical coordinates of the target point and the
+ object point, so the Calibration Transformation module
+ should be included in the predecessors. 
+
+- 
+ In this module, the demonstrate point is the target point, and
+ the run point is the object point.
+
+ This section contains:
+
+- 
+ How It Works 
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How It Works
+
+ The purpose of this module is to align two points and get an offset. 
+
+ Each
+ physical coordinate point consists of x, y, and θ. Suppose there are two points
+ P1 (x 1,
+ y 1,
+ θ 1 ) and P 2 (x 2,
+ y 2,
+ θ 2 ), if P 2 (the run point) needs to be
+ aligned to P 1 (the demonstrate point), it is necessary to rotate the
+ point at certain angle Δθ, and then translate the rotated point in accordance with
+ (Δx, Δy). The calculation formulas of Δθ, Δx and Δy are shown in the figure below. 
+
+ [img:GUID-4FA69FF8-C16F-4C3B-B4B9-C1A3FE53141F-high.png] 
+
+ Note 
+ The angles in the Δθ formula above are normalized to the range
+ -π~π.
+
+ How To Use
+
+ This module should be used with the Image Source module, the Locating modules, and the Calibration Transformation module as its
+ predecessors.
+
+ [img:GUID-BA342DC8-59AF-4AA1-B916-659A70C0F548-high.png] 
+ Figure 1 Single Point Alignment
+ Application
+
+ The Image Source module is used to obtain the
+ image, the locating modules are used to obtain the feature points and angle
+ information in the image coordinate system, the Calibration
+ Transformation module is used to convert the image coordinate points
+ to physical coordinate points, and the Single Point Alignment
+ module is used to calculate the offset from the run point to the demonstration point
+ in the physical coordinate system.
+
+ Parameter Configuration
+
+ This part introduces the configuration of basic parameters. For the
+ result parameters, see Result Show.
+
+ Input Mode
+
+ Optional by point or by coordinate.
+
+ Demonstrate Point0-Run Point0
+
+ Configure the point coordinate and angle information
+ of
+ the run point alignment to the demonstration point. You can enter the
+ data or subscribe to the predecessor.
+
+ Point
+
+ PointX/Y
+
+ Set the alignment relationship of the point
+ coordinates.
+
+ Angle
+
+ Set the counterpoint relationship of the
+ angles.
+
+ Module Result
+
+ Module Result of Single Point
+ Alignment is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ DeltaX
+
+ Float. The offset value X from the origin of the image coordinate
+ system to the origin of the physical coordinate system of the mechanism, in
+ pixels.
+
+ DeltaY
+
+ Float. The offset value Y from the origin of the image
+ coordinate system to the origin of the physical coordinate system of the
+ mechanism, in pixels.
+
+ DeltaTheta
+
+ Float. The angle offset experienced when an image point moves
+ from a reference position (teaching point) to a target position (running
+ point), and the clockwise angle is positive.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

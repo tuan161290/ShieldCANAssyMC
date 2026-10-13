@@ -1,0 +1,355 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-543D47A9-74D6-432B-8D14-2CF6EB12FAED.html
+
+Translation Calibration
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calibration
+
+- Translation Calibration
+
+ Translation Calibration
+
+ The Translation Calibration module is similar to
+ the N-point Calibration module.
+
+ How It Works & How To
+ Use
+
+ The underlying calibration algorithm of this module is the same as N-point Calibration. On the basis of N-point calibration, translation
+ calibration and rotation calibration are combined to extract the image points after
+ a large angle rotation and translation back to the field of view. This process is
+ aimed at inferring the actual image points in scenarios with a small field of view
+ and large rotation angle.
+
+ Also, the Translation Calibration module has the
+ same usage methods as N-point Calibration.
+
+ Parameter Configuration
+
+ This section introduces the configuration of basic parameters and run
+ parameters. For the result parameters, see Result Show.
+
+ Calibration Type
+
+ Optional translation calibration, or translation and rotation
+ calibration.
+
+ When selecting TransCalib, you need to
+ configure the following parameters.
+
+ Rotation Times
+
+ Set the number of input points for rotation
+ motion. This parameter is required when the rotation axis is
+ not co-axial with the image center and is usually set to 3.
+ Note that the rotation is performed at the position of the
+ 5th point.
+
+ UnionCalibEnable
+
+ When enabled, this module supports the union
+ calibration mode in which the motion mechanism translates,
+ rotates, and then translates back to the field of view. This
+ method requires higher translation accuracy. 
+
+ If the mechanism can only rotate at a small
+ angle in the small field of view, leading to inaccurate
+ fitting of the rotation center, you can enable this
+ parameter to control the mechanism to rotate at a larger
+ angle and then translate back to the field of view, then
+ calibrate the rotation center.
+
+ Calib Points Acquisition
+
+ Optional trigger acquisition or manual input. 
+
+ When selecting Manual
+ Input, the module can run independently and you need to
+ manually input coordinate points to generate a calibration matrix.
+
+ When selecting Trigger
+ Acquisition, you need to configure the parameters
+ below.
+
+ Calib Points Input
+
+ Image Point
+
+ ImagePointX/Y
+
+ Image Angle
+
+ Physical Point
+
+ Physical Coordinate X/Y
+
+ World Rotate Angle
+
+ Demonstration
+
+ For configuring the parameters above, see N-point Calibration
+ Parameters.
+
+ Camera Mode
+
+ Optional static camera or dynamic camera.
+
+ DOF
+
+ Set the degree of freedom when fitting the homo
+ matrix. Optional Scale, Rotation, Aspect
+ Ratio, Tilt, Translation, and Transmission
+ (perspective transformation), Scale,
+ Rotation, Aspect Ratio, Tilt and Translation
+ (affine transformation), and Scale,
+ Rotation and Translation (similarity
+ transformation). The degree of freedom is gradually reduced in
+ the three modes above. You are recommended to use the default
+ option.
+
+ For example, a square may become a trapezoid in
+ perspective transformation, a rectangle in affine
+ transformation,
+ and a square with different sizes in
+ similarity transformation.
+
+ Translation Times
+
+ Sets the number of input points for the translation motion,
+ only for translation in the X/Y direction. The value is usually set to
+ 9.
+
+ Set Calibration File Path
+
+ Update File
+
+ Create Calibration File
+
+ For the three common parameters of calibration
+ modules, see N-point Calibration Parameter
+ Configuration.
+
+ Clear Point
+
+ Reset the coordinates of all calibration points to 0.
+
+ Module Result
+
+ Module Result of Translation
+ Calibration is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ CalibStatus
+
+ Float. 0 indicates failed calibration while 1 indicates
+ successful calibration.
+
+ Left and Right-Handed Coordinates Consistency
+
+ Int. 1 indicates the motion mechanism uses a right-handed
+ coordinate system whereas -1 indicates the motion mechanism uses a
+ left-handed coordinate system.
+
+ CalibImagePoint
+
+ Image Coordinate X
+
+ Float. The value of pixel X-coordinate of feature
+ point during calibration.
+
+ Image Coordinate Y
+
+ Float. The value of pixel Y-coordinate of feature
+ point during calibration.
+
+ CalibPhysicalPoint
+
+ TransPointX
+
+ Float. The X-coordinate of the motion mechanism in
+ the physical coordinate system during calibration. 
+
+ TransPointY
+
+ Float. The Y-coordinate of the motion mechanism in
+ the physical coordinate system during calibration. 
+
+ Pixel Error of Translation Estimation
+
+ Float. The average difference between the measured value and the
+ true value during pixel translation. The larger the error, the less accurate
+ the measurement result.Note 
+ Translating pixels refers to moving pixels in an image
+ according to a given offset.
+
+ Pixel Error of Rotation Estimation
+
+ Float. The average difference between the measured value and the
+ true value during pixel rotation. The larger the error, the less accurate
+ the measurement result.Note 
+ Rotating pixels refers to moving pixels in an image
+ according to a given offset.
+
+ RotAxisPoint
+
+ RotCenterImageX
+
+ Float. The X-coordinate of the rotation center in
+ the image coordinate system.
+
+ RotCenterImageY
+
+ Float. The Y-coordinate of the rotation center in
+ the image coordinate system.
+
+ Physical Points of Rotation Center
+
+ Rotation Center Physical X
+
+ Float. The X-coordinate of the rotation center in
+ the physical coordinate system.
+
+ Rotation Center Physical Y
+
+ Float. The Y-coordinate of the rotation center in
+ the physical coordinate system.
+
+ Angular rotation consistency
+
+ Int. The rotation angle consistency between the image point of
+ the rotation axis and the physical point of the rotation center.
+
+ Max. Error of Translation Pixel
+
+ Float. The maximum difference between the measured value and the
+ true value during pixel translation.Note 
+ Translating pixels refers to moving pixels in an image
+ according to a given offset.
+
+ Corresponding Points of Max. Error of Translation Pixel
+
+ Int. The serial number of the point when there is a maximum
+ difference between the measured value and the true value during pixel
+ translation.
+
+ Real Error of Translation Estimation
+
+ Float. The difference between the measured value and the true
+ value after completing pixel translation.
+
+ Real Max. Error of Translation Pixel
+
+ Float. The maximum difference between the measured value and the
+ true value after completing pixel translation.
+
+ Max. Error of Rotation Pixel
+
+ Float. The maximum difference between the measured value and the
+ true value during pixel rotation.Note 
+ Rotating pixels refers to rotating the pixels in an image
+ according to a given offset.
+
+ Corresponding Points of Max. Error of Rotation Pixel
+
+ Float. The serial number of the point where there is the
+ greatest difference between the measured value and the true value during
+ pixel rotation.
+
+ Real Error of Rotation Estimation
+
+ Float. The average difference between the measured value and the
+ true value after rotating the pixels.
+
+ Real Max. Error of Rotation Pixel
+
+ Float. The maximum difference between the measured value and the
+ true value after completing pixel rotation.
+
+ Scale
+
+ Float. The number of pixels per unit length in the image
+ coordinate system relative to the world coordinate system.
+
+ DeltaX
+
+ Float. The offset value X from the origin of the image coordinate
+ system to the origin of the physical coordinate system of the mechanism, in
+ pixels.
+
+ DeltaY
+
+ Float. The offset value Y from the origin of the image
+ coordinate system to the origin of the physical coordinate system of the
+ mechanism, in pixels.
+
+ Rotate
+
+ Float. The rotation angle (in radians) of the machine in the
+ physical coordinate system relative to the image coordinate system. 
+ 
+- 
+ When the rotation angle is positive, the X-axis of
+ the physical coordinate system of the mechanism rotates
+ counterclockwise by this angle, and its X-axis is consistent
+ with the X-axis of the image coordinate system.
+
+- 
+ When the rotation angle is negative, the X-axis of
+ the physical coordinate system of the mechanism
+ rotates
+ clockwise by this angle, and its X-axis is
+ consistent with the X-axis of the image coordinate system.
+
+ Pixel Accuracy
+
+ Float. The size of per pixel in the physical coordinate
+ system
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works & How To
+ Use
+
+- Parameter Configuration
+
+- Module Result

@@ -1,0 +1,520 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-11F05391-A171-4F3F-A43C-8A1348B3E02C.html
+
+High Precision Match
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Locating
+
+- High Precision Match
+
+ High Precision Match
+
+ The High Precision Match module is suitable for
+ scenarios that require high locating accuracy, such as locating targets, identifying target
+ directions, and detecting target offset angles. 
+
+ Module Principe
+
+ High Precision Match share the same module
+ principle with the Counter Match module. For details, see
+ Module Principle. High Precision Match
+ achieves a higher matching accuracy than Fast matching. The
+ former uses multi-layer image in the image pyramid during image pyramid-based
+ matching acceleration, while the latter only searches for targets at the top layer
+ of the image pyramid. 
+
+ How To Use
+
+ In the procedure, the High Precision Match needs
+ to be connected with Position Fixture, N-point Calibration, modules under Measurement category, and other related modules. The purpose is
+ to send data, such as object location, from High Precision
+ Match to other modules. 
+
+ Preceding and Subsequent Modules
+
+ In the procedure, the High Precision
+ Match needs to be connected with Position Fixture, N-point Calibration, modules under Measurement category, and other related modules. The
+ purpose is to send data, such as object location, from High
+ Precision Match to other modules. 
+
+ Application Example
+
+ In a QR code recognition scenario, the procedure is as
+ follows:
+
+- 
+ High Precision Match sends QR
+ code location data to the Position Fixture module.
+
+- 
+ Position Correction sends
+ corrected QR code location data to the 2D BcR module to ensure that the ROI
+ of 2D BcR changes with the component
+ position.
+
+ [img:GUID-017B9603-150F-48D1-80B2-C7B1704CB8D0-high.png] 
+ Figure 1 High Precision
+ Match Application Example
+
+ Feature Template
+
+ The High Precision Match module shares the same
+ configuration procedure with the Contour Match module. For
+ details, see Feature Template.
+
+ Parameter Configuration
+
+ The following only introduces run parameters of this module. Configure
+ them to define how the current module processes the input data. 
+
+ Note 
+
+- 
+ For details about basic parameter, see Basic Parameters.
+
+- 
+ The High Precision Match module shares
+ the same configuration parameters with the Contour
+ Match module. For details, see Feature Template.
+
+- 
+ For details about result display parameters, see Result Show.
+
+ Search All Mode
+
+ When enabled, the target will be matched with all selected
+ templates, and the module will output the most possible result. It is OFF by
+ default. 
+
+ When the Contour Match module has this
+ parameter enabled, you also need to set the NMS
+ Overlap Threshold.
+
+ NMS Overlap Threshold
+
+ When different templates detect an overlap in the
+ target, if the overlap threshold is lower than this value, then
+ all targets are output; if the overlap threshold is higher than
+ this value, only the target with the higher matching score is
+ output.
+
+ Note 
+ The calculation method for the overlap threshold
+ is the 'area of the overlapping section between the two
+ overlapping targets' divided by 'the total area of the two
+ overlapping targets'.
+
+ Min Match Score
+
+ Set the similarity threshold for matching the target in the
+ image with templates. The algorithm considers the target a valid match only
+ when the similarity exceeds this threshold. The parameter can be set to a
+ maximum of 1, indicating a complete contour point match between the template
+ and the target. By default, the value is 0.5.
+
+ Max Number to Find
+
+ Set the maximum number of targets allowed to be found. The
+ default value is 1, and the valid value range is 1~1000. 
+
+ Match Polarity
+
+ Set the polarity to indicate the color transition from the edge
+ of the graphic to the background (from dark to bright or from bright to
+ dark). 
+
+ Set this parameter to Ignored
+ to find targets having different polarity. Otherwise, set it to Considerd to shorten matching time. 
+
+ Angle Range
+
+ Set the rotation tolerance for the template. The angle range is
+ the range that the template can rotate in the horizontal direction
+ (clockwise is positive, counterclockwise is negative) to match the target.
+ The default value is -45~45, which means the rotation angle range is -45° to
+ 45°. 
+
+ When searching for targets with rotation changes, this parameter
+ needs to be set according to the rotation angle range of the target (value
+ range -180~180), otherwise the matching may fail. 
+
+ [img:GUID-BE1A8261-3C49-4FCC-94D3-F67ED60E711A-high.png] 
+ Figure 2 Effect Example
+
+ RangeScaleType
+
+ Select the scaling range type for the target to be matched
+ relative to the created template. When searching for targets with scale
+ variations, this parameter must be configured. You can scale the target
+ based on either scale range or X- and Y- axis to allow matching based on
+ either overall scaling or separate X and Y axis scaling ranges. Valid
+ values:
+
+ Scale Range
+
+ Configure the scale range of the target relative
+ to the created template.
+
+ Scale RangeXY
+
+ Configure the scale range of the target relative
+ to the created template based on the X- and Y- axis
+ respectively. If you select this range type, you must
+ configure the X Scale
+ Range and Y Scale
+ Range parameters.
+
+ Note 
+ The default value of Scale
+ Range is 1.00~1.00 (only search for targets without
+ scale variation) and the valid range is 0.1~10.0. When you search
+ for targets with scale variations, you must adjust the value of this
+ parameter based on the actual scaling degree. Otherwise, the
+ matching may fail.
+
+ Overlap Threshold
+
+ Set the maximum overlap ratio of the two matching boxes when a
+ single template is set and multiple targets are detected, with two of the
+ matching targets overlapping each other. The larger the value of this
+ parameter, the greater the extent to which the two targets can overlap. The
+ value range is 0~100, and the default is 50. When the overlap rate of two
+ targets is greater than the set parameter value, the algorithm will discard
+ the target with a lower similarity score and retain the target with a higher
+ score. 
+
+ [img:GUID-802757F7-B672-458D-966D-E45241487437-high.png] 
+ Figure 3 Effect example
+
+ Sort
+
+ Set the sorting basis for Current Result,
+ when a single template is set and multiple targets are detected.
+
+ The image below shows an example of sorting by score in
+ descending order. 
+
+ [img:GUID-13C9297F-79B4-4586-800C-FC6D4CED353F-high.png] 
+ Figure 4 Sort Example
+
+ Score: High to Low
+
+ Sort outputs by feature matching score in descending
+ order. 
+
+ Angle: Big to Small
+
+ Sort outputs by relative angle offset. 
+
+ X: Small to Big
+
+ Sort outputs by the X-axis coordinate of the matching
+ box center from small to large. 
+
+ Y: Small to Big
+
+ Sort outputs by the Y-axis coordinate of the matching
+ box center from small to large. 
+
+ X: Small to Big, Y: Small to Big. 
+
+ Sort outputs by the X-axis coordinate of the center
+ point of the matching frame from small to large. If two targets
+ have same integerized X-axis coordinate, sort them by the Y-axis
+ coordinate from small to large. 
+
+ Y: Small to Big, X: Small to Big.
+
+ Sort outputs by the Y-axis coordinate of the center
+ point of the matching frame from small to large. If two targets
+ have same integerized Y-axis coordinate, sort them by the X-axis
+ coordinate from small to large. 
+
+ Threshold Type
+
+ Auto Threshold
+
+ Automatically generate edge contrast threshold
+ parameters based on the target image for edge contour point
+ extraction.
+
+ Model Threshold
+
+ After internal conversion, use the edge contrast
+ threshold of the template as the edge contrast threshold in the
+ matching stage to extract edge contour points. 
+
+ Manual Threshold
+
+ Extract edge contour points with the set edge
+ contrast threshold. 
+
+ Noise Considered
+
+ Noise refer to feature points in the target that are not on the
+ edge chain. When enabled, the algorithm will consider noise features. If
+ there are burrs in the features, the score will be reduced. OFF by default. 
+
+ As shown in the figure below, whether noise is considered will
+ affect the matching score. (Left: template, middle: include noise, right:
+ exclude noise). 
+
+ [img:GUID-88E2AC22-BFE0-4608-80FC-C84179B7FA53-high.png] 
+ Figure 5 Effect Example
+
+ Extension Threshold
+
+ The value of this parameter indicates "when the features of the
+ target object are incompletely displayed at the edge of the image, the ratio
+ of missing features to complete features." When the target object is cut off
+ by the edge of the image, set this parameter to find the target. 
+
+ In the example below, the extension threshold is greater than
+ 40, meaning it can find the target truncated by the image right edge. 
+
+ [img:GUID-B3D3F5E8-906B-423E-9F40-3378FD50AAE5-high.png] 
+ Figure 6 Effect Example
+
+ Overtime Control
+
+ Set the time threshold for each serach (ms). When the search
+ time reaches the timeout threshold, the algorithm will stop searching and do
+ not return search results. Value range: 0~10000, unit: ms. To set off the
+ Timeout Control, set the value to 0.
+
+ Contour Enabled
+
+ Enable to display the template contour feature points. 
+
+ If not checked, the feature points will not be displayed and
+ only the matching box will be displayed, which can reduce the matching time. 
+
+ Module Result
+
+ The module result parameters of High Precision
+ Match are as follows: 
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ MatchStatus
+
+ String. The number of "1" indicates the number of found objects
+ in the image. If empty, it means there is no matching object. 
+
+ Example: "1;1;1;1;1", indicating that there are 5 matched
+ objects.
+
+ MatchNum
+
+ Int. The number of objects in the image that are similar or
+ identical to the model.
+
+ MatchModelIndex
+
+ Int. The index of matching model.
+
+ MatchModelName
+
+ String. The name of matching model.
+
+ MatchRect
+
+ The minimal rectangular box framing the matching object.
+
+ MatchRectCenter
+
+ MatchBoxCenterX
+
+ Float. The X-coordinate of matching box
+ center.
+
+ MatchBoxCenterY
+
+ Float. The Y-coordinate of matching box
+ center.
+
+ MatchBoxWidth
+
+ Float. The width of matching box.
+
+ MatchBoxHeight
+
+ Float. The height of matching box.
+
+ MatchBoxAngle
+
+ Float. The angle that indicates the rotation of the
+ longer side of the matching box to the horizon. The clockwise
+ rotation denotes a positive angle and the counterclockwise
+ rotation indicates a negative angle.
+
+ Match Point
+
+ MatchPointX
+
+ Float. The X-coordinate of each match point.
+
+ MatchPointY
+
+ Float. The Y-coordinate of each match point.
+
+ MatchScale
+
+ Float. The proportional scaling factor of the matching object
+ relative to the created template.
+
+ MatchScaleX
+
+ Float. The scale of match object on the X-axis.
+
+ MatchScaleY
+
+ Float. The scale of match object on the Y-axis.
+
+ MatchScore
+
+ Float. The score (Similarity or NCC) of matched image, 1
+ indicating a perfect match.
+
+ ROI
+
+ The region of interest used for detection.
+
+ DetectCenterPoint
+
+ DetectCenterX
+
+ Float. The X-coordinate of the center
+ point of ROI.
+
+ DetectCenterY
+
+ Float. The Y-coordinate of the center
+ point of ROI.
+
+ DetectWidth
+
+ Float. The width of ROI.
+
+ DetectHeight
+
+ Float. The height of ROI.
+
+ DetectAngle
+
+ Float. The rotation angle of the ROI is relative to
+ the horizontal direction. A positive angle denotes a clockwise
+ rotation, while a negative angle signifies a counterclockwise
+ rotation.
+
+ If ROI is in a positive position, the angle is 0
+ degree.
+
+ MatchOutline
+
+ Pointset. The information of polygon points, with the output
+ result unseen.
+
+ MatchOutlineNum
+
+ Int. The number of polygon points in the image thoese are
+ similar to or the same as the ones in the model.
+
+ BlindPolygon
+
+ The blind region excluded from detection.
+
+ PolygonPointNum
+
+ Int. The number of apexes of blind polygon.
+
+ PolygonPoints
+
+ Point. The data set of all vertices of the blind
+ polygon.
+
+ PolygonPointsX
+
+ Float. The X-coordinate of each apex of
+ the blind polygon.
+
+ PolygonPointsY
+
+ Float. The Y-coordinate of each apex of
+ the blind polygon.
+
+ BlindPolygon
+
+ String. The string information in blocked areas, which can be
+ reused in subsequent modules.
+
+ Output Mask
+
+ OutMask
+
+ Image. The mask image in binary image format is
+ calculated based on ROI and the blind polygon.
+
+ OutMaskWidth
+
+ Int. The width of output mask image.
+
+ OutMaskHeight
+
+ Int. The height of output mask image.
+
+ OutMaskPixelFormat
+
+ Int. The pixel format of output mask image.
+ Normally, in MONO8 (17301505).
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- Module Principe
+
+- How To Use
+
+- Feature Template
+
+- Parameter Configuration
+
+- Module Result

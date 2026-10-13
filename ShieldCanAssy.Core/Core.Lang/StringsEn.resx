@@ -1,0 +1,3524 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Alarm.ActiveHeader" xml:space="preserve">
+    <value>ACTIVE ALARMS</value>
+  </data>
+  <data name="Alarm.CausePrefix" xml:space="preserve">
+    <value>Cause: </value>
+  </data>
+  <data name="Alarm.ColClearedAt" xml:space="preserve">
+    <value>Cleared</value>
+  </data>
+  <data name="Alarm.ColCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Alarm.ColConditionActive" xml:space="preserve">
+    <value>Cause present</value>
+  </data>
+  <data name="Alarm.ColDetail" xml:space="preserve">
+    <value>Detail</value>
+  </data>
+  <data name="Alarm.ColLevel" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="Alarm.ColMessage" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Alarm.ColRaisedAt" xml:space="preserve">
+    <value>Raised</value>
+  </data>
+  <data name="Alarm.ColRoot" xml:space="preserve">
+    <value>Root</value>
+  </data>
+  <data name="Alarm.ColSource" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Alarm.ColTime" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Alarm.HistoryHeader" xml:space="preserve">
+    <value>ALARM HISTORY (LAST 200)</value>
+  </data>
+  <data name="Alarm.Mute" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="Alarm.RemedyPrefix" xml:space="preserve">
+    <value>Remedy: </value>
+  </data>
+  <data name="Auto.AlarmNotCleared" xml:space="preserve">
+    <value>ALM not cleared</value>
+  </data>
+  <data name="Auto.AlignBottomNozzle" xml:space="preserve">
+    <value>AlignBottom nozzle #{0}: {1}</value>
+  </data>
+  <data name="Auto.AlignBottomNozzleOnly" xml:space="preserve">
+    <value>AlignBottom nozzle #{0}</value>
+  </data>
+  <data name="Auto.AlignMoveFail" xml:space="preserve">
+    <value>can't reach nozzle #{0} insp pos.</value>
+  </data>
+  <data name="Auto.AMovedSinceCapture" xml:space="preserve">
+    <value>axis {0} rotated after capture ({1:0.00}° → {2:0.00}°)</value>
+  </data>
+  <data name="Auto.AMovedTwice" xml:space="preserve">
+    <value>{0} twice in a row — check A axis of nozzle #{1}</value>
+  </data>
+  <data name="Auto.AssyRowAxisY2" xml:space="preserve">
+    <value>assy tray rows must use Y2 (LocateTop adds Y2 to PoseY)</value>
+  </data>
+  <data name="Auto.AssyTrayNotSeen" xml:space="preserve">
+    <value>No assy tray at standby — load, press Start 2 again</value>
+  </data>
+  <data name="Auto.AssyTrayNotTaught" xml:space="preserve">
+    <value>assy tray not taught</value>
+  </data>
+  <data name="Auto.CalibExpired" xml:space="preserve">
+    <value>oldest calib (top-down, rot. test, hand-eye): {0} days old</value>
+  </data>
+  <data name="Auto.CalibNotReady" xml:space="preserve">
+    <value>calib not ready — {0}</value>
+  </data>
+  <data name="Auto.Cancelled" xml:space="preserve">
+    <value>cancelled</value>
+  </data>
+  <data name="Auto.CancelledWaitingTray" xml:space="preserve">
+    <value>cancelled while waiting tray</value>
+  </data>
+  <data name="Auto.CannotReturnHalt" xml:space="preserve">
+    <value>nozzle #{0} insp NG, can't return to input tray ({1}) — remove product from nozzle, then RESET</value>
+  </data>
+  <data name="Auto.CannotReturnReason" xml:space="preserve">
+    <value>nozzle #{0} insp NG, can't return to input tray ({1})</value>
+  </data>
+  <data name="Auto.CheckNozzleNote" xml:space="preserve">
+    <value>check nozzle: product still on → run to re-insp + place; damaged → remove it</value>
+  </data>
+  <data name="Auto.ConsecutiveNgDetail" xml:space="preserve">
+    <value>{0} NG in a row (limit {1})</value>
+  </data>
+  <data name="Auto.ConsecutiveNgHalt" xml:space="preserve">
+    <value>{0} NG in a row — stopped, check</value>
+  </data>
+  <data name="Auto.GuardSkipStreak" xml:space="preserve">
+    <value>{0} cells in a row skipped, place pt off taught grid ({1}) — check hand-eye, grid, LocateTop</value>
+  </data>
+  <data name="Auto.HaltAtStep" xml:space="preserve">
+    <value>Cycle halted at {0}: {1}</value>
+  </data>
+  <data name="Auto.HaltNozzleIncident" xml:space="preserve">
+    <value>nozzle product fault ({0}) — check nozzle, then run again</value>
+  </data>
+  <data name="Auto.InputTrayInFail" xml:space="preserve">
+    <value>input tray load-in failed</value>
+  </data>
+  <data name="Auto.InputTrayNotIn" xml:space="preserve">
+    <value>input tray not in</value>
+  </data>
+  <data name="Auto.InputTrayNotSeen" xml:space="preserve">
+    <value>No input tray at standby — load, press Start 1 again</value>
+  </data>
+  <data name="Auto.InputTrayNotTaught" xml:space="preserve">
+    <value>input tray not taught</value>
+  </data>
+  <data name="Auto.InvalidStep" xml:space="preserve">
+    <value>invalid step: {0}</value>
+  </data>
+  <data name="Auto.KeyNotAuto" xml:space="preserve">
+    <value>key not in AUTO</value>
+  </data>
+  <data name="Auto.NoAssyTray" xml:space="preserve">
+    <value>no assy tray</value>
+  </data>
+  <data name="Auto.NoInputTray" xml:space="preserve">
+    <value>no input tray</value>
+  </data>
+  <data name="Auto.NoModel" xml:space="preserve">
+    <value>no model</value>
+  </data>
+  <data name="Auto.NoModelLoaded" xml:space="preserve">
+    <value>No model</value>
+  </data>
+  <data name="Auto.NotHomed" xml:space="preserve">
+    <value>not homed</value>
+  </data>
+  <data name="Auto.NozzleCellWhy" xml:space="preserve">
+    <value>nozzle #{0} cell {1}: {2}</value>
+  </data>
+  <data name="Auto.NozzleWhy" xml:space="preserve">
+    <value>nozzle #{0}: {1}</value>
+  </data>
+  <data name="Auto.PausedAtStep" xml:space="preserve">
+    <value>Stopped at step {0} — START to resume</value>
+  </data>
+  <data name="Auto.PickMoveFail" xml:space="preserve">
+    <value>can't reach pick cell ({0},{1})</value>
+  </data>
+  <data name="Auto.PickRetry" xml:space="preserve">
+    <value>nozzle #{0}, cell ({1},{2}), try {3}/{4}</value>
+  </data>
+  <data name="Auto.PlaceMoveFail" xml:space="preserve">
+    <value>can't reach nozzle #{0} place pt</value>
+  </data>
+  <data name="Auto.PlaceStoppedAfterRelease" xml:space="preserve">
+    <value>nozzle #{0} place stopped after vac release</value>
+  </data>
+  <data name="Auto.RestartRescanNote" xml:space="preserve">
+    <value>restart: rescan assy tray, re-insp product before place</value>
+  </data>
+  <data name="Auto.ReturnMoveFail" xml:space="preserve">
+    <value>can't return product to source cell</value>
+  </data>
+  <data name="Auto.ReturnReleaseFailHalt" xml:space="preserve">
+    <value>nozzle #{0} can't release product at source cell — check nozzle tip, RESET, run again</value>
+  </data>
+  <data name="Auto.ReturnReleaseFailReason" xml:space="preserve">
+    <value>nozzle #{0} can't release product at source cell</value>
+  </data>
+  <data name="Auto.ReturnZDownFail" xml:space="preserve">
+    <value>Z down for return failed</value>
+  </data>
+  <data name="Auto.ReturnZUpFail" xml:space="preserve">
+    <value>Z up after return failed</value>
+  </data>
+  <data name="Auto.Running" xml:space="preserve">
+    <value>Auto running</value>
+  </data>
+  <data name="Auto.ScanLocateTop" xml:space="preserve">
+    <value>LocateTop (pre-scan) cell {0}: {1}</value>
+  </data>
+  <data name="Auto.ScanMoveFail" xml:space="preserve">
+    <value>pre-scan: can't reach insp pos. of cell ({0},{1})</value>
+  </data>
+  <data name="Auto.SolutionNotFound" xml:space="preserve">
+    <value>solution: not found</value>
+  </data>
+  <data name="Auto.SolutionNotLoaded" xml:space="preserve">
+    <value>solution not loaded</value>
+  </data>
+  <data name="Auto.SourceUnknown" xml:space="preserve">
+    <value>source cell unknown</value>
+  </data>
+  <data name="Auto.StillHoldingAfterReturn" xml:space="preserve">
+    <value>nozzle #{0} still holds product after return</value>
+  </data>
+  <data name="Auto.StoppedAtStep" xml:space="preserve">
+    <value>Cycle stopped at {0}: {1}</value>
+  </data>
+  <data name="Auto.StopWhileWaitingTray" xml:space="preserve">
+    <value>STOP pressed while waiting tray</value>
+  </data>
+  <data name="Auto.TopAnchorNotTaught" xml:space="preserve">
+    <value>assy tray Top CAM anchor not taught (Teaching)</value>
+  </data>
+  <data name="Auto.TrayAssy" xml:space="preserve">
+    <value>assy tray</value>
+  </data>
+  <data name="Auto.TrayBoth" xml:space="preserve">
+    <value>both trays</value>
+  </data>
+  <data name="Auto.TrayInput" xml:space="preserve">
+    <value>input tray</value>
+  </data>
+  <data name="Auto.TrayToStandbyFail" xml:space="preserve">
+    <value>can't move {0} to standby</value>
+  </data>
+  <data name="Auto.UnexpectedError" xml:space="preserve">
+    <value>unexpected err: {0}</value>
+  </data>
+  <data name="Auto.VisionNotConnected" xml:space="preserve">
+    <value>vision not connected</value>
+  </data>
+  <data name="Auto.VmHaltHolding" xml:space="preserve">
+    <value>product still on nozzle; RESET + START restarts from S00 (rescan, re-insp)</value>
+  </data>
+  <data name="Auto.VmHaltRestart" xml:space="preserve">
+    <value>RESET + START restarts from S00</value>
+  </data>
+  <data name="Auto.WaitAssy" xml:space="preserve">
+    <value>Wait assy tray — load, then Start 2</value>
+  </data>
+  <data name="Auto.WaitAssyFull" xml:space="preserve">
+    <value>Assy tray full — replace, then Start 2</value>
+  </data>
+  <data name="Auto.WaitInput" xml:space="preserve">
+    <value>Wait input tray — load, then Start 1</value>
+  </data>
+  <data name="Auto.WaitInputEmpty" xml:space="preserve">
+    <value>Input tray empty — replace, then Start 1</value>
+  </data>
+  <data name="Auto.ZAlignHeightFail" xml:space="preserve">
+    <value>{0} can't reach Bottom CAM insp height</value>
+  </data>
+  <data name="Auto.ZDownPickFail" xml:space="preserve">
+    <value>{0} down to pick height failed</value>
+  </data>
+  <data name="Auto.ZDownPlaceFail" xml:space="preserve">
+    <value>{0} down to place height failed</value>
+  </data>
+  <data name="Auto.ZSafeFail" xml:space="preserve">
+    <value>Z up to Z_SAFE failed</value>
+  </data>
+  <data name="Auto.ZUpAfterPlaceFail" xml:space="preserve">
+    <value>{0} up after place failed</value>
+  </data>
+  <data name="Auto.ZUpFail" xml:space="preserve">
+    <value>{0} up failed</value>
+  </data>
+  <data name="Axis.HomeDriverAlarm" xml:space="preserve">
+    <value>driver ALM during Home, code 0x{0}</value>
+  </data>
+  <data name="Axis.HomeDriverError" xml:space="preserve">
+    <value>driver Err during Home, status {0}</value>
+  </data>
+  <data name="Axis.HomeSendFail" xml:space="preserve">
+    <value>Home cmd send failed: {0}</value>
+  </data>
+  <data name="Axis.HomeTimeoutOrg" xml:space="preserve">
+    <value>&gt; {0} ms, no ORG_CMP</value>
+  </data>
+  <data name="Axis.HwLimitNeg" xml:space="preserve">
+    <value>limit −</value>
+  </data>
+  <data name="Axis.HwLimitPos" xml:space="preserve">
+    <value>limit +</value>
+  </data>
+  <data name="Axis.MoveLost" xml:space="preserve">
+    <value>driver ignored move cmd after {0} resends; Tgt {1:0.000}{2}, act {3:0.000}{2}</value>
+  </data>
+  <data name="Axis.MoveTimeout" xml:space="preserve">
+    <value>&gt; {0} ms; Tgt {1:0.000}{2}, act {3:0.000}{2}</value>
+  </data>
+  <data name="Axis.NoStatusBits" xml:space="preserve">
+    <value>(no bits)</value>
+  </data>
+  <data name="Axis.SendFail" xml:space="preserve">
+    <value>cmd send failed: {0}</value>
+  </data>
+  <data name="Axis.SimRemain" xml:space="preserve">
+    <value>{0:0.000}{1} short of Tgt</value>
+  </data>
+  <data name="Axis.SoftLimitOut" xml:space="preserve">
+    <value>Tgt {0:0.000}{1} outside [{2:0.000}, {3:0.000}]</value>
+  </data>
+  <data name="Axis.SoftLimitOutSim" xml:space="preserve">
+    <value>Tgt {0:0.000}{1} outside [{2:0.###}, {3:0.###}]</value>
+  </data>
+  <data name="Axis.TimeoutMs" xml:space="preserve">
+    <value>&gt; {0} ms</value>
+  </data>
+  <data name="Calib.AlignNoCan" xml:space="preserve">
+    <value>AlignBottom: no can on nozzle #{0}</value>
+  </data>
+  <data name="Calib.AlignNoProduct" xml:space="preserve">
+    <value>AlignBottom: no product on nozzle #{0}</value>
+  </data>
+  <data name="Calib.AlignVerifyFail" xml:space="preserve">
+    <value>Rot. test, nozzle #{0}: {1}
+{2}</value>
+  </data>
+  <data name="Calib.AlignVerifyNumbers" xml:space="preserve">
+    <value>{0} turned {1:+0.00;-0.00}° (encoder), product angle Δ {2:+0.00;-0.00}° — diff {3:0.00}° (limit {4:0.00}°); residual {5:0.000} mm (limit {6:0.000}); ecc. {7:0.000} mm (min {8:0.000}); shot at X {9:0.000}, {10} {11:0.000}</value>
+  </data>
+  <data name="Calib.AngleNotFound" xml:space="preserve">
+    <value>angle {0:0.0}°: product not found — widen High Precision Match Angle Range?</value>
+  </data>
+  <data name="Calib.ARotatedSinceCapture" xml:space="preserve">
+    <value>axis {0} rotated since capture ({1:0.00}° → {2:0.00}°) — angle cmd invalid, press "Trigger AlignBottom" again</value>
+  </data>
+  <data name="Calib.AssyAnchorNotTaught" xml:space="preserve">
+    <value>Assy tray Top CAM anchor not taught (Teaching)</value>
+  </data>
+  <data name="Calib.AtCell" xml:space="preserve">
+    <value>at cell ({0},{1})</value>
+  </data>
+  <data name="Calib.AxisBackToStartAngleFailed" xml:space="preserve">
+    <value>axis {0} back to start angle failed</value>
+  </data>
+  <data name="Calib.AxisBackToStartFailed" xml:space="preserve">
+    <value>axis {0} back to start failed</value>
+  </data>
+  <data name="Calib.AxisMoveFailed" xml:space="preserve">
+    <value>axis {0} move failed</value>
+  </data>
+  <data name="Calib.AxisToZeroFailed" xml:space="preserve">
+    <value>pts loaded, but axis {0} to 0° failed</value>
+  </data>
+  <data name="Calib.CalibNotReady" xml:space="preserve">
+    <value>nozzle #{0} calib not ready — {1}</value>
+  </data>
+  <data name="Calib.Cancelled" xml:space="preserve">
+    <value>cancelled</value>
+  </data>
+  <data name="Calib.CannotReadAxes" xml:space="preserve">
+    <value>can't read X/Y2/{0} pos.</value>
+  </data>
+  <data name="Calib.CannotReadX" xml:space="preserve">
+    <value>can't read X pos.</value>
+  </data>
+  <data name="Calib.CellOutsideAssyGrid" xml:space="preserve">
+    <value>cell outside Assy tray grid {0}×{1}</value>
+  </data>
+  <data name="Calib.CellOutsideInputGrid" xml:space="preserve">
+    <value>cell outside Input tray grid {0}×{1}</value>
+  </data>
+  <data name="Calib.ClearPointsFailed" xml:space="preserve">
+    <value>clear old pts in calib module failed — {0}</value>
+  </data>
+  <data name="Calib.DryRunAngles" xml:space="preserve">
+    <value>tgt angle {0:0.00}° = angle ref {2:0.00}° − part {1:0.00}°; product on nozzle {3:0.00}°, {4} at capture {5:0.00}°</value>
+  </data>
+  <data name="Calib.EccTooLarge" xml:space="preserve">
+    <value>Can off-center {0:0.000} mm &gt; limit {1:0.000} mm — re-pick squarely, measure again.</value>
+  </data>
+  <data name="Calib.GoToAlignPosFailed" xml:space="preserve">
+    <value>to nozzle #{0} insp pos. failed</value>
+  </data>
+  <data name="Calib.GoToCellCamFailed" xml:space="preserve">
+    <value>to cell insp pos. failed</value>
+  </data>
+  <data name="Calib.GoToCellCamFailedAt" xml:space="preserve">
+    <value>to cell ({0},{1}) insp pos. failed</value>
+  </data>
+  <data name="Calib.GoToJigPickFailed" xml:space="preserve">
+    <value>to jig pick pos. failed</value>
+  </data>
+  <data name="Calib.GoToPickCellFailed" xml:space="preserve">
+    <value>to pick cell failed</value>
+  </data>
+  <data name="Calib.GoToTargetCamFailed" xml:space="preserve">
+    <value>to target insp pos. failed</value>
+  </data>
+  <data name="Calib.GuardOutsideSoftLimit" xml:space="preserve">
+    <value>{0} — cmd outside soft limit, not stored</value>
+  </data>
+  <data name="Calib.HandEyeFail" xml:space="preserve">
+    <value>Hand-eye: {0}</value>
+  </data>
+  <data name="Calib.HandEyeNotRecorded" xml:space="preserve">
+    <value>no hand-eye for nozzle #{0} — run hand-eye step (1 → 5) first</value>
+  </data>
+  <data name="Calib.HeAtPick" xml:space="preserve">
+    <value>1. Nozzle #{0} at jig pick pos.: X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°</value>
+  </data>
+  <data name="Calib.HeAtTarget" xml:space="preserve">
+    <value>9. Nozzle #{0} at target: X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°; {6} at slow-down pt {7:0.000} (no contact).</value>
+  </data>
+  <data name="Calib.HeAtTargetHint" xml:space="preserve">
+    <value> Check can sits right above part, then press "Return can to jig".</value>
+  </data>
+  <data name="Calib.HeLocated" xml:space="preserve">
+    <value>3. LocateTop, {0} img at taught insp pos.: target ({1:0.000}, {2:0.000}), {3:0.00}°</value>
+  </data>
+  <data name="Calib.HeLocatedHere" xml:space="preserve">
+    <value>6. LocateTop {0} (X {1:0.000}, {2} {3:0.000}): target ({4:0.000}, {5:0.000}), {6:0.00}°</value>
+  </data>
+  <data name="Calib.HeNotLocated" xml:space="preserve">
+    <value>target not inspected — press "3 · Inspect target" first</value>
+  </data>
+  <data name="Calib.HeNotPicked" xml:space="preserve">
+    <value>nozzle #{0} has no can from jig — press "2 · Pick sample can" first</value>
+  </data>
+  <data name="Calib.HeNotStarted" xml:space="preserve">
+    <value>not started — press "1 · To jig pick pos." first</value>
+  </data>
+  <data name="Calib.HeOtherNozzle" xml:space="preserve">
+    <value>hand-eye step of nozzle #{0} in progress — reselect #{0}, or press 1 to restart for #{1}</value>
+  </data>
+  <data name="Calib.HePicked" xml:space="preserve">
+    <value>2. Nozzle #{0} picked can on jig: encoder X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°; Z {6:0.000}</value>
+  </data>
+  <data name="Calib.HePickMissed" xml:space="preserve">
+    <value>pick missed — no vac. Check can on jig; jig must hold it at Assy tray place height</value>
+  </data>
+  <data name="Calib.HeTarget" xml:space="preserve">
+    <value>8. Tgt from button 6 pose: X {0:0.000}, {1} {2:0.000}, {3} {4:0.00}°; comp. angle {5:+0.00;-0.00}°.</value>
+  </data>
+  <data name="Calib.HeTargetHint" xml:space="preserve">
+    <value> Rerun at other Jog pos.: scatter = top-down calib; UNIFORM ofs not visible here — place real product, look down.</value>
+  </data>
+  <data name="Calib.InPlace" xml:space="preserve">
+    <value>in place</value>
+  </data>
+  <data name="Calib.LocateNoMark" xml:space="preserve">
+    <value>LocateTop: ref mark not found</value>
+  </data>
+  <data name="Calib.LocateNoTargetInCell" xml:space="preserve">
+    <value>LocateTop: no target part in cell</value>
+  </data>
+  <data name="Calib.ModelNotLoadedNote" xml:space="preserve">
+    <value>model not loaded from disk (sim) — record in memory only</value>
+  </data>
+  <data name="Calib.MoveToTargetFailed" xml:space="preserve">
+    <value>X/{0}/{1} to target failed</value>
+  </data>
+  <data name="Calib.MoveXToAlignPosFailed" xml:space="preserve">
+    <value>X to insp pos. failed</value>
+  </data>
+  <data name="Calib.MoveXToFailed" xml:space="preserve">
+    <value>X to {0:0.000} failed</value>
+  </data>
+  <data name="Calib.MoveXYToCmdFailed" xml:space="preserve">
+    <value>X/{0} to cmd failed</value>
+  </data>
+  <data name="Calib.NeedCommand" xml:space="preserve">
+    <value>no cmd for nozzle #{0} — press "Trigger AlignBottom" first</value>
+  </data>
+  <data name="Calib.NeedLocateHere" xml:space="preserve">
+    <value>nozzle #{0}: part not inspected — press "6 · Inspect part" first</value>
+  </data>
+  <data name="Calib.NeedTarget" xml:space="preserve">
+    <value>no target from latest insp — press "8 · Trigger AlignBottom → target" first</value>
+  </data>
+  <data name="Calib.NeedThreeAngles" xml:space="preserve">
+    <value>need ≥ 3 rotation angles (equal steps)</value>
+  </data>
+  <data name="Calib.NeedTopPose" xml:space="preserve">
+    <value>no tgt cell pose — press "Trigger LocateTop" first</value>
+  </data>
+  <data name="Calib.NoAxis" xml:space="preserve">
+    <value>no axis {0}</value>
+  </data>
+  <data name="Calib.NoModel" xml:space="preserve">
+    <value>no model loaded</value>
+  </data>
+  <data name="Calib.NoObjectSeen" xml:space="preserve">
+    <value>object not found</value>
+  </data>
+  <data name="Calib.NoProductSeen" xml:space="preserve">
+    <value>product not found</value>
+  </data>
+  <data name="Calib.NoTeachTarget" xml:space="preserve">
+    <value> — no hand-eye teach pt for #{0} (record pre-30/09): rerun hand-eye step for ΔX/ΔY/Δθ</value>
+  </data>
+  <data name="Calib.NoZSlowTaught" xml:space="preserve">
+    <value>{0} slow-down pt for Assy tray not taught (Teaching) — no hover height</value>
+  </data>
+  <data name="Calib.NozzleBusyPick" xml:space="preserve">
+    <value>nozzle #{0} holds a product — release before picking</value>
+  </data>
+  <data name="Calib.NozzleBusyRelease" xml:space="preserve">
+    <value>nozzle #{0} holds a product — release before measuring</value>
+  </data>
+  <data name="Calib.NozzleEmptyPickFirst" xml:space="preserve">
+    <value>nozzle #{0} holds no can — pick one first</value>
+  </data>
+  <data name="Calib.NozzleHoldsNothing" xml:space="preserve">
+    <value>nozzle #{0} empty</value>
+  </data>
+  <data name="Calib.NozzleLostCan" xml:space="preserve">
+    <value>nozzle #{0} lost the can — restart from button 1</value>
+  </data>
+  <data name="Calib.PickMissed" xml:space="preserve">
+    <value>pick missed — no vac (retry or adjust pick height)</value>
+  </data>
+  <data name="Calib.ProgressAngle" xml:space="preserve">
+    <value>Angle {0}/{1}: {2:0.0}°</value>
+  </data>
+  <data name="Calib.ProgressShift" xml:space="preserve">
+    <value>Translation {0}/{1}: X = {2:0.000}</value>
+  </data>
+  <data name="Calib.Returned" xml:space="preserve">
+    <value>Can returned to jig: nozzle #{0}, X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°, Z {6:0.000}</value>
+  </data>
+  <data name="Calib.RotateAxisFailed" xml:space="preserve">
+    <value>axis {0} rotate failed</value>
+  </data>
+  <data name="Calib.RotateAxisToCmdFailed" xml:space="preserve">
+    <value>axis {0} rotate to cmd failed</value>
+  </data>
+  <data name="Calib.RotateToFailed" xml:space="preserve">
+    <value>rotate to {0:0.0}° failed</value>
+  </data>
+  <data name="Calib.RotateToFirstAngleFailed" xml:space="preserve">
+    <value>axis {0} to 1st angle failed</value>
+  </data>
+  <data name="Calib.RotateToPickAngleFailed" xml:space="preserve">
+    <value>{0} back to pick angle ({1:0.00}°) failed</value>
+  </data>
+  <data name="Calib.SavedToModel" xml:space="preserve">
+    <value>calib record saved to model {0}</value>
+  </data>
+  <data name="Calib.SaveModelFailed" xml:space="preserve">
+    <value>MODEL SAVE FAILED — see alarm; Teaching &gt; Save before closing App</value>
+  </data>
+  <data name="Calib.ShiftPointNotFound" xml:space="preserve">
+    <value>translation pt X = {0:0.000}: product not found</value>
+  </data>
+  <data name="Calib.ShotPrefix" xml:space="preserve">
+    <value>{0}, img {1}/{2}: </value>
+  </data>
+  <data name="Calib.StepAligned" xml:space="preserve">
+    <value>5. AlignBottom nozzle #{0}: product ({1:0.000}, {2:0.000}) {3:0.00}° → cmd X {4:0.000}, {5} {6:0.000}, A {7:0.00}° (comp. {8:0.00}°, ecc. {9:0.000} mm, tgt {10:0.000}/{11:0.000})</value>
+  </data>
+  <data name="Calib.StepAtAlign" xml:space="preserve">
+    <value>{4}. Nozzle #{0} at bottom CAM pos.: X {1:0.000}, {2} {3:0.000}</value>
+  </data>
+  <data name="Calib.StepAtCommand" xml:space="preserve">
+    <value>6. Nozzle #{0} at place pt, Z at Z safe: X {1:0.000}, {2} {3:0.000}, {4} {5:0.00}°</value>
+  </data>
+  <data name="Calib.StepCamAtCell" xml:space="preserve">
+    <value>1. Top CAM to cell ({0},{1}): X {2:0.000}, {3} {4:0.000}</value>
+  </data>
+  <data name="Calib.StepLocated" xml:space="preserve">
+    <value>2. LocateTop cell ({0},{1}): TopX_mm {2:0.000}, TopY_mm {3:0.000}, TopA_deg {4:0.00} — stored as tgt cell</value>
+  </data>
+  <data name="Calib.StepPicked" xml:space="preserve">
+    <value>3. Nozzle #{0} picked Input tray cell ({1},{2}): X {3:0.000}, {4} {5:0.000}, Z {6:0.000}</value>
+  </data>
+  <data name="Calib.StepTooSmall" xml:space="preserve">
+    <value>test travel too small — below meas. noise</value>
+  </data>
+  <data name="Calib.StillHolding" xml:space="preserve">
+    <value>can still detected after blow — check nozzle tip, press again</value>
+  </data>
+  <data name="Calib.TestAngleTooSmall" xml:space="preserve">
+    <value>test angle too small — below meas. noise</value>
+  </data>
+  <data name="Calib.TopDownVerifyFail" xml:space="preserve">
+    <value>Top-down check: {0}</value>
+  </data>
+  <data name="Calib.UnexpectedError" xml:space="preserve">
+    <value>unexpected err: {0}</value>
+  </data>
+  <data name="Calib.VsPick" xml:space="preserve">
+    <value> Ofs from pick pt: X {0:+0.000;-0.000}, {1} {2:+0.000;-0.000} mm.</value>
+  </data>
+  <data name="Calib.VsStep3" xml:space="preserve">
+    <value> — vs button 3: X {0:+0.000;-0.000}, Y {1:+0.000;-0.000} mm, angle {2:+0.00;-0.00}°</value>
+  </data>
+  <data name="Calib.VsTeachTarget" xml:space="preserve">
+    <value> — vs hand-eye teach pt #{0}: ΔX {1:+0.000;-0.000}, ΔY {2:+0.000;-0.000} mm, Δθ {3:+0.00;-0.00}°</value>
+  </data>
+  <data name="Calib.XNotAtAlignPos4" xml:space="preserve">
+    <value>X at {0:0.000}, not nozzle #{1} bottom CAM pos. ({2:0.000}) — press "4 · To bottom CAM", then don't jog</value>
+  </data>
+  <data name="Calib.XNotAtAlignPos7" xml:space="preserve">
+    <value>X at {0:0.000}, not nozzle #{1} bottom CAM pos. ({2:0.000}) — press "7 · To bottom CAM" first</value>
+  </data>
+  <data name="Calib.ZAtSafe" xml:space="preserve">
+    <value>{0} at Z safe: {1:0.000}</value>
+  </data>
+  <data name="Calib.ZCaptureFail" xml:space="preserve">
+    <value>{0} to bottom CAM insp height failed</value>
+  </data>
+  <data name="Calib.ZDownAssyPlaceFailed" xml:space="preserve">
+    <value>{0} down to Assy tray place height failed</value>
+  </data>
+  <data name="Calib.ZDownPickFailed" xml:space="preserve">
+    <value>{0} down to pick height failed</value>
+  </data>
+  <data name="Calib.ZDownPlaceFailed" xml:space="preserve">
+    <value>{0} down to place height failed</value>
+  </data>
+  <data name="Calib.ZSafeFailed" xml:space="preserve">
+    <value>Z up to Z safe failed</value>
+  </data>
+  <data name="Calib.ZSafeNotReached" xml:space="preserve">
+    <value>{0} to Z safe failed</value>
+  </data>
+  <data name="Calib.ZToSlowFailed" xml:space="preserve">
+    <value>{0} down to slow-down pt failed</value>
+  </data>
+  <data name="Calib.ZUpAfterReturnFailed" xml:space="preserve">
+    <value>{0} up after return failed</value>
+  </data>
+  <data name="Calib.ZUpFailed" xml:space="preserve">
+    <value>{0} up failed</value>
+  </data>
+  <data name="Comm.FasReturned" xml:space="preserve">
+    <value>{0} returned {1}</value>
+  </data>
+  <data name="Common.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Data.CopyModelFailed" xml:space="preserve">
+    <value>Model copy failed: {0}</value>
+  </data>
+  <data name="Data.DeleteModelFailed" xml:space="preserve">
+    <value>Model delete failed: {0}</value>
+  </data>
+  <data name="Data.JigCamNotTaught" xml:space="preserve">
+    <value>jig target insp pos. not taught (Teaching &gt; Jig)</value>
+  </data>
+  <data name="Data.JigPickNotTaught" xml:space="preserve">
+    <value>nozzle #{0} jig pick pos. not taught (Teaching &gt; Jig)</value>
+  </data>
+  <data name="Data.ModelNotFound" xml:space="preserve">
+    <value>Not found: {0}</value>
+  </data>
+  <data name="Data.SaveSystemFailed" xml:space="preserve">
+    <value>system.json save failed: {0}</value>
+  </data>
+  <data name="Dialog.Confirm" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="Dialog.Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Dialog.Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Dialog.Warn" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Dry.AlignPosFailed" xml:space="preserve">
+    <value>cannot reach insp pos., nozzle #{0}</value>
+  </data>
+  <data name="Dry.NoModel" xml:space="preserve">
+    <value>no model loaded</value>
+  </data>
+  <data name="Dry.NozzleHasProduct" xml:space="preserve">
+    <value>product on nozzle — remove before Dry run</value>
+  </data>
+  <data name="Dry.Paused" xml:space="preserve">
+    <value>Dry run stopped — {0} strokes, {1} tray laps, {2:0} min</value>
+  </data>
+  <data name="Dry.PickCellFailed" xml:space="preserve">
+    <value>cannot reach pick cell, nozzle #{0}</value>
+  </data>
+  <data name="Dry.PlaceCellFailed" xml:space="preserve">
+    <value>cannot reach place cell, nozzle #{0}</value>
+  </data>
+  <data name="Dry.Progress" xml:space="preserve">
+    <value>Dry run — lap {0}, {1} strokes, {2} sweeps, {3:0} min</value>
+  </data>
+  <data name="Dry.ScanCellFailed" xml:space="preserve">
+    <value>cannot reach insp pos. of Assy tray cell ({0},{1})</value>
+  </data>
+  <data name="Dry.Stopped" xml:space="preserve">
+    <value>Dry run halted: {0}</value>
+  </data>
+  <data name="Dry.TraysNotTaught" xml:space="preserve">
+    <value>both trays must be taught</value>
+  </data>
+  <data name="Dry.ZPickDownFailed" xml:space="preserve">
+    <value>{0} cannot lower to pick height</value>
+  </data>
+  <data name="Dry.ZPlaceDownFailed" xml:space="preserve">
+    <value>{0} cannot lower to place height</value>
+  </data>
+  <data name="Dry.ZSafeFailed" xml:space="preserve">
+    <value>cannot raise Z to Z_SAFE</value>
+  </data>
+  <data name="Dry.ZUpFailed" xml:space="preserve">
+    <value>{0} cannot rise</value>
+  </data>
+  <data name="Io.DiAirOk" xml:space="preserve">
+    <value>Air OK (NC)</value>
+  </data>
+  <data name="Io.DiBtnArmA1" xml:space="preserve">
+    <value>Pair A Arm #1 (OR)</value>
+  </data>
+  <data name="Io.DiBtnArmA2" xml:space="preserve">
+    <value>Pair A Arm #2 (OR)</value>
+  </data>
+  <data name="Io.DiBtnBuzzerStop" xml:space="preserve">
+    <value>Buzzer off btn</value>
+  </data>
+  <data name="Io.DiBtnGoB1" xml:space="preserve">
+    <value>B Start 1 (input)</value>
+  </data>
+  <data name="Io.DiBtnGoB2" xml:space="preserve">
+    <value>B Start 2 (assy)</value>
+  </data>
+  <data name="Io.DiBtnStop" xml:space="preserve">
+    <value>STOP btn</value>
+  </data>
+  <data name="Io.DiEmgOk" xml:space="preserve">
+    <value>EMG OK (NC)</value>
+  </data>
+  <data name="Io.DiLightCurtainOk" xml:space="preserve">
+    <value>Curtain OK (NC)</value>
+  </data>
+  <data name="Io.DiTrayAssyPresent" xml:space="preserve">
+    <value>Assy tray present</value>
+  </data>
+  <data name="Io.DiTrayInPresent" xml:space="preserve">
+    <value>Input tray present</value>
+  </data>
+  <data name="Io.DiVacuum1" xml:space="preserve">
+    <value>Vac sensor #1</value>
+  </data>
+  <data name="Io.DiVacuum2" xml:space="preserve">
+    <value>Vac sensor #2</value>
+  </data>
+  <data name="Io.DoBlow1" xml:space="preserve">
+    <value>Blow valve #1</value>
+  </data>
+  <data name="Io.DoBlow2" xml:space="preserve">
+    <value>Blow valve #2</value>
+  </data>
+  <data name="Io.DoBrakeReleaseZ1" xml:space="preserve">
+    <value>Z1 brake off</value>
+  </data>
+  <data name="Io.DoBrakeReleaseZ2" xml:space="preserve">
+    <value>Z2 brake off</value>
+  </data>
+  <data name="Io.DoBuzzer" xml:space="preserve">
+    <value>Buzzer</value>
+  </data>
+  <data name="Io.DoLampCam1" xml:space="preserve">
+    <value>CAM1 lamp</value>
+  </data>
+  <data name="Io.DoLampCam2" xml:space="preserve">
+    <value>CAM2 lamp</value>
+  </data>
+  <data name="Io.DoLampGreen" xml:space="preserve">
+    <value>Green lamp</value>
+  </data>
+  <data name="Io.DoLampRed" xml:space="preserve">
+    <value>Red lamp</value>
+  </data>
+  <data name="Io.DoLampResetBtn" xml:space="preserve">
+    <value>STOP lamp</value>
+  </data>
+  <data name="Io.DoLampStartBtn" xml:space="preserve">
+    <value>START A lamp</value>
+  </data>
+  <data name="Io.DoLampStartBtnB" xml:space="preserve">
+    <value>Start 1 lamp</value>
+  </data>
+  <data name="Io.DoLampStartBtnB2" xml:space="preserve">
+    <value>Start 2 lamp</value>
+  </data>
+  <data name="Io.DoLampYellow" xml:space="preserve">
+    <value>Yellow lamp</value>
+  </data>
+  <data name="Io.DoVacuum1" xml:space="preserve">
+    <value>Vac valve #1</value>
+  </data>
+  <data name="Io.DoVacuum2" xml:space="preserve">
+    <value>Vac valve #2</value>
+  </data>
+  <data name="Io.Spare" xml:space="preserve">
+    <value>(spare)</value>
+  </data>
+  <data name="Main.Aligned" xml:space="preserve">
+    <value>aligned</value>
+  </data>
+  <data name="Main.AssyTray" xml:space="preserve">
+    <value>ASSY TRAY</value>
+  </data>
+  <data name="Main.CamTool1" xml:space="preserve">
+    <value>BOTTOM CAM — #1</value>
+  </data>
+  <data name="Main.CamTool2" xml:space="preserve">
+    <value>BOTTOM CAM — #2</value>
+  </data>
+  <data name="Main.CamTop" xml:space="preserve">
+    <value>TOP CAM — LOCATETOP</value>
+  </data>
+  <data name="Main.CapturedAt" xml:space="preserve">
+    <value>Shot {0}</value>
+  </data>
+  <data name="Main.CtAvgCurrent" xml:space="preserve">
+    <value>Tack Time</value>
+  </data>
+  <data name="Main.CtAvgCurrentTip" xml:space="preserve">
+    <value>Cycle Time ÷ OK pcs.</value>
+  </data>
+  <data name="Main.CtAvgPrevious" xml:space="preserve">
+    <value>Pre-Tack Time</value>
+  </data>
+  <data name="Main.CtAvgPreviousTip" xml:space="preserve">
+    <value>Pre-Cycle Time ÷ OK pcs.</value>
+  </data>
+  <data name="Main.CtTrayCurrent" xml:space="preserve">
+    <value>Cycle Time</value>
+  </data>
+  <data name="Main.CtTrayCurrentTip" xml:space="preserve">
+    <value>Assy tray in progress. Wall-clock incl. waits/STOP. Resets on new tray.</value>
+  </data>
+  <data name="Main.CtTrayPrevious" xml:space="preserve">
+    <value>Pre-Cycle Time</value>
+  </data>
+  <data name="Main.CtTrayPreviousTip" xml:space="preserve">
+    <value>Last finished assy tray, wall-clock.</value>
+  </data>
+  <data name="Main.DryRunBanner" xml:space="preserve">
+    <value>DRY RUN — NO PRODUCT</value>
+  </data>
+  <data name="Main.DryRunIdle" xml:space="preserve">
+    <value>No product, axes only — press Start 1</value>
+  </data>
+  <data name="Main.DryRunProgress" xml:space="preserve">
+    <value>{0} strokes · {1} sweeps · {2} laps · {3:0} min</value>
+  </data>
+  <data name="Main.HideLog" xml:space="preserve">
+    <value>Hide log</value>
+  </data>
+  <data name="Main.InitTip" xml:space="preserve">
+    <value>Dbl-click: Z to safe, all axes to standby, no homing. Use after pause + manual ops. Reload trays with Start 1/2.</value>
+  </data>
+  <data name="Main.InputTray" xml:space="preserve">
+    <value>INPUT TRAY</value>
+  </data>
+  <data name="Main.LastCompensation" xml:space="preserve">
+    <value>Last comp: {0:+0.0;-0.0}°, {1:0.000} mm</value>
+  </data>
+  <data name="Main.LastCompensationTip" xml:space="preserve">
+    <value>Comp of last placed part. Drifting = vision/mech going off.</value>
+  </data>
+  <data name="Main.Log" xml:space="preserve">
+    <value>LOG</value>
+  </data>
+  <data name="Main.Mute" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="Main.NgRate" xml:space="preserve">
+    <value>NG rate</value>
+  </data>
+  <data name="Main.NgStreak" xml:space="preserve">
+    <value>NG streak</value>
+  </data>
+  <data name="Main.NgStreakTip" xml:space="preserve">
+    <value>&gt; 0: early sign of vision/mech drift.</value>
+  </data>
+  <data name="Main.No" xml:space="preserve">
+    <value>no</value>
+  </data>
+  <data name="Main.NoImage" xml:space="preserve">
+    <value>(no image)</value>
+  </data>
+  <data name="Main.NotAligned" xml:space="preserve">
+    <value>not aligned</value>
+  </data>
+  <data name="Main.NotTriggered" xml:space="preserve">
+    <value>Not triggered</value>
+  </data>
+  <data name="Main.NozzleAngle" xml:space="preserve">
+    <value>Angle (AlignBottom): {0:0.0}° · {1}</value>
+  </data>
+  <data name="Main.NozzleMismatch" xml:space="preserve">
+    <value>  ⚠ MISMATCH</value>
+  </data>
+  <data name="Main.Nozzles" xml:space="preserve">
+    <value>NOZZLES</value>
+  </data>
+  <data name="Main.NozzleState" xml:space="preserve">
+    <value>SW: {0} · sensor: {1}{2}</value>
+  </data>
+  <data name="Main.OnlyNozzle" xml:space="preserve">
+    <value>Nozzle #{0} only (change in Setting)</value>
+  </data>
+  <data name="Main.Operation" xml:space="preserve">
+    <value>OPERATION</value>
+  </data>
+  <data name="Main.Origin" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Main.Production" xml:space="preserve">
+    <value>PRODUCTION</value>
+  </data>
+  <data name="Main.ReadoutToggleTip" xml:space="preserve">
+    <value>Click: Ofs/Tgt ↔ Teach + Vision + Common + Cell = Tgt</value>
+  </data>
+  <data name="Main.ReloadAssyTray" xml:space="preserve">
+    <value>Reload assy</value>
+  </data>
+  <data name="Main.ReloadInputTray" xml:space="preserve">
+    <value>Reload input</value>
+  </data>
+  <data name="Main.RenderToolbarTip" xml:space="preserve">
+    <value>Show/hide image toolbar</value>
+  </data>
+  <data name="Main.RunTip" xml:space="preserve">
+    <value>Grey: stopped · blinking: waiting trays · green: running. Click = Armed only. Run with Start 1 / Start 2 (panel B).</value>
+  </data>
+  <data name="Main.ShowLog" xml:space="preserve">
+    <value>Show log</value>
+  </data>
+  <data name="Main.StepPrefix" xml:space="preserve">
+    <value>Step: </value>
+  </data>
+  <data name="Main.Uph" xml:space="preserve">
+    <value>Est. output: {0:0} pcs/h</value>
+  </data>
+  <data name="Main.UphNone" xml:space="preserve">
+    <value>Est. output: —</value>
+  </data>
+  <data name="Main.UphTip" xml:space="preserve">
+    <value>From Pre-Tack Time (Tack Time if none). Estimate only.</value>
+  </data>
+  <data name="Main.WaitTrayBanner" xml:space="preserve">
+    <value>Trays in: Start 1 = input, Start 2 = assy (panel B).</value>
+  </data>
+  <data name="Main.Yes" xml:space="preserve">
+    <value>yes</value>
+  </data>
+  <data name="Manual.AxisAlarmNoServo" xml:space="preserve">
+    <value>{0} in ALM — RST and clear fault before SVO ON</value>
+  </data>
+  <data name="Manual.BlockedPrefix" xml:space="preserve">
+    <value>Motion blocked: </value>
+  </data>
+  <data name="Manual.BrakeRelease" xml:space="preserve">
+    <value>Brake off</value>
+  </data>
+  <data name="Manual.BrakeReleaseAll" xml:space="preserve">
+    <value>Brake off all</value>
+  </data>
+  <data name="Manual.BrakeReleaseAllTip" xml:space="preserve">
+    <value>Z1 + Z2 brake off (normal, not emergency). Needs SVO on, no ALM.</value>
+  </data>
+  <data name="Manual.BrakeReleaseTip" xml:space="preserve">
+    <value>Click: normal brake off (needs SVO on).
+Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; press again to lock.</value>
+  </data>
+  <data name="Manual.CamBtmLampTip" xml:space="preserve">
+    <value>Toggle Bottom CAM lamp (DO 11, 0x0B)</value>
+  </data>
+  <data name="Manual.CamLamp" xml:space="preserve">
+    <value>CAM lamps</value>
+  </data>
+  <data name="Manual.CamTopLampTip" xml:space="preserve">
+    <value>Toggle Top CAM lamp (DO 12, 0x0C)</value>
+  </data>
+  <data name="Manual.ColAxis" xml:space="preserve">
+    <value>Axis</value>
+  </data>
+  <data name="Manual.ColHome" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Manual.ColInching" xml:space="preserve">
+    <value>Inching (step)</value>
+  </data>
+  <data name="Manual.ColJog" xml:space="preserve">
+    <value>Jog (hold)</value>
+  </data>
+  <data name="Manual.ColLimit" xml:space="preserve">
+    <value>Limit</value>
+  </data>
+  <data name="Manual.ColMoveAbs" xml:space="preserve">
+    <value>Move Abs</value>
+  </data>
+  <data name="Manual.ColPosition" xml:space="preserve">
+    <value>Pos.</value>
+  </data>
+  <data name="Manual.ColStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Manual.Diagnostics" xml:space="preserve">
+    <value>HW DIAGNOSTICS</value>
+  </data>
+  <data name="Manual.DiagnosticsNote" xml:space="preserve">
+    <value>Raw device values. Check I/O map vs wiring; verify Fastech status bits: SVO on / hit limit / home, see which bit lights.</value>
+  </data>
+  <data name="Manual.EmergencyBrakeLocked" xml:space="preserve">
+    <value>{0} emergency brake locked again</value>
+  </data>
+  <data name="Manual.EmergencyBrakeReleased" xml:space="preserve">
+    <value>{0} EMERGENCY BRAKE OFF — axis may fall/move freely; press "Brake off" again to lock</value>
+  </data>
+  <data name="Manual.HomeRefused" xml:space="preserve">
+    <value>Cannot home {0}: {1}</value>
+  </data>
+  <data name="Manual.IncMinusTip" xml:space="preserve">
+    <value>Inching: 1 step −</value>
+  </data>
+  <data name="Manual.IncPlusTip" xml:space="preserve">
+    <value>Inching: 1 step +</value>
+  </data>
+  <data name="Manual.Inputs" xml:space="preserve">
+    <value>INPUTS (DI)</value>
+  </data>
+  <data name="Manual.JogMinusTip" xml:space="preserve">
+    <value>Hold: jog −. Release: stop.</value>
+  </data>
+  <data name="Manual.JogPlusTip" xml:space="preserve">
+    <value>Hold: jog +. Release: stop.</value>
+  </data>
+  <data name="Manual.MoveRefused" xml:space="preserve">
+    <value>Cannot move {0}: {1}</value>
+  </data>
+  <data name="Manual.MoveTip" xml:space="preserve">
+    <value>Move Abs to entered pos.</value>
+  </data>
+  <data name="Manual.Origin" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Manual.OriginTip" xml:space="preserve">
+    <value>= Main Home: home whole machine. Refused if cycle running, safety blocking or product on nozzle; reason in top yellow line.</value>
+  </data>
+  <data name="Manual.Outputs" xml:space="preserve">
+    <value>OUTPUTS (DO)</value>
+  </data>
+  <data name="Manual.ResetTip" xml:space="preserve">
+    <value>= Main RESET: clear resolved alarms.</value>
+  </data>
+  <data name="Manual.RstTip" xml:space="preserve">
+    <value>Reset driver ALM (this axis only)</value>
+  </data>
+  <data name="Manual.SectionRotate" xml:space="preserve">
+    <value>Nozzle rot. — A1, A2</value>
+  </data>
+  <data name="Manual.ServoOnAll" xml:space="preserve">
+    <value>SVO ON all</value>
+  </data>
+  <data name="Manual.ServoOnAllTip" xml:space="preserve">
+    <value>SVO on all axes still off. ALM axes skipped — RST first.</value>
+  </data>
+  <data name="Manual.ServoOnSkipped" xml:space="preserve">
+    <value>SVO ON skipped: {0} in ALM — RST each axis first</value>
+  </data>
+  <data name="Manual.SimAir" xml:space="preserve">
+    <value>Air pressure</value>
+  </data>
+  <data name="Manual.SimAlarmTip" xml:space="preserve">
+    <value>Sim driver ALM</value>
+  </data>
+  <data name="Manual.SimArm" xml:space="preserve">
+    <value>Pair A — Arm</value>
+  </data>
+  <data name="Manual.SimArmTip" xml:space="preserve">
+    <value>Sim: press a Pair A button (OR) → Armed</value>
+  </data>
+  <data name="Manual.SimBuzzer" xml:space="preserve">
+    <value>Buzzer off</value>
+  </data>
+  <data name="Manual.SimDisconnect" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="Manual.SimDisconnectTip" xml:space="preserve">
+    <value>Sim lost connection</value>
+  </data>
+  <data name="Manual.SimDriverFaults" xml:space="preserve">
+    <value>Sim driver faults (press again to clear)</value>
+  </data>
+  <data name="Manual.SimLightCurtain" xml:space="preserve">
+    <value>Cut/clear curtain</value>
+  </data>
+  <data name="Manual.SimLightCurtainTip" xml:space="preserve">
+    <value>Curtain cut blocks motion in ALL modes; RESET to run again (alarm 1105)</value>
+  </data>
+  <data name="Manual.SimPanel" xml:space="preserve">
+    <value>SIM PANEL — BUTTONS, SAFETY, DRIVER FAULTS</value>
+  </data>
+  <data name="Manual.SimPanelNote" xml:space="preserve">
+    <value>Replaces real button panel + safety circuit. Test EMG, door open, door-channel mismatch without unplugging.</value>
+  </data>
+  <data name="Manual.SimStart1" xml:space="preserve">
+    <value>Start 1 (input tray)</value>
+  </data>
+  <data name="Manual.SimStart1Tip" xml:space="preserve">
+    <value>Sim Start 1 (panel B): load input tray; runs at once if Armed</value>
+  </data>
+  <data name="Manual.SimStart2" xml:space="preserve">
+    <value>Start 2 (assy tray)</value>
+  </data>
+  <data name="Manual.SimStart2Tip" xml:space="preserve">
+    <value>Sim Start 2 (panel B): load assy tray; runs at once if Armed</value>
+  </data>
+  <data name="Manual.SimStop" xml:space="preserve">
+    <value>Press STOP</value>
+  </data>
+  <data name="Manual.StepSizeTip" xml:space="preserve">
+    <value>Inching step (axis unit)</value>
+  </data>
+  <data name="Manual.StopAll" xml:space="preserve">
+    <value>STOP all</value>
+  </data>
+  <data name="Manual.StopAllTip" xml:space="preserve">
+    <value>= Main STOP: stop axes, cancel Home/Init, pause cycle.</value>
+  </data>
+  <data name="Manual.TargetPosTip" xml:space="preserve">
+    <value>Abs target pos. for Move Abs</value>
+  </data>
+  <data name="Manual.ZSafe" xml:space="preserve">
+    <value>Z at Z_SAFE — needed for X, Y1, Y2 to move</value>
+  </data>
+  <data name="Mc.Armed" xml:space="preserve">
+    <value>Ready — Start 1: Input tray, Start 2: Assy tray</value>
+  </data>
+  <data name="Mc.ArmedDry" xml:space="preserve">
+    <value>Ready — Start 1 to run</value>
+  </data>
+  <data name="Mc.AssyTray" xml:space="preserve">
+    <value>Assy tray</value>
+  </data>
+  <data name="Mc.AssyTrayReloadHolding" xml:space="preserve">
+    <value>Assy tray reloaded — product on nozzle; restart scans new tray, re-insp before place</value>
+  </data>
+  <data name="Mc.AutoRefused" xml:space="preserve">
+    <value>AUTO refused — {0}</value>
+  </data>
+  <data name="Mc.AutoRunning" xml:space="preserve">
+    <value>Auto running</value>
+  </data>
+  <data name="Mc.AxisAlarm" xml:space="preserve">
+    <value>{0} ALM</value>
+  </data>
+  <data name="Mc.AxisBrakeLocked" xml:space="preserve">
+    <value>{0} brake locked — wait for release</value>
+  </data>
+  <data name="Mc.AxisDisconnected" xml:space="preserve">
+    <value>{0} disconnected</value>
+  </data>
+  <data name="Mc.AxisServoOff" xml:space="preserve">
+    <value>{0} SVO off</value>
+  </data>
+  <data name="Mc.BlockAir" xml:space="preserve">
+    <value>low air</value>
+  </data>
+  <data name="Mc.BlockAlarm" xml:space="preserve">
+    <value>alarm not cleared</value>
+  </data>
+  <data name="Mc.BlockAxisAlarm" xml:space="preserve">
+    <value>axis ALM</value>
+  </data>
+  <data name="Mc.BlockAxisLost" xml:space="preserve">
+    <value>axis disconnected</value>
+  </data>
+  <data name="Mc.BlockCurtain" xml:space="preserve">
+    <value>curtain cut</value>
+  </data>
+  <data name="Mc.BlockEmg" xml:space="preserve">
+    <value>EMG active</value>
+  </data>
+  <data name="Mc.BlockIoLost" xml:space="preserve">
+    <value>I/O card lost</value>
+  </data>
+  <data name="Mc.BlockNotInit" xml:space="preserve">
+    <value>not initialized</value>
+  </data>
+  <data name="Mc.BothNozzles" xml:space="preserve">
+    <value>Both nozzles</value>
+  </data>
+  <data name="Mc.BusyDryRunChange" xml:space="preserve">
+    <value>Running — stop before changing Dry run</value>
+  </data>
+  <data name="Mc.BusyNozzleChange" xml:space="preserve">
+    <value>Running — stop before changing nozzles</value>
+  </data>
+  <data name="Mc.Cancelled" xml:space="preserve">
+    <value>cancelled</value>
+  </data>
+  <data name="Mc.CannotHome" xml:space="preserve">
+    <value>Cannot home: {0}</value>
+  </data>
+  <data name="Mc.CannotInit" xml:space="preserve">
+    <value>Cannot Init: {0}</value>
+  </data>
+  <data name="Mc.CannotJogAxis" xml:space="preserve">
+    <value>Cannot jog {0}: {1}</value>
+  </data>
+  <data name="Mc.CannotMoveAxis" xml:space="preserve">
+    <value>Cannot move {0}: {1}</value>
+  </data>
+  <data name="Mc.CannotResume" xml:space="preserve">
+    <value>Cannot resume: {0}</value>
+  </data>
+  <data name="Mc.CannotRun" xml:space="preserve">
+    <value>Cannot run: {0}</value>
+  </data>
+  <data name="Mc.CannotRunButtonInState" xml:space="preserve">
+    <value>Cannot run via {0} in state {1}</value>
+  </data>
+  <data name="Mc.CannotStartInState" xml:space="preserve">
+    <value>Cannot START in state {0}</value>
+  </data>
+  <data name="Mc.ConfirmedContinue" xml:space="preserve">
+    <value>Confirmed — continuing</value>
+  </data>
+  <data name="Mc.CreateVarsBusy" xml:space="preserve">
+    <value>cycle running — stop fully before creating vars</value>
+  </data>
+  <data name="Mc.CurtainHeld" xml:space="preserve">
+    <value>Curtain cut — stopped. Clear area, Start 1/Start 2 to resume</value>
+  </data>
+  <data name="Mc.CurtainPressAgain" xml:space="preserve">
+    <value>Curtain cut — clear area, press {0} again</value>
+  </data>
+  <data name="Mc.CycleBusy" xml:space="preserve">
+    <value>Cycle in progress</value>
+  </data>
+  <data name="Mc.CycleBusyStop" xml:space="preserve">
+    <value>Cycle in progress — STOP to cancel</value>
+  </data>
+  <data name="Mc.CycleCancelled" xml:space="preserve">
+    <value>Cycle cancelled ({0})</value>
+  </data>
+  <data name="Mc.DryRunning" xml:space="preserve">
+    <value>Dry run — no product</value>
+  </data>
+  <data name="Mc.DryRunNozzleHasProduct" xml:space="preserve">
+    <value>Product on nozzle — remove before Dry run</value>
+  </data>
+  <data name="Mc.DryRunOff" xml:space="preserve">
+    <value>Dry run off — real cycle</value>
+  </data>
+  <data name="Mc.DryRunOn" xml:space="preserve">
+    <value>DRY RUN on — no product, axes only. Start 1 (panel B) to run.</value>
+  </data>
+  <data name="Mc.DryRunPressStart1" xml:space="preserve">
+    <value>Dry run: Start 1 to run</value>
+  </data>
+  <data name="Mc.HasErrorReset" xml:space="preserve">
+    <value>Err active — fix cause, press RESET</value>
+  </data>
+  <data name="Mc.Held" xml:space="preserve">
+    <value>Paused — Start 1/Start 2 to resume, MANUAL to abort cycle</value>
+  </data>
+  <data name="Mc.HeldAbandoned" xml:space="preserve">
+    <value>Paused cycle aborted ({0}) — Init to standby before resuming</value>
+  </data>
+  <data name="Mc.HeldReason" xml:space="preserve">
+    <value>paused — Start to resume, MANUAL to abort cycle</value>
+  </data>
+  <data name="Mc.HomingCancelled" xml:space="preserve">
+    <value>Homing cancelled</value>
+  </data>
+  <data name="Mc.HomingDone" xml:space="preserve">
+    <value>Homing done — ready</value>
+  </data>
+  <data name="Mc.HomingStarted" xml:space="preserve">
+    <value>Homing started</value>
+  </data>
+  <data name="Mc.InitDone" xml:space="preserve">
+    <value>Init done — at standby; Start 1/Start 2 to load trays</value>
+  </data>
+  <data name="Mc.InitNotHomed" xml:space="preserve">
+    <value>Cannot Init: not homed — press Home (Origin)</value>
+  </data>
+  <data name="Mc.InitStarted" xml:space="preserve">
+    <value>Init — to standby</value>
+  </data>
+  <data name="Mc.InitWhileHeld" xml:space="preserve">
+    <value>Paused — MANUAL (abort cycle) before Init</value>
+  </data>
+  <data name="Mc.InputTray" xml:space="preserve">
+    <value>Input tray</value>
+  </data>
+  <data name="Mc.KeyToAuto" xml:space="preserve">
+    <value>Key to AUTO before START</value>
+  </data>
+  <data name="Mc.MachineInState" xml:space="preserve">
+    <value>Machine state: {0}</value>
+  </data>
+  <data name="Mc.NoAxis" xml:space="preserve">
+    <value>no axis {0}</value>
+  </data>
+  <data name="Mc.NotHomedPressOrigin" xml:space="preserve">
+    <value>Not homed — press Home (Origin)</value>
+  </data>
+  <data name="Mc.NoVacuumSensor" xml:space="preserve">
+    <value>Vac sensors unreadable — nozzle product state unknown</value>
+  </data>
+  <data name="Mc.NoVacuumSensorWhy" xml:space="preserve">
+    <value>Vac sensors unreadable — nozzle product state unknown ({0})</value>
+  </data>
+  <data name="Mc.NozzleSynced" xml:space="preserve">
+    <value>Nozzle state synced from sensors</value>
+  </data>
+  <data name="Mc.OnlyNozzle" xml:space="preserve">
+    <value>Nozzle #{0} only</value>
+  </data>
+  <data name="Mc.ReloadSolutionBusy" xml:space="preserve">
+    <value>Cycle in progress — stop before reloading solution</value>
+  </data>
+  <data name="Mc.ResetDone" xml:space="preserve">
+    <value>RESET done</value>
+  </data>
+  <data name="Mc.ResetStuck" xml:space="preserve">
+    <value>RESET: not cleared — {0}{1}</value>
+  </data>
+  <data name="Mc.ResetStuckMore" xml:space="preserve">
+    <value> (+{0} more)</value>
+  </data>
+  <data name="Mc.RunningToCheckpoint" xml:space="preserve">
+    <value>Running to safe stop pt…</value>
+  </data>
+  <data name="Mc.SelectAutoFirst" xml:space="preserve">
+    <value>Select AUTO before Ready</value>
+  </data>
+  <data name="Mc.SolutionNotLoaded" xml:space="preserve">
+    <value>vision solution not loaded</value>
+  </data>
+  <data name="Mc.StoppedInPlace" xml:space="preserve">
+    <value>Stopped in place — raise Z before resuming</value>
+  </data>
+  <data name="Mc.SyncOnlyStopped" xml:space="preserve">
+    <value>Sync only when stopped</value>
+  </data>
+  <data name="Mc.TrayAccepted" xml:space="preserve">
+    <value>{0} accepted ({1})</value>
+  </data>
+  <data name="Mc.TrayAlreadyIn" xml:space="preserve">
+    <value>{0} already loaded{1}</value>
+  </data>
+  <data name="Mc.TrayWaitCancelled" xml:space="preserve">
+    <value>Tray wait cancelled</value>
+  </data>
+  <data name="Mc.UnackedAlarm" xml:space="preserve">
+    <value>Unacked err: {0} {1} — press RESET</value>
+  </data>
+  <data name="Mc.Unexpected" xml:space="preserve">
+    <value>unexpected err: {0}</value>
+  </data>
+  <data name="Mc.UnsafePauseInit" xml:space="preserve">
+    <value>Last stop mid-motion — press Init (next to Home) to go to standby</value>
+  </data>
+  <data name="Mc.UnsafePauseInitResume" xml:space="preserve">
+    <value>Last stop mid-motion — press Init (next to Home) to go to standby before resuming.</value>
+  </data>
+  <data name="Mc.WatchdogSilent" xml:space="preserve">
+    <value>silent {0} ms &gt; {1} ms</value>
+  </data>
+  <data name="Mc.WhyErrorPaused" xml:space="preserve">
+    <value>err while paused</value>
+  </data>
+  <data name="Mc.WhyErrorRunning" xml:space="preserve">
+    <value>err while running</value>
+  </data>
+  <data name="Mc.WhyManualPaused" xml:space="preserve">
+    <value>MANUAL while paused</value>
+  </data>
+  <data name="Mc.WhyOperatorStop" xml:space="preserve">
+    <value>STOP pressed</value>
+  </data>
+  <data name="Mc.ZMustHomeFirst" xml:space="preserve">
+    <value>Home Z1/Z2 before {0} home/Move Abs</value>
+  </data>
+  <data name="Mc.ZNotSafe" xml:space="preserve">
+    <value>Z not at Z_SAFE (Z1={0:0.0}, Z2={1:0.0}, need ≤ {2:0.0})</value>
+  </data>
+  <data name="Origin.AbortedAtStep" xml:space="preserve">
+    <value>Homing aborted at step {0}: {1}</value>
+  </data>
+  <data name="Origin.AutoRunning" xml:space="preserve">
+    <value>Auto running</value>
+  </data>
+  <data name="Origin.AxisAlarm" xml:space="preserve">
+    <value>axis ALM — press RESET</value>
+  </data>
+  <data name="Origin.AxisNotConnected" xml:space="preserve">
+    <value>axis not connected</value>
+  </data>
+  <data name="Origin.BrakeNotReleased" xml:space="preserve">
+    <value>Z1/Z2 brake locked — Manual: SVO on Z1/Z2, "Brake off", then home</value>
+  </data>
+  <data name="Origin.GateNotHomed" xml:space="preserve">
+    <value>Z interlock: Z1/Z2 not both homed</value>
+  </data>
+  <data name="Origin.GateZPos" xml:space="preserve">
+    <value>Z interlock: Z1={0:0.00}, Z2={1:0.00}, need ≤ {2:0.00}</value>
+  </data>
+  <data name="Origin.HomeAFailed" xml:space="preserve">
+    <value>A home failed</value>
+  </data>
+  <data name="Origin.HomeAXYFailed" xml:space="preserve">
+    <value>A/X/Y home failed</value>
+  </data>
+  <data name="Origin.HomeXYFailed" xml:space="preserve">
+    <value>X/Y home failed</value>
+  </data>
+  <data name="Origin.HomeZFailed" xml:space="preserve">
+    <value>Z home failed</value>
+  </data>
+  <data name="Origin.InitCancelled" xml:space="preserve">
+    <value>Init cancelled</value>
+  </data>
+  <data name="Origin.InitStandbyFailed" xml:space="preserve">
+    <value>Cannot Init: axis failed to reach standby</value>
+  </data>
+  <data name="Origin.InitUnexpected" xml:space="preserve">
+    <value>Init unexpected err: {0}</value>
+  </data>
+  <data name="Origin.InitZFailed" xml:space="preserve">
+    <value>Cannot Init: Z not raised to Z_SAFE</value>
+  </data>
+  <data name="Origin.ServoOnDetail" xml:space="preserve">
+    <value>SVO on failed</value>
+  </data>
+  <data name="Origin.ServoOnFailed" xml:space="preserve">
+    <value>SVO on failed</value>
+  </data>
+  <data name="Origin.StandbyFailed" xml:space="preserve">
+    <value>to standby failed</value>
+  </data>
+  <data name="Origin.ZNotSafe" xml:space="preserve">
+    <value>Z not at Z_SAFE</value>
+  </data>
+  <data name="Readout.CallError" xml:space="preserve">
+    <value>Flow call err: {0}</value>
+  </data>
+  <data name="Readout.Cell" xml:space="preserve">
+    <value>Cell ({0},{1})</value>
+  </data>
+  <data name="Readout.ColCellOffset" xml:space="preserve">
+    <value>+ Cell</value>
+  </data>
+  <data name="Readout.ColCommon" xml:space="preserve">
+    <value>+ Common</value>
+  </data>
+  <data name="Readout.ColCompTheta" xml:space="preserve">
+    <value>Comp θ (°)</value>
+  </data>
+  <data name="Readout.ColTarget" xml:space="preserve">
+    <value>= Tgt</value>
+  </data>
+  <data name="Readout.DeltaNozzle" xml:space="preserve">
+    <value>Δ #{0}</value>
+  </data>
+  <data name="Readout.Invalid" xml:space="preserve">
+    <value>invalid result: {0}</value>
+  </data>
+  <data name="Readout.NoMasterLine" xml:space="preserve">
+    <value>Nozzle #{0}: no master img — rerun hand-eye step</value>
+  </data>
+  <data name="Readout.NoMasterNote" xml:space="preserve">
+    <value>Nozzle {0}: no master img — rerun hand-eye step</value>
+  </data>
+  <data name="Readout.NoProduct" xml:space="preserve">
+    <value>no product</value>
+  </data>
+  <data name="Readout.NoTarget" xml:space="preserve">
+    <value>no target part</value>
+  </data>
+  <data name="Readout.NotPlaced" xml:space="preserve">
+    <value>Not placed: {0}</value>
+  </data>
+  <data name="Readout.OffsetText" xml:space="preserve">
+    <value>Ofs X {0:+0.000;-0.000}, Y {1:+0.000;-0.000} mm, θ {2:0.00}°</value>
+  </data>
+  <data name="Readout.PartText" xml:space="preserve">
+    <value>Part X {0:0.000}, Y {1:0.000}, θ {2:0.00}°</value>
+  </data>
+  <data name="Readout.RowOffset" xml:space="preserve">
+    <value>Ofs</value>
+  </data>
+  <data name="Readout.RowPart" xml:space="preserve">
+    <value>Part</value>
+  </data>
+  <data name="Readout.RowTarget" xml:space="preserve">
+    <value>Tgt</value>
+  </data>
+  <data name="Readout.SkipCell" xml:space="preserve">
+    <value>Cell skipped: {0}</value>
+  </data>
+  <data name="Readout.SkipCellInline" xml:space="preserve">
+    <value>cell skipped: {0}</value>
+  </data>
+  <data name="Readout.TargetText" xml:space="preserve">
+    <value>Tgt X {0:0.000}, {1} {2:0.000}, A{3} {4:0.00}° · comp {5:+0.00;-0.00}°</value>
+  </data>
+  <data name="Readout.VsMaster" xml:space="preserve">
+    <value>Vs. nozzle #{0} hand-eye master: ΔX {1:+0.000;-0.000}, ΔY {2:+0.000;-0.000} mm, Δθ {3:+0.00;-0.00}°</value>
+  </data>
+  <data name="Setting.ACapTol" xml:space="preserve">
+    <value>A dev. at capture (°)</value>
+  </data>
+  <data name="Setting.AccTip" xml:space="preserve">
+    <value>Acc time (ms), 0 → Auto high; slower moves same rate. X/Y1/Y2/Z1/Z2 only. Lower = harsher: reduce stepwise, watch driver overcurrent.</value>
+  </data>
+  <data name="Setting.AlarmCatalogNotLoaded" xml:space="preserve">
+    <value>alarms.json NOT loaded — alarms show codes only</value>
+  </data>
+  <data name="Setting.AlignXTol" xml:space="preserve">
+    <value>Insp pos. X tol. (mm)</value>
+  </data>
+  <data name="Setting.AssyZDown" xml:space="preserve">
+    <value>Assy tray — down</value>
+  </data>
+  <data name="Setting.AssyZUp" xml:space="preserve">
+    <value>Assy tray — up</value>
+  </data>
+  <data name="Setting.AutoModeHeader" xml:space="preserve">
+    <value>AUTO MODE</value>
+  </data>
+  <data name="Setting.AutoModeNote" xml:space="preserve">
+    <value>Applies at once, no Save. Locked while running — stop first.</value>
+  </data>
+  <data name="Setting.AutoNozzles" xml:space="preserve">
+    <value>Auto nozzles</value>
+  </data>
+  <data name="Setting.AxisConfigHeader" xml:space="preserve">
+    <value>7-AXIS CFG</value>
+  </data>
+  <data name="Setting.AxisVarsHeader" xml:space="preserve">
+    <value>Axis pos. GVars</value>
+  </data>
+  <data name="Setting.AxisVarsNote" xml:space="preserve">
+    <value>App writes encoder pos. here before every CAM Flow. Empty name: calib pt load skips axis; Auto/checks = error.</value>
+  </data>
+  <data name="Setting.BlowTime" xml:space="preserve">
+    <value>Release blow (ms)</value>
+  </data>
+  <data name="Setting.BlowTimeTip" xml:space="preserve">
+    <value>Blow to detach part from nozzle; after vac off, before Z up.</value>
+  </data>
+  <data name="Setting.BothNozzles" xml:space="preserve">
+    <value>Both nozzles</value>
+  </data>
+  <data name="Setting.Browse" xml:space="preserve">
+    <value>Browse...</value>
+  </data>
+  <data name="Setting.CalibResidualTol" xml:space="preserve">
+    <value>Check tol. (mm)</value>
+  </data>
+  <data name="Setting.Capture" xml:space="preserve">
+    <value>Capture</value>
+  </data>
+  <data name="Setting.CheckFlowScript" xml:space="preserve">
+    <value>Check outputs</value>
+  </data>
+  <data name="Setting.CheckFlowScriptTip" xml:space="preserve">
+    <value>Flow: outputs of 3 Flows (missing, misspelled, non-numeric). Script: rows of TopAbs (LocateTop) and Cmd (AlignBottom), Input rows with EMPTY Subscribe (silently 0).</value>
+  </data>
+  <data name="Setting.Checking" xml:space="preserve">
+    <value>Checking…</value>
+  </data>
+  <data name="Setting.CheckingBeforeCreate" xml:space="preserve">
+    <value>Checking before create…</value>
+  </data>
+  <data name="Setting.CheckVars" xml:space="preserve">
+    <value>Check vars</value>
+  </data>
+  <data name="Setting.CheckVarsTip" xml:space="preserve">
+    <value>Check solution for the 13 GVars: 4 axis vars, RunId, IsTriggerLocate, HasTarget, CellX_mm / CellY_mm / CellA_deg, HandEyeDx_mm / HandEyeDy_mm, AlignSign. Read-only.</value>
+  </data>
+  <data name="Setting.ColAutoHigh" xml:space="preserve">
+    <value>Auto high</value>
+  </data>
+  <data name="Setting.ColAutoLow" xml:space="preserve">
+    <value>Auto low</value>
+  </data>
+  <data name="Setting.ColAutoMid" xml:space="preserve">
+    <value>Auto mid</value>
+  </data>
+  <data name="Setting.ColAxis" xml:space="preserve">
+    <value>Axis</value>
+  </data>
+  <data name="Setting.ColHomeOffset" xml:space="preserve">
+    <value>Home ofs</value>
+  </data>
+  <data name="Setting.ColJogFast" xml:space="preserve">
+    <value>Jog fast</value>
+  </data>
+  <data name="Setting.ColJogSlow" xml:space="preserve">
+    <value>Jog slow</value>
+  </data>
+  <data name="Setting.ColLevel" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="Setting.ColMessage" xml:space="preserve">
+    <value>Msg</value>
+  </data>
+  <data name="Setting.ColSource" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Setting.ColStandby" xml:space="preserve">
+    <value>Standby</value>
+  </data>
+  <data name="Setting.ColTime" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Setting.ControlTick" xml:space="preserve">
+    <value>Ctrl loop (ms)</value>
+  </data>
+  <data name="Setting.CreateVars" xml:space="preserve">
+    <value>Create missing vars</value>
+  </data>
+  <data name="Setting.CreateVarsCancelled" xml:space="preserve">
+    <value>Cancelled — nothing created.</value>
+  </data>
+  <data name="Setting.CreateVarsConfirm" xml:space="preserve">
+    <value>Create {0} missing GVar(s) in loaded solution, then SAVE it:</value>
+  </data>
+  <data name="Setting.CreateVarsConfirmTail" xml:space="preserve">
+    <value>Existing vars unchanged. Use a .solw copy first. Continue?</value>
+  </data>
+  <data name="Setting.CreateVarsTip" xml:space="preserve">
+    <value>Create MISSING vars via SDK, then save solution. Existing vars unchanged.</value>
+  </data>
+  <data name="Setting.CreateVarsTitle" xml:space="preserve">
+    <value>Create GVars</value>
+  </data>
+  <data name="Setting.CreatingVars" xml:space="preserve">
+    <value>Creating {0} var(s), saving solution…</value>
+  </data>
+  <data name="Setting.DataFolderPrefix" xml:space="preserve">
+    <value>Data folder: </value>
+  </data>
+  <data name="Setting.DecTip" xml:space="preserve">
+    <value>Dec time (ms), Auto high → 0; slower moves same rate. X/Y1/Y2/Z1/Z2 only.</value>
+  </data>
+  <data name="Setting.DelayHeader" xml:space="preserve">
+    <value>DELAY</value>
+  </data>
+  <data name="Setting.DryRunLabel" xml:space="preserve">
+    <value>Dry run (no product)</value>
+  </data>
+  <data name="Setting.DryRunOff" xml:space="preserve">
+    <value>Dry run: OFF</value>
+  </data>
+  <data name="Setting.DryRunOn" xml:space="preserve">
+    <value>DRY RUN: ON</value>
+  </data>
+  <data name="Setting.DryRunTip" xml:space="preserve">
+    <value>Nonstop cycle, NO PRODUCT: only X/Y/Z/A move, no vac/blow/CAM. Selects mode only; Start 1 (panel B) runs. Locked while running.</value>
+  </data>
+  <data name="Setting.Error" xml:space="preserve">
+    <value>ERR: {0}</value>
+  </data>
+  <data name="Setting.FlowNames" xml:space="preserve">
+    <value>Flow names (Procedure)</value>
+  </data>
+  <data name="Setting.FlowNamesNote" xml:space="preserve">
+    <value>Each Flow inspects + loads calib pts: App writes IsTriggerLocate = 1 (insp) / 0 (calib), Flow branches on it.</value>
+  </data>
+  <data name="Setting.FlowsPerNozzle" xml:space="preserve">
+    <value>Flows per nozzle</value>
+  </data>
+  <data name="Setting.GlobalVarModule" xml:space="preserve">
+    <value>Global Variable module (empty = auto)</value>
+  </data>
+  <data name="Setting.GvAxisA1" xml:space="preserve">
+    <value>A1 var (°)</value>
+  </data>
+  <data name="Setting.GvAxisA2" xml:space="preserve">
+    <value>A2 var (°)</value>
+  </data>
+  <data name="Setting.GvAxisX" xml:space="preserve">
+    <value>X var (mm)</value>
+  </data>
+  <data name="Setting.GvAxisY2" xml:space="preserve">
+    <value>Y2 var (mm)</value>
+  </data>
+  <data name="Setting.HasLightCurtain" xml:space="preserve">
+    <value>Curtain fitted (DI13)</value>
+  </data>
+  <data name="Setting.HasLightCurtainTip" xml:space="preserve">
+    <value>On: curtain cut stops all axes, none move while cut. Auto pauses; clear area, Start 1/2 resumes. Enable only if DI13 lit (Manual).</value>
+  </data>
+  <data name="Setting.HomeRotateSequential" xml:space="preserve">
+    <value>Home A1/A2 in sequence</value>
+  </data>
+  <data name="Setting.InputZDown" xml:space="preserve">
+    <value>Input tray — down</value>
+  </data>
+  <data name="Setting.InputZUp" xml:space="preserve">
+    <value>Input tray — up</value>
+  </data>
+  <data name="Setting.LampMs" xml:space="preserve">
+    <value>Light warm-up (ms)</value>
+  </data>
+  <data name="Setting.LampTip" xml:space="preserve">
+    <value>Wait after CAM light on, before Flow trigger. Skipped if light already on. 0 = no wait.</value>
+  </data>
+  <data name="Setting.LogHeader" xml:space="preserve">
+    <value>LOG (MEMORY)</value>
+  </data>
+  <data name="Setting.MainViews" xml:space="preserve">
+    <value>Main image views</value>
+  </data>
+  <data name="Setting.MainViewsNote" xml:space="preserve">
+    <value>Per view: Flow name (T1) → whole Flow Display; Flow.Module (T1.Module) → that module. Empty = whole Flow. Reopen Main after Save.</value>
+  </data>
+  <data name="Setting.MaxCompAngle" xml:space="preserve">
+    <value>Max comp. angle (°)</value>
+  </data>
+  <data name="Setting.MaxCompDistance" xml:space="preserve">
+    <value>Max center ofs (mm)</value>
+  </data>
+  <data name="Setting.MaxConsecutiveNg" xml:space="preserve">
+    <value>Max NG in a row</value>
+  </data>
+  <data name="Setting.MaxGuardSkipStreak" xml:space="preserve">
+    <value>Off-grid cells in a row</value>
+  </data>
+  <data name="Setting.NoMissingVars" xml:space="preserve">
+    <value>No missing vars.</value>
+  </data>
+  <data name="Setting.Nozzle1" xml:space="preserve">
+    <value>Nozzle #1</value>
+  </data>
+  <data name="Setting.Nozzle2" xml:space="preserve">
+    <value>Nozzle #2</value>
+  </data>
+  <data name="Setting.OpenDataFolder" xml:space="preserve">
+    <value>Open data folder</value>
+  </data>
+  <data name="Setting.OutFoundShared" xml:space="preserve">
+    <value>Output Found (shared)</value>
+  </data>
+  <data name="Setting.PickRetry" xml:space="preserve">
+    <value>Pick retries</value>
+  </data>
+  <data name="Setting.PlaceGuards" xml:space="preserve">
+    <value>Auto place limits</value>
+  </data>
+  <data name="Setting.PlaceTargetGuard" xml:space="preserve">
+    <value>Max grid dev. (mm)</value>
+  </data>
+  <data name="Setting.ReadingFlowOutputs" xml:space="preserve">
+    <value>Reading Output Params of 3 Flows…</value>
+  </data>
+  <data name="Setting.ReloadRequested" xml:space="preserve">
+    <value>Reload requested — see Vision log/alarms.</value>
+  </data>
+  <data name="Setting.ReloadSolution" xml:space="preserve">
+    <value>Reload solution</value>
+  </data>
+  <data name="Setting.RenderTool1" xml:space="preserve">
+    <value>Bottom CAM — Nozzle #1</value>
+  </data>
+  <data name="Setting.RenderTool2" xml:space="preserve">
+    <value>Bottom CAM — Nozzle #2</value>
+  </data>
+  <data name="Setting.RenderTopDown" xml:space="preserve">
+    <value>Top CAM</value>
+  </data>
+  <data name="Setting.RequireHomeAfterEmg" xml:space="preserve">
+    <value>Re-home after EMG</value>
+  </data>
+  <data name="Setting.Saved" xml:space="preserve">
+    <value>system.json saved. COM/IP/Simulation change needs restart.</value>
+  </data>
+  <data name="Setting.SaveFailed" xml:space="preserve">
+    <value>Save failed — see alarm.</value>
+  </data>
+  <data name="Setting.SaveSystem" xml:space="preserve">
+    <value>Save system.json</value>
+  </data>
+  <data name="Setting.ScanAssyByRow" xml:space="preserve">
+    <value>Scan Assy tray by row</value>
+  </data>
+  <data name="Setting.ScanAssyByRowTip" xml:space="preserve">
+    <value>On: Top CAM inspects empty cells of CURRENT ROW, places them, then next row. Off (default): whole tray first. Use if Y2 travel shifts Assy tray.</value>
+  </data>
+  <data name="Setting.SettleMs" xml:space="preserve">
+    <value>Capture settle (ms)</value>
+  </data>
+  <data name="Setting.SettleTip" xml:space="preserve">
+    <value>Wait after last move before encoder read + capture. Counted from move end. 0 = off.</value>
+  </data>
+  <data name="Setting.SimulationMode" xml:space="preserve">
+    <value>Simulation (needs restart)</value>
+  </data>
+  <data name="Setting.SolutionFilter" xml:space="preserve">
+    <value>VisionMaster solution (*.solw)|*.solw|All files|*.*</value>
+  </data>
+  <data name="Setting.SolutionPath" xml:space="preserve">
+    <value>Solution path (.solw)</value>
+  </data>
+  <data name="Setting.SolutionPathNote" xml:space="preserve">
+    <value>One .solw per machine. After change: Reload solution, no restart.</value>
+  </data>
+  <data name="Setting.SolutionPathTip" xml:space="preserve">
+    <value>All 3 Flows (LocateTop / AlignBottom_Tool1 / AlignBottom_Tool2) must be in one .solw (SDK singleton).</value>
+  </data>
+  <data name="Setting.SolutionTools" xml:space="preserve">
+    <value>Solution tools</value>
+  </data>
+  <data name="Setting.SolutionToolsNote" xml:space="preserve">
+    <value>No Flow run, no CAM trigger. Hover for details. Use a .solw copy first.</value>
+  </data>
+  <data name="Setting.SystemParams" xml:space="preserve">
+    <value>SYSTEM PARAMS</value>
+  </data>
+  <data name="Setting.TabDelay" xml:space="preserve">
+    <value>Delay</value>
+  </data>
+  <data name="Setting.TabLog" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="Setting.TabServo" xml:space="preserve">
+    <value>Servo</value>
+  </data>
+  <data name="Setting.TabSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Setting.TabVision" xml:space="preserve">
+    <value>Vision</value>
+  </data>
+  <data name="Setting.UsingFallbackRoot" xml:space="preserve">
+    <value>Fallback folder next to exe (no D:)</value>
+  </data>
+  <data name="Setting.Vacuum" xml:space="preserve">
+    <value>Vac</value>
+  </data>
+  <data name="Setting.VacuumSettle" xml:space="preserve">
+    <value>Vac build-up (ms)</value>
+  </data>
+  <data name="Setting.VacuumSettleTip" xml:space="preserve">
+    <value>Extra wait after vac sensor OK before Z up, so can won't shift/drop. 0 = lift at once.</value>
+  </data>
+  <data name="Setting.VacuumTimeout" xml:space="preserve">
+    <value>Sensor timeout (ms)</value>
+  </data>
+  <data name="Setting.VacuumTimeoutTip" xml:space="preserve">
+    <value>Wait for vac sensor after valve on/off. Timeout = missed pick (pick) / part stuck on nozzle (release). Slow gauge: raise.</value>
+  </data>
+  <data name="Setting.VerifyAngleTol" xml:space="preserve">
+    <value>Rot. test angle tol. (°)</value>
+  </data>
+  <data name="Setting.VerifyHeader" xml:space="preserve">
+    <value>Top-down check &amp; rot. test</value>
+  </data>
+  <data name="Setting.VerifyMinEcc" xml:space="preserve">
+    <value>Rot. test min ecc. (mm)</value>
+  </data>
+  <data name="Setting.VerifyMinTurn" xml:space="preserve">
+    <value>Min test turn (°)</value>
+  </data>
+  <data name="Setting.VisionNamesHeader" xml:space="preserve">
+    <value>VISION — FLOW &amp; VAR NAMES</value>
+  </data>
+  <data name="Setting.VisionNamesNote" xml:space="preserve">
+    <value>Enter exact solution names, then Save. VisionConnect rereads at next trigger, no rebuild.</value>
+  </data>
+  <data name="Setting.VisionSolutionHeader" xml:space="preserve">
+    <value>VISION — SOLUTION SETUP</value>
+  </data>
+  <data name="Setting.VisionThresholdsHeader" xml:space="preserve">
+    <value>VISION — LIMITS &amp; TOLERANCES</value>
+  </data>
+  <data name="Setting.VisionThresholdsNote" xml:space="preserve">
+    <value>App checks AlignBottom_ToolN place cmd against limits below before moving. Save system.json above; applies from next START.</value>
+  </data>
+  <data name="Setting.ZSlowHeader" xml:space="preserve">
+    <value>Z slow-down pt (Auto, dry run)</value>
+  </data>
+  <data name="Setting.ZSlowTip" xml:space="preserve">
+    <value>On: Z at Auto low from slow-down pt to pick/place height (Teaching). Off: Auto high all the way, harder contact. NG return to Input tray always slows.</value>
+  </data>
+  <data name="Shell.ActiveAlarmCount" xml:space="preserve">
+    <value>{0} active ALM</value>
+  </data>
+  <data name="Shell.ActiveAlarmList" xml:space="preserve">
+    <value>Active alarms</value>
+  </data>
+  <data name="Shell.AutoRefusedTitle" xml:space="preserve">
+    <value>Cannot enter AUTO</value>
+  </data>
+  <data name="Shell.Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Shell.DataPrefix" xml:space="preserve">
+    <value>Data: </value>
+  </data>
+  <data name="Shell.Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Shell.Hide" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="Shell.HideBannerTip" xml:space="preserve">
+    <value>Hide banner. Alarm stays active; reappears on new alarm.</value>
+  </data>
+  <data name="Shell.LanguageTip" xml:space="preserve">
+    <value>Language (VI / EN)</value>
+  </data>
+  <data name="Shell.No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Shell.SimulationMode" xml:space="preserve">
+    <value>SIMULATION MODE</value>
+  </data>
+  <data name="Shell.Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Status.ModelNotLoaded" xml:space="preserve">
+    <value>(not loaded)</value>
+  </data>
+  <data name="Status.StateAlarm" xml:space="preserve">
+    <value>ERROR</value>
+  </data>
+  <data name="Status.StateArmed" xml:space="preserve">
+    <value>ARMED — WAIT TRAY</value>
+  </data>
+  <data name="Status.StateEmg" xml:space="preserve">
+    <value>EMG STOP</value>
+  </data>
+  <data name="Status.StateHeld" xml:space="preserve">
+    <value>PAUSED</value>
+  </data>
+  <data name="Status.StateHoming" xml:space="preserve">
+    <value>HOMING</value>
+  </data>
+  <data name="Status.StateIdle" xml:space="preserve">
+    <value>READY</value>
+  </data>
+  <data name="Status.StateInit" xml:space="preserve">
+    <value>STARTUP</value>
+  </data>
+  <data name="Status.StateNotHomed" xml:space="preserve">
+    <value>NOT HOMED</value>
+  </data>
+  <data name="Status.StatePaused" xml:space="preserve">
+    <value>STOPPED</value>
+  </data>
+  <data name="Status.StatePausing" xml:space="preserve">
+    <value>STOPPING…</value>
+  </data>
+  <data name="Status.StateRunning" xml:space="preserve">
+    <value>RUNNING</value>
+  </data>
+  <data name="Status.StateWaitOperator" xml:space="preserve">
+    <value>WAIT OPERATOR</value>
+  </data>
+  <data name="Status.StepS00" xml:space="preserve">
+    <value>S00 · ready</value>
+  </data>
+  <data name="Status.StepS05" xml:space="preserve">
+    <value>S05 · pre-scan Assy tray</value>
+  </data>
+  <data name="Status.StepS10" xml:space="preserve">
+    <value>S10 · pick nozzle #1</value>
+  </data>
+  <data name="Status.StepS11" xml:space="preserve">
+    <value>S11 · pick nozzle #2</value>
+  </data>
+  <data name="Status.StepS20" xml:space="preserve">
+    <value>S20 · insp nozzle #2</value>
+  </data>
+  <data name="Status.StepS21" xml:space="preserve">
+    <value>S21 · insp nozzle #1</value>
+  </data>
+  <data name="Status.StepS30" xml:space="preserve">
+    <value>S30 · insp tgt cell + place #1</value>
+  </data>
+  <data name="Status.StepS31" xml:space="preserve">
+    <value>S31 · place nozzle #1</value>
+  </data>
+  <data name="Status.StepS32" xml:space="preserve">
+    <value>S32 · insp tgt cell + place #2</value>
+  </data>
+  <data name="Status.StepS33" xml:space="preserve">
+    <value>S33 · place nozzle #2</value>
+  </data>
+  <data name="Status.StepS40" xml:space="preserve">
+    <value>S40 · next cell</value>
+  </data>
+  <data name="Status.StepS50" xml:space="preserve">
+    <value>S50 · check tray</value>
+  </data>
+  <data name="Teach.AlignPosHeader" xml:space="preserve">
+    <value>BOTTOM CAM POS. (CAM1)</value>
+  </data>
+  <data name="Teach.AlignPosHint" xml:space="preserve">
+    <value>Gantry X that puts each nozzle at CAM1 image center (Auto, after both picks). Jog X (panel above), Teach each nozzle separately.</value>
+  </data>
+  <data name="Teach.Angle" xml:space="preserve">
+    <value>Angle</value>
+  </data>
+  <data name="Teach.ApplySize" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Teach.ApplySizeTip" xml:space="preserve">
+    <value>Resize grid to Rows/Cols. Cell ofs kept where grids overlap.</value>
+  </data>
+  <data name="Teach.ApplyTrim" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Teach.ApplyTrimAllTip" xml:space="preserve">
+    <value>Write common ofs: all cells, selected Tool.</value>
+  </data>
+  <data name="Teach.ApplyTrimCellTip" xml:space="preserve">
+    <value>Write cell ofs: selected cell, selected Tool.</value>
+  </data>
+  <data name="Teach.AxisMoveFailed" xml:space="preserve">
+    <value>{0} can't reach {1:0.000} mm: {2}</value>
+  </data>
+  <data name="Teach.Blow1" xml:space="preserve">
+    <value>Blow #1</value>
+  </data>
+  <data name="Teach.Blow2" xml:space="preserve">
+    <value>Blow #2</value>
+  </data>
+  <data name="Teach.Cam1LightTip" xml:space="preserve">
+    <value>CAM1 trigger light on/off (DO bit 11, 0x0B)</value>
+  </data>
+  <data name="Teach.Cam2LightTip" xml:space="preserve">
+    <value>CAM2 trigger light on/off (DO bit 12, 0x0C)</value>
+  </data>
+  <data name="Teach.CamAnchorHeader" xml:space="preserve">
+    <value>TOP CAM REF</value>
+  </data>
+  <data name="Teach.CamAnchorHint1" xml:space="preserve">
+    <value>Jog X/Y2 until top CAM is centered on assy tray cell (1,1) (live image), then Teach. Shared by Tool 1 &amp; 2.</value>
+  </data>
+  <data name="Teach.CamAnchorHint2" xml:space="preserve">
+    <value>Other cells = this ref + cell ofs from (1,1) on the TOOL 2 GRID. Re-teaching P1/P2/P3 or cell ofs on Tool 2 shifts all insp pos.; Tool 1 doesn't.</value>
+  </data>
+  <data name="Teach.CamAnchorNotTaughtWarn" xml:space="preserve">
+    <value>Top CAM ref (cell 1,1) not taught — teach it first (TOP CAM REF card).</value>
+  </data>
+  <data name="Teach.CamPosAt" xml:space="preserve">
+    <value>Top CAM, cell {0}:  X={1:0.000}   {2}={3:0.000}   (Tool 2 grid + CAM ref)</value>
+  </data>
+  <data name="Teach.CamPosLabel" xml:space="preserve">
+    <value>cell {0} insp pos.</value>
+  </data>
+  <data name="Teach.CamPosNoAnchor" xml:space="preserve">
+    <value>Top CAM ref (cell 1,1) not taught — cell insp pos. unknown.</value>
+  </data>
+  <data name="Teach.CellLabel" xml:space="preserve">
+    <value>cell {0}</value>
+  </data>
+  <data name="Teach.CellsHeader" xml:space="preserve">
+    <value>CELL COORDS</value>
+  </data>
+  <data name="Teach.ChooseSourceModel" xml:space="preserve">
+    <value>Select source model first.</value>
+  </data>
+  <data name="Teach.ClearOffset" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Teach.ClearOffsetTip" xml:space="preserve">
+    <value>Clear ofs of selected cell only.</value>
+  </data>
+  <data name="Teach.ClearTrim" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Teach.Cols" xml:space="preserve">
+    <value>Cols</value>
+  </data>
+  <data name="Teach.ConfirmDeleteModel" xml:space="preserve">
+    <value>Permanently delete model '{0}'?</value>
+  </data>
+  <data name="Teach.ConfirmWrite" xml:space="preserve">
+    <value>Write {0}?
+
+Old: {1}
+New: {2}</value>
+  </data>
+  <data name="Teach.CopyModel" xml:space="preserve">
+    <value>Copy selected</value>
+  </data>
+  <data name="Teach.CopyModelFailed" xml:space="preserve">
+    <value>Copy model failed — see log.</value>
+  </data>
+  <data name="Teach.CurrentModel" xml:space="preserve">
+    <value>In use:</value>
+  </data>
+  <data name="Teach.DeleteModel" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Teach.DeleteModelFailed" xml:space="preserve">
+    <value>Delete model failed — see log.</value>
+  </data>
+  <data name="Teach.DeleteOpenModel" xml:space="preserve">
+    <value>Can't delete open model — load another first.</value>
+  </data>
+  <data name="Teach.EnterModelName" xml:space="preserve">
+    <value>Enter model name.</value>
+  </data>
+  <data name="Teach.Go" xml:space="preserve">
+    <value>Go</value>
+  </data>
+  <data name="Teach.GoCamAnchor" xml:space="preserve">
+    <value>Go top CAM ref</value>
+  </data>
+  <data name="Teach.GoCamAnchorTip" xml:space="preserve">
+    <value>Dbl-click: test-move to taught ref. Check CAM is centered on cell (1,1).</value>
+  </data>
+  <data name="Teach.GoJigCamTip" xml:space="preserve">
+    <value>Dbl-click: X/Y2 to top CAM insp pos. of target part.</value>
+  </data>
+  <data name="Teach.GoJigPick1Tip" xml:space="preserve">
+    <value>Dbl-click: X/Y2 to nozzle #1 jig pick pos.</value>
+  </data>
+  <data name="Teach.GoJigPick2Tip" xml:space="preserve">
+    <value>Dbl-click: X/Y2 to nozzle #2 jig pick pos.</value>
+  </data>
+  <data name="Teach.GoPick" xml:space="preserve">
+    <value>Go Pick</value>
+  </data>
+  <data name="Teach.GoPickTip" xml:space="preserve">
+    <value>Dbl-click: to taught pick height (input tray).</value>
+  </data>
+  <data name="Teach.GoPlace" xml:space="preserve">
+    <value>Go Place</value>
+  </data>
+  <data name="Teach.GoPlaceTip" xml:space="preserve">
+    <value>Dbl-click: to taught place height (assy tray).</value>
+  </data>
+  <data name="Teach.GoT1Trigger" xml:space="preserve">
+    <value>Go T1 Trigger</value>
+  </data>
+  <data name="Teach.GoT1TriggerTip" xml:space="preserve">
+    <value>Dbl-click: Z1 to Z_SAFE, then X to CAM1 pos. of nozzle #1.</value>
+  </data>
+  <data name="Teach.GoT2Trigger" xml:space="preserve">
+    <value>Go T2 Trigger</value>
+  </data>
+  <data name="Teach.GoT2TriggerTip" xml:space="preserve">
+    <value>Dbl-click: Z2 to Z_SAFE, then X to CAM1 pos. of nozzle #2.</value>
+  </data>
+  <data name="Teach.JigAllTaught" xml:space="preserve">
+    <value>All 3 pts taught.</value>
+  </data>
+  <data name="Teach.JigCamLabel" xml:space="preserve">
+    <value>Insp part:</value>
+  </data>
+  <data name="Teach.JigCamNotTaughtWarn" xml:space="preserve">
+    <value>Jig target insp pos. not taught — jog X/Y2 there, press Teach.</value>
+  </data>
+  <data name="Teach.JigHeader" xml:space="preserve">
+    <value>JIG (HAND-EYE)</value>
+  </data>
+  <data name="Teach.JigHint" xml:space="preserve">
+    <value>Jig holds TARGET PART still while sample can is picked. Jog X/Y2 to each pos., press Teach. Teach each nozzle SEPARATELY. Dbl-click Go to check; Z must be at Z_SAFE.</value>
+  </data>
+  <data name="Teach.JigMissingCam" xml:space="preserve">
+    <value>part insp pos.</value>
+  </data>
+  <data name="Teach.JigMissingPick" xml:space="preserve">
+    <value>nozzle #{0} pick pos.</value>
+  </data>
+  <data name="Teach.JigNote" xml:space="preserve">
+    <value>Jig must hold can at EXACTLY assy tray place height ({0:0.000} / {1:0.000} mm). REMOVE jig before Auto.</value>
+  </data>
+  <data name="Teach.JigNotTaught" xml:space="preserve">
+    <value>NOT taught: {0} — hand-eye step blocked.</value>
+  </data>
+  <data name="Teach.JigPick1Label" xml:space="preserve">
+    <value>Pick #1:</value>
+  </data>
+  <data name="Teach.JigPick2Label" xml:space="preserve">
+    <value>Pick #2:</value>
+  </data>
+  <data name="Teach.JigPickNotTaughtWarn" xml:space="preserve">
+    <value>Nozzle #{0} jig pick pos. not taught — jog X/Y2 there, press Teach.</value>
+  </data>
+  <data name="Teach.JogFast" xml:space="preserve">
+    <value>Fast</value>
+  </data>
+  <data name="Teach.JogHeader" xml:space="preserve">
+    <value>JOG &amp; PNEUMATICS</value>
+  </data>
+  <data name="Teach.JogSlow" xml:space="preserve">
+    <value>Slow</value>
+  </data>
+  <data name="Teach.JogSpeed" xml:space="preserve">
+    <value>Spd</value>
+  </data>
+  <data name="Teach.LoadModel" xml:space="preserve">
+    <value>Load</value>
+  </data>
+  <data name="Teach.LoadModelBusy" xml:space="preserve">
+    <value>Can't load model while running/homing.</value>
+  </data>
+  <data name="Teach.LoadModelFailed" xml:space="preserve">
+    <value>Load model '{0}' failed — see log.</value>
+  </data>
+  <data name="Teach.ModelExists" xml:space="preserve">
+    <value>Model '{0}' already exists.</value>
+  </data>
+  <data name="Teach.ModelNameInvalid" xml:space="preserve">
+    <value>Invalid chars in model name (\ / : * ? " &lt; &gt; |).</value>
+  </data>
+  <data name="Teach.MoveCamTip" xml:space="preserve">
+    <value>Dbl-click: gantry to top CAM insp pos. of selected cell (same as Auto).</value>
+  </data>
+  <data name="Teach.MoveCellTip" xml:space="preserve">
+    <value>Dbl-click: selected Tool nozzle to selected cell. Z to Z_SAFE first, A to pick angle.</value>
+  </data>
+  <data name="Teach.MoveFailed" xml:space="preserve">
+    <value>Can't reach {0}: {1}</value>
+  </data>
+  <data name="Teach.NewModel" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="Teach.NewModelNameTip" xml:space="preserve">
+    <value>New model name, for New and Copy (copies model selected above).</value>
+  </data>
+  <data name="Teach.NoCellChosen" xml:space="preserve">
+    <value>No cell selected.</value>
+  </data>
+  <data name="Teach.NoCellHint" xml:space="preserve">
+    <value>No cell selected — click a cell below.</value>
+  </data>
+  <data name="Teach.NoCellSelected" xml:space="preserve">
+    <value>No cell selected.</value>
+  </data>
+  <data name="Teach.NotTaught" xml:space="preserve">
+    <value>(not taught)</value>
+  </data>
+  <data name="Teach.Nozzle1Label" xml:space="preserve">
+    <value>Nozzle #1:</value>
+  </data>
+  <data name="Teach.Nozzle2Label" xml:space="preserve">
+    <value>Nozzle #2:</value>
+  </data>
+  <data name="Teach.OffsetText" xml:space="preserve">
+    <value>ofs X {0:+0.000;-0.000}, {1} {2:+0.000;-0.000} mm</value>
+  </data>
+  <data name="Teach.P1Sub" xml:space="preserve">
+    <value>cell (1,1)</value>
+  </data>
+  <data name="Teach.P1Tip" xml:space="preserve">
+    <value>Cell (1,1): jog to first cell, then press.</value>
+  </data>
+  <data name="Teach.P2Sub" xml:space="preserve">
+    <value>end of row 1</value>
+  </data>
+  <data name="Teach.P2Tip" xml:space="preserve">
+    <value>End of row 1: jog to last cell of row 1, then press.</value>
+  </data>
+  <data name="Teach.P3Sub" xml:space="preserve">
+    <value>end of col. 1</value>
+  </data>
+  <data name="Teach.P3Tip" xml:space="preserve">
+    <value>End of col. 1: jog to last cell of col. 1, then press.</value>
+  </data>
+  <data name="Teach.PickAngleHeader" xml:space="preserve">
+    <value>PICK ANGLE (A_PICK)</value>
+  </data>
+  <data name="Teach.PickAngleHint" xml:space="preserve">
+    <value>Put a product in a tray pocket, jog A1 (or A2) until nozzle rim fits it, press Teach of that axis. A1/A2 taught SEPARATELY. A turns here before every pick.</value>
+  </data>
+  <data name="Teach.PointP1" xml:space="preserve">
+    <value>P1 — cell (1,1)</value>
+  </data>
+  <data name="Teach.PointP2" xml:space="preserve">
+    <value>P2 — end of row 1</value>
+  </data>
+  <data name="Teach.PointP3" xml:space="preserve">
+    <value>P3 — end of col. 1</value>
+  </data>
+  <data name="Teach.PointVerify" xml:space="preserve">
+    <value>verify pt</value>
+  </data>
+  <data name="Teach.Position" xml:space="preserve">
+    <value>pos.</value>
+  </data>
+  <data name="Teach.Rows" xml:space="preserve">
+    <value>Rows</value>
+  </data>
+  <data name="Teach.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Teach.SaveModelFailed" xml:space="preserve">
+    <value>Save model failed — see log.</value>
+  </data>
+  <data name="Teach.SaveTip" xml:space="preserve">
+    <value>Save open model to disk (incl. all Teach on this page).</value>
+  </data>
+  <data name="Teach.ScanOrder" xml:space="preserve">
+    <value>Scan order</value>
+  </data>
+  <data name="Teach.ScanSequential" xml:space="preserve">
+    <value>Sequential</value>
+  </data>
+  <data name="Teach.SelectTool" xml:space="preserve">
+    <value>Select Tool</value>
+  </data>
+  <data name="Teach.SelectTrayHeader" xml:space="preserve">
+    <value>SELECT TRAY</value>
+  </data>
+  <data name="Teach.SetOffsetTip" xml:space="preserve">
+    <value>Record ofs: jogged pos. − computed pos.</value>
+  </data>
+  <data name="Teach.TeachFromA1" xml:space="preserve">
+    <value>Teach A1</value>
+  </data>
+  <data name="Teach.TeachFromA2" xml:space="preserve">
+    <value>Teach A2</value>
+  </data>
+  <data name="Teach.TeachFromZ1" xml:space="preserve">
+    <value>Teach Z1</value>
+  </data>
+  <data name="Teach.TeachFromZ2" xml:space="preserve">
+    <value>Teach Z2</value>
+  </data>
+  <data name="Teach.TeachNozzle1" xml:space="preserve">
+    <value>Teach #1</value>
+  </data>
+  <data name="Teach.TeachNozzle2" xml:space="preserve">
+    <value>Teach #2</value>
+  </data>
+  <data name="Teach.ThreePointHeader" xml:space="preserve">
+    <value>3-POINT TEACH</value>
+  </data>
+  <data name="Teach.ThreePointHint" xml:space="preserve">
+    <value>Jog X and row axis (panel above) to the cell, press P1, P2, P3 in order. Coords are read-only.</value>
+  </data>
+  <data name="Teach.TrayAssy" xml:space="preserve">
+    <value>Assy tray</value>
+  </data>
+  <data name="Teach.TrayAssyLower" xml:space="preserve">
+    <value>assy tray</value>
+  </data>
+  <data name="Teach.TrayInput" xml:space="preserve">
+    <value>Input tray</value>
+  </data>
+  <data name="Teach.TrayInputLower" xml:space="preserve">
+    <value>input tray</value>
+  </data>
+  <data name="Teach.TrimAllLabel" xml:space="preserve">
+    <value>Common ofs:</value>
+  </data>
+  <data name="Teach.TrimAssyOnly" xml:space="preserve">
+    <value>Place ofs: assy tray only.</value>
+  </data>
+  <data name="Teach.TrimCellLabel" xml:space="preserve">
+    <value>Cell ofs:</value>
+  </data>
+  <data name="Teach.TrimHint" xml:space="preserve">
+    <value>Tgt = CAM meas. + common ofs + cell ofs (per Tool). Lands +0.05 mm in X → enter -0.05. All cells same → common ofs. Max ±1 mm / ±5°; more = calib error, fix on Vision Edit page.</value>
+  </data>
+  <data name="Teach.TrimNotNumber" xml:space="preserve">
+    <value>{0} ofs is not a number.</value>
+  </data>
+  <data name="Teach.TrimTooLarge" xml:space="preserve">
+    <value>{0} ofs exceeds ±{1} — calib error, not fine-tuning.</value>
+  </data>
+  <data name="Teach.TrimUnits" xml:space="preserve">
+    <value>mm / mm / °</value>
+  </data>
+  <data name="Teach.Vacuum1" xml:space="preserve">
+    <value>Vac #1</value>
+  </data>
+  <data name="Teach.Vacuum2" xml:space="preserve">
+    <value>Vac #2</value>
+  </data>
+  <data name="Teach.VerifyFail" xml:space="preserve">
+    <value>WARN: verify pt dev. {0:0.000} mm &gt; {1:0.000} mm — check teach order / tray flatness</value>
+  </data>
+  <data name="Teach.VerifyNoPoint" xml:space="preserve">
+    <value>Verify pt not taught (optional; catches wrong teach order).</value>
+  </data>
+  <data name="Teach.VerifyNotTaught" xml:space="preserve">
+    <value>3 pts not all taught for this Tool — coords below computed from 0.</value>
+  </data>
+  <data name="Teach.VerifyOk" xml:space="preserve">
+    <value>Verify pt OK: dev. {0:0.000} mm ≤ {1:0.000} mm</value>
+  </data>
+  <data name="Teach.VerifyOptional" xml:space="preserve">
+    <value>Verify (optional)</value>
+  </data>
+  <data name="Teach.VisitOrderPrefix" xml:space="preserve">
+    <value>Order #</value>
+  </data>
+  <data name="Teach.WhatAlignPos" xml:space="preserve">
+    <value>nozzle #{0} bottom CAM pos.</value>
+  </data>
+  <data name="Teach.WhatCamAnchor" xml:space="preserve">
+    <value>top CAM ref (assy tray cell (1,1))</value>
+  </data>
+  <data name="Teach.WhatCellPos" xml:space="preserve">
+    <value>cell ({0},{1}) pos., {2}, Tool {3}</value>
+  </data>
+  <data name="Teach.WhatGridPoint" xml:space="preserve">
+    <value>{0}, {1}, Tool {2}</value>
+  </data>
+  <data name="Teach.WhatJigCam" xml:space="preserve">
+    <value>jig target insp pos.</value>
+  </data>
+  <data name="Teach.WhatJigPick" xml:space="preserve">
+    <value>nozzle #{0} jig pick pos.</value>
+  </data>
+  <data name="Teach.WhatPickAngle" xml:space="preserve">
+    <value>{0} pick angle</value>
+  </data>
+  <data name="Teach.WhatZPick" xml:space="preserve">
+    <value>{0} pick height, {1}</value>
+  </data>
+  <data name="Teach.WhatZPlace" xml:space="preserve">
+    <value>{0} place height, {1}</value>
+  </data>
+  <data name="Teach.WhatZSlow" xml:space="preserve">
+    <value>{0} slow pt, {1}</value>
+  </data>
+  <data name="Teach.WordAngle" xml:space="preserve">
+    <value>angle</value>
+  </data>
+  <data name="Teach.WordPick" xml:space="preserve">
+    <value>pick</value>
+  </data>
+  <data name="Teach.WordPlace" xml:space="preserve">
+    <value>place</value>
+  </data>
+  <data name="Teach.ZCaptureFailed" xml:space="preserve">
+    <value>{0} can't reach insp height {1:0.000} mm: {2}</value>
+  </data>
+  <data name="Teach.ZCellMoveTip" xml:space="preserve">
+    <value>Dbl-click: selected Tool Z down to taught pick (input) / place (assy) height, via slow pt.</value>
+  </data>
+  <data name="Teach.ZHome" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Teach.ZHomeTip" xml:space="preserve">
+    <value>Dbl-click: move to Z=0. Needs Home done.</value>
+  </data>
+  <data name="Teach.ZPickHint" xml:space="preserve">
+    <value>Z1/Z2 taught SEPARATELY. Jog Z1 (or Z2) down to PICK height on input tray, press Teach of that axis.</value>
+  </data>
+  <data name="Teach.ZPickTitle" xml:space="preserve">
+    <value>PICK HEIGHT (Z_PICK)</value>
+  </data>
+  <data name="Teach.ZPlaceHint" xml:space="preserve">
+    <value>Z1/Z2 taught SEPARATELY. Jog Z1 (or Z2) down to PLACE height on assy tray, press Teach of that axis.</value>
+  </data>
+  <data name="Teach.ZPlaceTitle" xml:space="preserve">
+    <value>PLACE HEIGHT (Z_PLACE)</value>
+  </data>
+  <data name="Teach.ZSlowHint" xml:space="preserve">
+    <value>Jog Z1 (or Z2) to where slow speed STARTS, press Teach of that axis. Z_SAFE → here: Auto high; here → {0} height: Auto low. Empty (0.000): one go at high.</value>
+  </data>
+  <data name="Teach.ZSlowNotTaught" xml:space="preserve">
+    <value>{0}: not taught — Auto high all the way to {1} height.</value>
+  </data>
+  <data name="Teach.ZSlowOk" xml:space="preserve">
+    <value>{0}: Auto low for last {1:0.000} mm.</value>
+  </data>
+  <data name="Teach.ZSlowPickTitle" xml:space="preserve">
+    <value>Slow pt before pick (Z_Slow)</value>
+  </data>
+  <data name="Teach.ZSlowPlaceTitle" xml:space="preserve">
+    <value>Slow pt before place (Z_Slow)</value>
+  </data>
+  <data name="Teach.ZSlowWrongSide" xml:space="preserve">
+    <value>{0}: WRONG — slow pt {1:0.000} must be &lt; {2} height {3:0.000} (+Z = down). Ignored, one go at high.</value>
+  </data>
+  <data name="Tray.SummaryCurrent" xml:space="preserve">
+    <value>{0} × {1} — cell {2}/{3}</value>
+  </data>
+  <data name="Tray.SummaryDone" xml:space="preserve">
+    <value>{0} × {1} — done</value>
+  </data>
+  <data name="Vision.AcceptHeader" xml:space="preserve">
+    <value>Post-calib acceptance</value>
+  </data>
+  <data name="Vision.AcceptNote" xml:space="preserve">
+    <value>Dry run = ONLY App test for a UNIFORM hand-eye error: nozzle holds sample, App computes place pt, MOVES THERE at Z safe; from above, product center must be over part. Hand-eye 6, 7 do NOT replace it (they see only spread vs Jog pos.).</value>
+  </data>
+  <data name="Vision.AlignAngles" xml:space="preserve">
+    <value>A angles (°)</value>
+  </data>
+  <data name="Vision.AlignNotVerified" xml:space="preserve">
+    <value>NOT verified — run rotation test</value>
+  </data>
+  <data name="Vision.AlignSeqConfirm" xml:space="preserve">
+    <value>Nozzle #{0}: clear old pts in Flow AlignBottom_Tool{0} calib, run {1} translation + {2} rotation pts, then A to 0° (template image).
+
+Sample product must be on nozzle. Continue?</value>
+  </data>
+  <data name="Vision.AlignSeqDone" xml:space="preserve">
+    <value>{0} pts loaded for nozzle #{1}, A at 0°.
+
+Next in VisionMaster (left column): Calibrate → Create Calibration File, set Calibration Transformation of Flow AlignBottom_Tool{1} to that file, Ctrl+S. Then run "Rotation test" here.</value>
+  </data>
+  <data name="Vision.AlignSeqLoaded" xml:space="preserve">
+    <value>{0} pts loaded, A at 0°.</value>
+  </data>
+  <data name="Vision.AlignSeqStop" xml:space="preserve">
+    <value>Nozzle #{0} calib stopped: {1} ({2} pts loaded).</value>
+  </data>
+  <data name="Vision.AlignStatus" xml:space="preserve">
+    <value>{0}sign {1}, resid. {2:0.000} mm, X={3:0.000} — {4:dd/MM/yyyy HH:mm}</value>
+  </data>
+  <data name="Vision.AlignXOffsets" xml:space="preserve">
+    <value>X Ofs (mm)</value>
+  </data>
+  <data name="Vision.AutoCalib" xml:space="preserve">
+    <value>Auto Calib (S order)</value>
+  </data>
+  <data name="Vision.AutoCalibConfirm" xml:space="preserve">
+    <value>Clear old pts in N-point Calibration (Flow LocateTop), load 9 new pts in S order. Run?</value>
+  </data>
+  <data name="Vision.AutoCalibDone" xml:space="preserve">
+    <value>Auto Calib done — 9 pts loaded (S order).
+
+Next: N-point Calibration (left column) → Calibrate → "Create Calibration File", then run "Top-down check" here.</value>
+  </data>
+  <data name="Vision.AutoCalibLoaded" xml:space="preserve">
+    <value>9 pts loaded.</value>
+  </data>
+  <data name="Vision.AutoCalibPoint" xml:space="preserve">
+    <value>Pt {0}/{1} (numpad {2})…</value>
+  </data>
+  <data name="Vision.AutoCalibStop" xml:space="preserve">
+    <value>Auto Calib stopped at pt {0} (numpad {1}): move or Flow LocateTop (calib) failed.</value>
+  </data>
+  <data name="Vision.AutoCalibStopStatus" xml:space="preserve">
+    <value>Stopped at pt {0} (numpad {1}).</value>
+  </data>
+  <data name="Vision.AutoCalibTip" xml:space="preserve">
+    <value>Dbl-click: run 9 pts as 1,2,3,6,5,4,7,8,9 — the S path N-point module expects</value>
+  </data>
+  <data name="Vision.AxisAToZero" xml:space="preserve">
+    <value>A to 0°</value>
+  </data>
+  <data name="Vision.AxisAToZeroTip" xml:space="preserve">
+    <value>Dbl-click: selected nozzle A to 0°</value>
+  </data>
+  <data name="Vision.AxisAZeroFail" xml:space="preserve">
+    <value>Nozzle #{0}: A to 0° failed.</value>
+  </data>
+  <data name="Vision.BottomUpNote" xml:space="preserve">
+    <value>Pick a sample product on selected nozzle first. Runs X pos. (translation), then A angles (rotation) at Insp pos., 1 pt per move, then A to 0° for template image. Leave X empty for rotation-only calib.</value>
+  </data>
+  <data name="Vision.BottomUpNoteHeader" xml:space="preserve">
+    <value>Bottom CAM calib (Align) — VisionMaster</value>
+  </data>
+  <data name="Vision.CenterNotSaved" xml:space="preserve">
+    <value>(not saved)</value>
+  </data>
+  <data name="Vision.CenterSaved" xml:space="preserve">
+    <value>(saved)</value>
+  </data>
+  <data name="Vision.CenterSavedDiskFail" xml:space="preserve">
+    <value>Calibration Center Point set: ({0:0.000}, {1:0.000}), DISK WRITE FAILED — see alarm.</value>
+  </data>
+  <data name="Vision.CenterSavedOk" xml:space="preserve">
+    <value>Calibration Center Point saved: ({0:0.000}, {1:0.000}) → system.json (+ X/Y grid step).</value>
+  </data>
+  <data name="Vision.CheckCalib" xml:space="preserve">
+    <value>Check calib</value>
+  </data>
+  <data name="Vision.ClearFail" xml:space="preserve">
+    <value>Can't clear old pts in N-point Calibration — no axis moved.
+
+{0}</value>
+  </data>
+  <data name="Vision.ClearFailStatus" xml:space="preserve">
+    <value>Can't clear old pts.</value>
+  </data>
+  <data name="Vision.ClearingPoints" xml:space="preserve">
+    <value>Clearing old N-point pts…</value>
+  </data>
+  <data name="Vision.DryRunConfirm" xml:space="preserve">
+    <value>Dry-run place, nozzle #{0}. Top CAM must see the mark; nozzle #{0} MUST hold a sample.
+
+Inspect mark → Bottom CAM → Flow AlignBottom_Tool{0} computes place cmd → move there at Z safe, Z not lowered. Continue?</value>
+  </data>
+  <data name="Vision.DryRunDone" xml:space="preserve">
+    <value>Dry run nozzle #{0}: mark at ({1:0.000}, {2:0.000}); nozzle at X {3:0.000}, Y2 {4:0.000}.
+
+Look down: sample center must be over mark, ≤ 0.05 mm.</value>
+  </data>
+  <data name="Vision.DryRunPlace" xml:space="preserve">
+    <value>Dry-run place on mark</value>
+  </data>
+  <data name="Vision.DryRunPlaceTip" xml:space="preserve">
+    <value>Dbl-click. Nozzle holds sample. Inspects mark, AlignBottom_ToolN computes place cmd, moves there at Z safe — product center must be over mark</value>
+  </data>
+  <data name="Vision.DryRunStop" xml:space="preserve">
+    <value>Dry run nozzle #{0} stopped: {1}</value>
+  </data>
+  <data name="Vision.Expired" xml:space="preserve">
+    <value>EXPIRED</value>
+  </data>
+  <data name="Vision.GoToAlign4" xml:space="preserve">
+    <value>4 · To bottom CAM</value>
+  </data>
+  <data name="Vision.GoToAlign7" xml:space="preserve">
+    <value>7 · To bottom CAM</value>
+  </data>
+  <data name="Vision.GridPoint5Tip" xml:space="preserve">
+    <value>Dbl-click: image center = saved Calibration Center Point, Ofs (0,0)</value>
+  </data>
+  <data name="Vision.GridPointFail" xml:space="preserve">
+    <value>Pt {0}: move or Flow LocateTop (calib) failed.</value>
+  </data>
+  <data name="Vision.GridPointTip" xml:space="preserve">
+    <value>Dbl-click: X/Y2 to this grid pt, load 1 pt into N-point module</value>
+  </data>
+  <data name="Vision.GridStepX" xml:space="preserve">
+    <value>Step X (mm)</value>
+  </data>
+  <data name="Vision.GridStepY" xml:space="preserve">
+    <value>Step Y (mm)</value>
+  </data>
+  <data name="Vision.GuardConfirm" xml:space="preserve">
+    <value>Cmd off teach grid: {0}
+
+Auto would skip this cell. Move there anyway? (Z stays safe.)</value>
+  </data>
+  <data name="Vision.GuardWarn" xml:space="preserve">
+    <value>Cmd OUTSIDE teach-grid fence: {0}
+
+Auto would skip this cell. "To place pt" still runs but asks again. Likely hand-eye or teach grid wrong — check before lowering Z.</value>
+  </data>
+  <data name="Vision.HandEyeNote" xml:space="preserve">
+    <value>Mount jig on Assy tray table, clamp TARGET PART (must NOT shift), fitted can on top. 1→5: to pick pos., pick can, LocateTop on part below, to Bottom CAM, App writes HandEyeDx_mm = X_pick + ObjX_mm − TopX_mm, angle Ref = ObjA_deg + TopA_deg (added to CellA_deg). Off-center pick OK. DO NOT rotate A. Pos. taught in Teaching &gt; Jig; Z = Assy tray place height — jig must hold can there.</value>
+  </data>
+  <data name="Vision.HandEyeNoteHeader" xml:space="preserve">
+    <value>Hand-eye — Top CAM ↔ nozzle Rot. center Ofs</value>
+  </data>
+  <data name="Vision.HandEyeNotMeasured" xml:space="preserve">
+    <value>NOT measured</value>
+  </data>
+  <data name="Vision.HandEyeOutdated" xml:space="preserve">
+    <value>REDO — old record (before Bottom CAM Y-dir fix 30/09)</value>
+  </data>
+  <data name="Vision.HandEyeStatus" xml:space="preserve">
+    <value>dx={0:0.000}, dy={1:0.000} mm, angle Ref {3:0.00}° — {2:dd/MM/yyyy HH:mm}</value>
+  </data>
+  <data name="Vision.Header" xml:space="preserve">
+    <value>VISION CALIB</value>
+  </data>
+  <data name="Vision.HeaderNote" xml:space="preserve">
+    <value>Auto needs: Top-down check OK; rotation test + hand-eye OK on both nozzles. Recalib Top CAM → redo Top-down check + hand-eye. Recalib Bottom CAM → redo rotation test.</value>
+  </data>
+  <data name="Vision.HeCellButton" xml:space="preserve">
+    <value>Cell…</value>
+  </data>
+  <data name="Vision.HeCellInPlace" xml:space="preserve">
+    <value>In place (no move)</value>
+  </data>
+  <data name="Vision.HeCellPickerTip" xml:space="preserve">
+    <value>Assy tray cell for 6</value>
+  </data>
+  <data name="Vision.HeCellPickerTitle" xml:space="preserve">
+    <value>Assy tray — cell for 6</value>
+  </data>
+  <data name="Vision.HeCheckTarget" xml:space="preserve">
+    <value>8 · Trigger AlignBottom → target</value>
+  </data>
+  <data name="Vision.HeCheckTargetTip" xml:space="preserve">
+    <value>Dbl-click (Z to capture height). Nozzle must be at Bottom CAM (7). AlignBottom inspects can, Group Cmd computes place pt on pose from 6, shows Ofs vs pick encoders. X not moved</value>
+  </data>
+  <data name="Vision.HeCommit" xml:space="preserve">
+    <value>5 · Save hand-eye</value>
+  </data>
+  <data name="Vision.HeCommitDone" xml:space="preserve">
+    <value>Nozzle #{0} hand-eye saved: dx={1:0.000}, dy={2:0.000} mm, angle Ref {3:0.00}°.
+
+Can still on nozzle. To test: jog X/Y2 elsewhere (part in image) or to another product on jig, then 6 → 7 → 8 → 9; then "Return can to jig".</value>
+  </data>
+  <data name="Vision.HeCommitFail" xml:space="preserve">
+    <value>Nozzle #{0} hand-eye NOT saved: {1}</value>
+  </data>
+  <data name="Vision.HeCommitLine" xml:space="preserve">
+    <value>5. Nozzle #{0} hand-eye saved: dx {1:0.000}, dy {2:0.000} mm, angle Ref {3:0.00}°</value>
+  </data>
+  <data name="Vision.HeCommitTip" xml:space="preserve">
+    <value>Dbl-click: A back to pick angle, AlignBottom_ToolN inspects can, off-center limit check, saves hand-eye + angle Ref to model</value>
+  </data>
+  <data name="Vision.HeGoToAlign7Tip" xml:space="preserve">
+    <value>Dbl-click: X to AlignPosX of selected nozzle (as 4). A not rotated</value>
+  </data>
+  <data name="Vision.HeGoToAlignTip" xml:space="preserve">
+    <value>Dbl-click: X to AlignPosX of selected nozzle (same as step run 4). A not rotated</value>
+  </data>
+  <data name="Vision.HeGoToPick" xml:space="preserve">
+    <value>1 · To jig pick pos.</value>
+  </data>
+  <data name="Vision.HeGoToPickTip" xml:space="preserve">
+    <value>Dbl-click: X, Y2 to taught pick pos., A to pick angle; Z not moved. Re-press = restart, old data cleared</value>
+  </data>
+  <data name="Vision.HeGoToTarget" xml:space="preserve">
+    <value>9 · To target</value>
+  </data>
+  <data name="Vision.HeGoToTargetTip" xml:space="preserve">
+    <value>Dbl-click: X, Y2, A to target from 8; Z down to Assy tray slow-down pt, stop — can hovers, no contact, no release. Check by eye</value>
+  </data>
+  <data name="Vision.HeLocate" xml:space="preserve">
+    <value>3 · Inspect target (LocateTop)</value>
+  </data>
+  <data name="Vision.HeLocateCell" xml:space="preserve">
+    <value>6 · Inspect part (cell {0})</value>
+  </data>
+  <data name="Vision.HeLocateHere" xml:space="preserve">
+    <value>6 · Inspect part (in place)</value>
+  </data>
+  <data name="Vision.HeLocateHereTip" xml:space="preserve">
+    <value>Dbl-click. With cell (button right): Top CAM to that Assy tray cell (as S05), LocateTop ONCE. No cell: in place, NO axis move; pose must match 3 (TopX_mm is absolute)</value>
+  </data>
+  <data name="Vision.HeLocateTip" xml:space="preserve">
+    <value>Dbl-click: Top CAM to taught Insp pos., LocateTop on several images, Avg TopX_mm / TopY_mm / TopA_deg of uncovered part</value>
+  </data>
+  <data name="Vision.HePick" xml:space="preserve">
+    <value>2 · Pick sample can</value>
+  </data>
+  <data name="Vision.HePickConfirm" xml:space="preserve">
+    <value>Nozzle #{0}: Z down to ASSY TRAY PLACE HEIGHT, Vac on.
+
+Jig must clamp target part with a fitted can on top, at that height. Continue?</value>
+  </data>
+  <data name="Vision.HePickTip" xml:space="preserve">
+    <value>Dbl-click: Z down to Assy tray place height, Vac on, up; logs X/Y2 encoders at pick. Moves Z → asks first</value>
+  </data>
+  <data name="Vision.HeRetestHeader" xml:space="preserve">
+    <value>Re-test at any Jog pos.</value>
+  </data>
+  <data name="Vision.HeRetestNote" xml:space="preserve">
+    <value>Works once hand-eye is saved (even after App restart); needs a can on nozzle (1→2, or Vac on Manual). Jog X/Y2 elsewhere (part still in Top CAM image), to another product on jig, or pick an Assy tray cell (small button by 6), then 6→7→8→9: inspect part, to Bottom CAM, AlignBottom → target, to target (Z stops at slow-down pt above part; check by eye). Same part as 2 → target must = pick pos. RUN AT SEVERAL PLACES: spread vs Jog pos. = Top-down calib error. Same part hides a UNIFORM hand-eye error; another product shows it as can↔part Ofs.</value>
+  </data>
+  <data name="Vision.HeReturn" xml:space="preserve">
+    <value>Return can to jig</value>
+  </data>
+  <data name="Vision.HeReturnConfirm" xml:space="preserve">
+    <value>Return can on nozzle #{0} to jig: to taught pick pos., A to pick angle, Z down, Vac off + blow, up.
+
+Jig must be unmoved. Continue?</value>
+  </data>
+  <data name="Vision.HeReturnTip" xml:space="preserve">
+    <value>Dbl-click: to taught pick pos., A to pick angle, Z down, Vac off + blow, up. Needs can on nozzle; usable from any step</value>
+  </data>
+  <data name="Vision.HeTitleGoToPick" xml:space="preserve">
+    <value>1 · To jig pick pos.</value>
+  </data>
+  <data name="Vision.HeTitleLocate" xml:space="preserve">
+    <value>3 · Inspect target</value>
+  </data>
+  <data name="Vision.JogBackTip" xml:space="preserve">
+    <value>Hold: jog back. Release: stop</value>
+  </data>
+  <data name="Vision.JogFast" xml:space="preserve">
+    <value>Fast</value>
+  </data>
+  <data name="Vision.JogFwdTip" xml:space="preserve">
+    <value>Hold: jog fwd. Release: stop</value>
+  </data>
+  <data name="Vision.JogSlow" xml:space="preserve">
+    <value>Slow</value>
+  </data>
+  <data name="Vision.MoveXToAlignFail" xml:space="preserve">
+    <value>X to Insp pos. failed.</value>
+  </data>
+  <data name="Vision.NeedThreeAngles" xml:space="preserve">
+    <value>Need ≥ 3 angles — edit list above.</value>
+  </data>
+  <data name="Vision.NoAlignPosX" xml:space="preserve">
+    <value>Nozzle #{0} bottom CAM pos. not taught (Teaching &gt; Teach #{0}).</value>
+  </data>
+  <data name="Vision.NoCenter" xml:space="preserve">
+    <value>Calibration Center Point not saved — jog to image center, press Save.</value>
+  </data>
+  <data name="Vision.NoModel" xml:space="preserve">
+    <value>No model loaded.</value>
+  </data>
+  <data name="Vision.NoOrigin" xml:space="preserve">
+    <value>Not homed — run Origin first.</value>
+  </data>
+  <data name="Vision.NoOriginCalib" xml:space="preserve">
+    <value>Not homed — run Origin before calib.</value>
+  </data>
+  <data name="Vision.NoOriginCoords" xml:space="preserve">
+    <value>Not homed — coords meaningless.</value>
+  </data>
+  <data name="Vision.NotCalibChecked" xml:space="preserve">
+    <value>(calib not checked)</value>
+  </data>
+  <data name="Vision.NotChecked" xml:space="preserve">
+    <value>(not checked)</value>
+  </data>
+  <data name="Vision.Note" xml:space="preserve">
+    <value>Note: {0}</value>
+  </data>
+  <data name="Vision.NothingWritten" xml:space="preserve">
+    <value>{0}
+
+Nothing written to model.</value>
+  </data>
+  <data name="Vision.NotRunYet" xml:space="preserve">
+    <value>(no step run)</value>
+  </data>
+  <data name="Vision.ReadyHint" xml:space="preserve">
+    <value>Auto needs calib ready — press "Check calib" below.</value>
+  </data>
+  <data name="Vision.RotationFail" xml:space="preserve">
+    <value>Nozzle #{0} rotation test NG: {1}</value>
+  </data>
+  <data name="Vision.RotationMoveXConfirm" xml:space="preserve">
+    <value>X at {0:0.000}, nozzle #{1} Insp pos. = {2:0.000}. Move X there and test?</value>
+  </data>
+  <data name="Vision.RotationPass" xml:space="preserve">
+    <value>Nozzle #{0} rotation test OK: rotated {1:0.0}° → meas. {2:0.0}°, sign {3}, resid. {4:0.000} mm (ecc. {5:0.000} mm).</value>
+  </data>
+  <data name="Vision.RotationRunning" xml:space="preserve">
+    <value>Rotation test (Insp — rotate — Insp)…</value>
+  </data>
+  <data name="Vision.RotationTest" xml:space="preserve">
+    <value>Rotation test</value>
+  </data>
+  <data name="Vision.RotationTestTip" xml:space="preserve">
+    <value>Dbl-click: capture product before/after test rotation → angle sign; catches wrong Rot. center/axis dir in bottom calib file. OK → saved to model</value>
+  </data>
+  <data name="Vision.RunAlignSeq" xml:space="preserve">
+    <value>Run Align calib</value>
+  </data>
+  <data name="Vision.RunAlignSeqTip" xml:space="preserve">
+    <value>Dbl-click: X pos., then A angles at Insp pos., 1 pt per move</value>
+  </data>
+  <data name="Vision.SaveCenter" xml:space="preserve">
+    <value>Save (system.json)</value>
+  </data>
+  <data name="Vision.SaveCenterTip" xml:space="preserve">
+    <value>Save current X/Y2 as Calibration Center Point (pt 5) + X/Y grid step to system.json now</value>
+  </data>
+  <data name="Vision.SelectTool" xml:space="preserve">
+    <value>Tool (nozzle)</value>
+  </data>
+  <data name="Vision.SeqAlignBottom" xml:space="preserve">
+    <value>5 · Trigger AlignBottom (get Ofs)</value>
+  </data>
+  <data name="Vision.SeqAlignBottomTip" xml:space="preserve">
+    <value>Dbl-click (Z to capture height): inspect product on nozzle; Group Cmd computes place cmd into cell from Trigger LocateTop. Limits + teach-grid fence as in Auto</value>
+  </data>
+  <data name="Vision.SeqAssyRow" xml:space="preserve">
+    <value>Assy cell — row</value>
+  </data>
+  <data name="Vision.SeqCol" xml:space="preserve">
+    <value>col</value>
+  </data>
+  <data name="Vision.SeqHeader" xml:space="preserve">
+    <value>Step run — full cycle</value>
+  </data>
+  <data name="Vision.SeqInputRow" xml:space="preserve">
+    <value>Input cell — row</value>
+  </data>
+  <data name="Vision.SeqLocateTopTip" xml:space="preserve">
+    <value>LocateTop in place; stores TopX_mm / TopY_mm / TopA_deg as Tgt cell pose for Trigger AlignBottom</value>
+  </data>
+  <data name="Vision.SeqMoveCam" xml:space="preserve">
+    <value>1 · CAM to Assy cell</value>
+  </data>
+  <data name="Vision.SeqMoveCamTip" xml:space="preserve">
+    <value>Dbl-click. Taught Top CAM Ref + cell Ofs from Cell (1,1) per Tool 2 teach grid (= S05 in Auto). Clears stored LocateTop result</value>
+  </data>
+  <data name="Vision.SeqMoveCamTitle" xml:space="preserve">
+    <value>CAM to Assy cell</value>
+  </data>
+  <data name="Vision.SeqMoveToAlignTip" xml:space="preserve">
+    <value>Dbl-click: X to AlignPosX of selected nozzle — same pos. as Bottom CAM calib + rotation test</value>
+  </data>
+  <data name="Vision.SeqMoveToAlignTitle" xml:space="preserve">
+    <value>To bottom CAM</value>
+  </data>
+  <data name="Vision.SeqMoveToCmd" xml:space="preserve">
+    <value>6 · To place pt</value>
+  </data>
+  <data name="Vision.SeqMoveToCmdTip" xml:space="preserve">
+    <value>Dbl-click: A, X, Y to CmdA_deg / CmdX_mm / CmdY2_mm — Z stays safe, Vac stays on</value>
+  </data>
+  <data name="Vision.SeqMoveToCmdTitle" xml:space="preserve">
+    <value>To place pt</value>
+  </data>
+  <data name="Vision.SeqNote" xml:space="preserve">
+    <value>Manual run in Auto order, 1 button per step. Nozzle = Tool selected above. 'To place pt' does NOT lower Z or release Vac — do that on Manual page.</value>
+  </data>
+  <data name="Vision.SeqPick" xml:space="preserve">
+    <value>3 · Pick from input cell</value>
+  </data>
+  <data name="Vision.SeqPickConfirm" xml:space="preserve">
+    <value>Pick at input cell ({1},{2}) with nozzle #{0}: Z DOWN, Vac on, up. Cell must hold a product. Continue?</value>
+  </data>
+  <data name="Vision.SeqPickTip" xml:space="preserve">
+    <value>Dbl-click: to Input tray cell, Z down to pick height, Vac on, up — logs nozzle as holding, as in Auto</value>
+  </data>
+  <data name="Vision.SeqPickTitle" xml:space="preserve">
+    <value>Pick</value>
+  </data>
+  <data name="Vision.StepBottomUp" xml:space="preserve">
+    <value>Bottom CAM calib (per Tool)</value>
+  </data>
+  <data name="Vision.StepHandEye" xml:space="preserve">
+    <value>Hand-eye (per Tool)</value>
+  </data>
+  <data name="Vision.StepRotation" xml:space="preserve">
+    <value>Rotation test (per Tool)</value>
+  </data>
+  <data name="Vision.StepSequence" xml:space="preserve">
+    <value>Step run (full cycle)</value>
+  </data>
+  <data name="Vision.StepsLabel" xml:space="preserve">
+    <value>Calib steps (in order)</value>
+  </data>
+  <data name="Vision.StepsTip" xml:space="preserve">
+    <value>Do in list order. Only the selected step is shown below.</value>
+  </data>
+  <data name="Vision.StepStopped" xml:space="preserve">
+    <value>{0} stopped: {1}</value>
+  </data>
+  <data name="Vision.StepTopDown" xml:space="preserve">
+    <value>Top CAM calib + check (shared)</value>
+  </data>
+  <data name="Vision.StepVerify" xml:space="preserve">
+    <value>Acceptance (dry run)</value>
+  </data>
+  <data name="Vision.StoppedMidway" xml:space="preserve">
+    <value>Stopped midway.</value>
+  </data>
+  <data name="Vision.StopTip" xml:space="preserve">
+    <value>Stop all (= Main STOP): stops axes, cancels calib / hand-eye / step run</value>
+  </data>
+  <data name="Vision.TestAngle" xml:space="preserve">
+    <value>Test angle (°)</value>
+  </data>
+  <data name="Vision.TopDownFail" xml:space="preserve">
+    <value>Top-down NG: {0}</value>
+  </data>
+  <data name="Vision.TopDownNote" xml:space="preserve">
+    <value>Mark must be on the tray fixture (moves with Y2), not the machine table: grid rows come from Y2 moves. Jog X/Y2 to image center, press Save — all pt offsets are from there.</value>
+  </data>
+  <data name="Vision.TopDownNoteHeader" xml:space="preserve">
+    <value>Top CAM calib — 9-pt grid</value>
+  </data>
+  <data name="Vision.TopDownPass" xml:space="preserve">
+    <value>Top-down OK (travel {0:0.0} mm): dev X {1:0.000}, Y {2:0.000} mm; cross-axis {3:0.000}/{4:0.000} mm.</value>
+  </data>
+  <data name="Vision.TriggerAlignCalib" xml:space="preserve">
+    <value>Trigger AlignBottom (calib, no rot.)</value>
+  </data>
+  <data name="Vision.TriggerAlignCalibTip" xml:space="preserve">
+    <value>Dbl-click: Z to capture height, load 1 more pt at current angle — changes calib pt list</value>
+  </data>
+  <data name="Vision.TriggerAlignNotFound" xml:space="preserve">
+    <value>Flow AlignBottom_Tool{0} (calib) triggered — NOT found. Check product/image.</value>
+  </data>
+  <data name="Vision.TriggerAlignOk" xml:space="preserve">
+    <value>Flow AlignBottom_Tool{0} (calib) triggered — found. Note: pt WAS loaded into calib list.</value>
+  </data>
+  <data name="Vision.TriggerTopCalib" xml:space="preserve">
+    <value>Trigger LocateTop (calib)</value>
+  </data>
+  <data name="Vision.TriggerTopCalibTip" xml:space="preserve">
+    <value>LocateTop calib branch (IsTriggerLocate = 0) at current pos. WARNING: also loads 1 pt into N-point module — not a test button</value>
+  </data>
+  <data name="Vision.TriggerTopNotFound" xml:space="preserve">
+    <value>Flow LocateTop (calib) triggered — NOT found. Check mark/image.</value>
+  </data>
+  <data name="Vision.TriggerTopOk" xml:space="preserve">
+    <value>Flow LocateTop (calib) triggered — found. Note: pt WAS loaded into calib list.</value>
+  </data>
+  <data name="Vision.Vacuum1" xml:space="preserve">
+    <value>Vac #1</value>
+  </data>
+  <data name="Vision.Vacuum1Tip" xml:space="preserve">
+    <value>Toggle nozzle #1 Vac valve. Green = on</value>
+  </data>
+  <data name="Vision.Vacuum2" xml:space="preserve">
+    <value>Vac #2</value>
+  </data>
+  <data name="Vision.Vacuum2Tip" xml:space="preserve">
+    <value>Toggle nozzle #2 Vac valve. Green = on</value>
+  </data>
+  <data name="Vision.VerifyingTopDown" xml:space="preserve">
+    <value>Top-down check (mark at 3 pos.)…</value>
+  </data>
+  <data name="Vision.VerifyTopDown" xml:space="preserve">
+    <value>Top-down check</value>
+  </data>
+  <data name="Vision.VerifyTopDownTip" xml:space="preserve">
+    <value>Dbl-click: measure mark at 3 pos. (start, after X, after Y2) and compare. OK → date saved to model</value>
+  </data>
+  <data name="Vision.VerifyTravel" xml:space="preserve">
+    <value>Test travel (mm)</value>
+  </data>
+  <data name="Vision.Z1SafeTip" xml:space="preserve">
+    <value>Dbl-click: Z1 to Z_SAFE. Needs home, SVO on, brake off.</value>
+  </data>
+  <data name="Vision.Z2SafeTip" xml:space="preserve">
+    <value>Dbl-click: Z2 to Z_SAFE. Needs home, SVO on, brake off.</value>
+  </data>
+  <data name="Vision.ZSafeTitle" xml:space="preserve">
+    <value>{0} to Z_SAFE</value>
+  </data>
+  <data name="Vm.Cancelled" xml:space="preserve">
+    <value>cancelled</value>
+  </data>
+  <data name="Vm.CancelledInFlow" xml:space="preserve">
+    <value>cancelled in Flow {0}</value>
+  </data>
+  <data name="Vm.CountMissing" xml:space="preserve">
+    <value> · Missing: {0}</value>
+  </data>
+  <data name="Vm.CountWrongType" xml:space="preserve">
+    <value> · Wrong type: {0}</value>
+  </data>
+  <data name="Vm.DevClearPointFail" xml:space="preserve">
+    <value>Flow "{1}" module "{0}": Clear Point failed (0x{2:X})</value>
+  </data>
+  <data name="Vm.DevFlowNotFound" xml:space="preserve">
+    <value>Flow "{0}" not in solution — check name in VisionMaster</value>
+  </data>
+  <data name="Vm.DevGvListNull" xml:space="preserve">
+    <value>Global Variable module: var list null</value>
+  </data>
+  <data name="Vm.DevMissingOutputParam" xml:space="preserve">
+    <value>Flow "{0}" missing output "{1}" — check Output Params</value>
+  </data>
+  <data name="Vm.DevMissingOutputVar" xml:space="preserve">
+    <value>Flow "{0}" missing output "{1}" — check solution outputs</value>
+  </data>
+  <data name="Vm.DevNoCalibModule" xml:space="preserve">
+    <value>Flow "{0}": no N-point Calibration / Translation Calibration module</value>
+  </data>
+  <data name="Vm.DevNoGvModule" xml:space="preserve">
+    <value>no Global Variable module — add one (Global Module › Global Variable), declare axis vars</value>
+  </data>
+  <data name="Vm.DevNoGvModuleNamed" xml:space="preserve">
+    <value>no Global Variable module "{0}" — add one (Global Module › Global Variable), declare axis vars</value>
+  </data>
+  <data name="Vm.DevValueNotFinite" xml:space="preserve">
+    <value>non-finite value for var "{0}"</value>
+  </data>
+  <data name="Vm.DevVarNameEmpty" xml:space="preserve">
+    <value>empty GVar name — check GvAxisX/Y2/A1/A2 in system.json</value>
+  </data>
+  <data name="Vm.DevVarNotDeclared" xml:space="preserve">
+    <value>GVar "{0}" not in solution — Setting &gt; Check vars</value>
+  </data>
+  <data name="Vm.DevVarNotDeclaredList" xml:space="preserve">
+    <value>GVar "{0}" not in solution — has: {1}</value>
+  </data>
+  <data name="Vm.FlowInputParamsLeft" xml:space="preserve">
+    <value>{0} still has {1} Input Params — unused, delete them</value>
+  </data>
+  <data name="Vm.FlowNameMissing" xml:space="preserve">
+    <value>Flow name missing</value>
+  </data>
+  <data name="Vm.FlowNameNotSet" xml:space="preserve">
+    <value>Flow name not set (Setting)</value>
+  </data>
+  <data name="Vm.FlowNoOutputs" xml:space="preserve">
+    <value>{0}: no output names — Output Params empty, or Flow not run since solution load</value>
+  </data>
+  <data name="Vm.FlowTimeout" xml:space="preserve">
+    <value>Flow {0} timeout</value>
+  </data>
+  <data name="Vm.FlowUnreadable" xml:space="preserve">
+    <value>unreadable</value>
+  </data>
+  <data name="Vm.GvCreated" xml:space="preserve">
+    <value> · Created: {0}</value>
+  </data>
+  <data name="Vm.GvCreatedAsType" xml:space="preserve">
+    <value>created as {0}</value>
+  </data>
+  <data name="Vm.GvExisting" xml:space="preserve">
+    <value>Exists, type OK: {0}</value>
+  </data>
+  <data name="Vm.GvFailedCount" xml:space="preserve">
+    <value> · Create failed: {0}</value>
+  </data>
+  <data name="Vm.GvInvalidNameCount" xml:space="preserve">
+    <value> · Invalid name: {0}</value>
+  </data>
+  <data name="Vm.GvListFailed" xml:space="preserve">
+    <value>Create failed</value>
+  </data>
+  <data name="Vm.GvListInvalidName" xml:space="preserve">
+    <value>Invalid name</value>
+  </data>
+  <data name="Vm.GvListMissing" xml:space="preserve">
+    <value>Still missing</value>
+  </data>
+  <data name="Vm.GvListWrongType" xml:space="preserve">
+    <value>Wrong type — fix manually in VisionMaster</value>
+  </data>
+  <data name="Vm.GvMoreVars" xml:space="preserve">
+    <value> … +{0} more vars</value>
+  </data>
+  <data name="Vm.GvNoStore" xml:space="preserve">
+    <value>var store/catalog missing</value>
+  </data>
+  <data name="Vm.GvNotFoundAfterCreate" xml:space="preserve">
+    <value>var not found after create</value>
+  </data>
+  <data name="Vm.GvNotSaved" xml:space="preserve">
+    <value>Solution not saved (no new var or save Err).</value>
+  </data>
+  <data name="Vm.GvReadFail" xml:space="preserve">
+    <value>can't read GVar list — {0}</value>
+  </data>
+  <data name="Vm.GvRereadFail" xml:space="preserve">
+    <value>can't re-read var list to confirm</value>
+  </data>
+  <data name="Vm.GvRereadFailAfterCreate" xml:space="preserve">
+    <value>can't re-read var list after create — {0}</value>
+  </data>
+  <data name="Vm.GvSaved" xml:space="preserve">
+    <value>Solution saved.</value>
+  </data>
+  <data name="Vm.GvSaveFail" xml:space="preserve">
+    <value>vars created, solution save failed — {0}</value>
+  </data>
+  <data name="Vm.GvTypeIs" xml:space="preserve">
+    <value>is {0}, needs {1}</value>
+  </data>
+  <data name="Vm.NameEmpty" xml:space="preserve">
+    <value>empty name</value>
+  </data>
+  <data name="Vm.NameForbiddenChars" xml:space="preserve">
+    <value>forbidden chars ? ; . / \ ` { } [ ] &lt; &gt; ( )</value>
+  </data>
+  <data name="Vm.NameSpaces" xml:space="preserve">
+    <value>leading/trailing spaces</value>
+  </data>
+  <data name="Vm.NameTooLong" xml:space="preserve">
+    <value>&gt; 125 bytes</value>
+  </data>
+  <data name="Vm.NoCalibAxes" xml:space="preserve">
+    <value>no axis pos. for calib Pt</value>
+  </data>
+  <data name="Vm.NoSolution" xml:space="preserve">
+    <value>solution not loaded</value>
+  </data>
+  <data name="Vm.NotConnected" xml:space="preserve">
+    <value>not connected</value>
+  </data>
+  <data name="Vm.NoVisionSolution" xml:space="preserve">
+    <value>vision solution not loaded</value>
+  </data>
+  <data name="Vm.OutAllClean" xml:space="preserve">
+    <value>3 Flows + 3 Scripts match contract.</value>
+  </data>
+  <data name="Vm.OutExtraCount" xml:space="preserve">
+    <value> · Extra: {0}</value>
+  </data>
+  <data name="Vm.OutExtraHeader" xml:space="preserve">
+    <value>Extra, not in contract (ignored, OK to keep):</value>
+  </data>
+  <data name="Vm.OutLineMissing" xml:space="preserve">
+    <value>  · missing output {0}</value>
+  </data>
+  <data name="Vm.OutLineTypo" xml:space="preserve">
+    <value>  · "{0}" — rename to "{1}"</value>
+  </data>
+  <data name="Vm.OutLineUnbound" xml:space="preserve">
+    <value>  · {0} NOT BOUND — Subscribe empty, Script gets 0</value>
+  </data>
+  <data name="Vm.OutLineWrongType" xml:space="preserve">
+    <value>  · {0} is {1} — App reads float/int only, reports "missing output"</value>
+  </data>
+  <data name="Vm.OutOkCount" xml:space="preserve">
+    <value>Present, type OK: {0}</value>
+  </data>
+  <data name="Vm.OutTypoCount" xml:space="preserve">
+    <value> · Wrong name: {0}</value>
+  </data>
+  <data name="Vm.OutUnboundCount" xml:space="preserve">
+    <value> · NOT BOUND: {0}</value>
+  </data>
+  <data name="Vm.ReportError" xml:space="preserve">
+    <value>ERR: {0}</value>
+  </data>
+  <data name="Vm.ScriptBlockHead" xml:space="preserve">
+    <value>Script {0} in {1} — {2} Input, {3} Output</value>
+  </data>
+  <data name="Vm.ScriptDeclares" xml:space="preserve">
+    <value>{0} declares: {1}</value>
+  </data>
+  <data name="Vm.ScriptNoModules" xml:space="preserve">
+    <value>{0}: can't list Flow modules — Script check skipped</value>
+  </data>
+  <data name="Vm.ScriptNoOutputs" xml:space="preserve">
+    <value>(no outputs)</value>
+  </data>
+  <data name="Vm.ScriptNotBound" xml:space="preserve">
+    <value>← (NOT BOUND)</value>
+  </data>
+  <data name="Vm.ScriptNotFound" xml:space="preserve">
+    <value>{0}: no module has Script {1} outputs (modules: {2})</value>
+  </data>
+  <data name="Vm.SimClearFail" xml:space="preserve">
+    <value>sim: calib module Err on Clear Point</value>
+  </data>
+  <data name="Vm.SimFlowMissingOutput" xml:space="preserve">
+    <value>Flow "{0}" missing output "{1}"</value>
+  </data>
+  <data name="Vm.SimFlowNotFound" xml:space="preserve">
+    <value>Flow "{0}" not in solution</value>
+  </data>
+  <data name="Vm.SimNoOutputSource" xml:space="preserve">
+    <value>sim: no solution for Output Params</value>
+  </data>
+  <data name="Vm.SimObjectNotFound" xml:space="preserve">
+    <value>object not found</value>
+  </data>
+  <data name="Vm.SimValueNotFinite" xml:space="preserve">
+    <value>non-finite value for "{0}"</value>
+  </data>
+  <data name="Vm.SimVarNameEmpty" xml:space="preserve">
+    <value>empty GVar name</value>
+  </data>
+  <data name="Vm.SimVarNotDeclared" xml:space="preserve">
+    <value>GVar "{0}" not in solution</value>
+  </data>
+  <data name="Vm.SolutionNotFound" xml:space="preserve">
+    <value>solution: not found</value>
+  </data>
+  <data name="Vm.StAlignAngleOut" xml:space="preserve">
+    <value>measured vs encoder angle &gt; VerifyAngleTolDeg</value>
+  </data>
+  <data name="Vm.StAlignAxisMoved" xml:space="preserve">
+    <value>X moved between captures</value>
+  </data>
+  <data name="Vm.StAlignEccOut" xml:space="preserve">
+    <value>residual &gt; VerifyTolMm — wrong Rot. center or Bottom CAM calib file axis dir</value>
+  </data>
+  <data name="Vm.StAlignNoConclusion" xml:space="preserve">
+    <value>eccentricity &lt; MinEccMm, Rot. center undetermined — not saved</value>
+  </data>
+  <data name="Vm.StAlignOk" xml:space="preserve">
+    <value>OK — angle sign measured</value>
+  </data>
+  <data name="Vm.StAlignTurnSmall" xml:space="preserve">
+    <value>test rot. &lt; MinVerifyTurnDeg</value>
+  </data>
+  <data name="Vm.StNotFinite" xml:space="preserve">
+    <value>non-finite values</value>
+  </data>
+  <data name="Vm.StOdd" xml:space="preserve">
+    <value>odd Status ({0})</value>
+  </data>
+  <data name="Vm.StPlaceInvalid" xml:space="preserve">
+    <value>invalid values or Single Point Alignment NG</value>
+  </data>
+  <data name="Vm.StPlaceNoTarget" xml:space="preserve">
+    <value>no cmd — HasTarget not reaching Flow (Group Cmd not reading var?)</value>
+  </data>
+  <data name="Vm.StPlaceOdd" xml:space="preserve">
+    <value>odd Status ({0}) — Script not finished or output wrong type</value>
+  </data>
+  <data name="Vm.StPlaceOk" xml:space="preserve">
+    <value>cmd OK</value>
+  </data>
+  <data name="Vm.StTopAxisMoved" xml:space="preserve">
+    <value>other axis moved during meas.</value>
+  </data>
+  <data name="Vm.StTopEccOut" xml:space="preserve">
+    <value>deviation &gt; tol.</value>
+  </data>
+  <data name="Vm.StTopOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Vm.StTopStepSmall" xml:space="preserve">
+    <value>step &lt; 0.5 mm</value>
+  </data>
+  <data name="Vm.StTopWrongSign" xml:space="preserve">
+    <value>WRONG SIGN — ref mark moved with axis (must stay still)</value>
+  </data>
+  <data name="Vm.Timeout" xml:space="preserve">
+    <value>timeout</value>
+  </data>
+  <data name="Vm.TypeCode" xml:space="preserve">
+    <value>type {0}</value>
+  </data>
+  <data name="Vm.TypeImage" xml:space="preserve">
+    <value>image</value>
+  </data>
+  <data name="Vm.TypeString" xml:space="preserve">
+    <value>string</value>
+  </data>
+  <data name="VmCycle.AxisVarsEmpty" xml:space="preserve">
+    <value>axis var names (GvAxisX/Y2/A1/A2) empty in system.json</value>
+  </data>
+  <data name="VmCycle.CheckMatch" xml:space="preserve">
+    <value>MATCH Group Cmd (max dev. {0:0.0000} mm, {1:0.000}°)</value>
+  </data>
+  <data name="VmCycle.CheckMismatch" xml:space="preserve">
+    <value>MISMATCH Group Cmd: CmdX {0}, CmdY2 {1}, CmdA {2}°, DiagDA {3}° (max dev. {4:0.000} mm, {5:0.00}°)</value>
+  </data>
+  <data name="VmCycle.CheckRecalc" xml:space="preserve">
+    <value>App recalc: tgt ({0:0.000}, {1:0.000}, {2:0.00}°), Δθ {3:+0.00;-0.00}°, sign {4:+0;-0}, comp {5:+0.00;-0.00}° → cmd X {6:0.000}, Y2 {7:0.000}, A {8:0.00}° — {9}</value>
+  </data>
+  <data name="VmCycle.CmdAFarFromCapture" xml:space="preserve">
+    <value>cmd angle {0:0.00}° vs capture {1}: &gt; comp limit + 1°</value>
+  </data>
+  <data name="VmCycle.CmdAOutOfRange" xml:space="preserve">
+    <value>{0} = {1} outside [0, 360]</value>
+  </data>
+  <data name="VmCycle.CmdNotFinite" xml:space="preserve">
+    <value>cmd/diag values non-finite</value>
+  </data>
+  <data name="VmCycle.CmdXSoftLimit" xml:space="preserve">
+    <value>cmd X = {0} outside soft limit</value>
+  </data>
+  <data name="VmCycle.CmdY2SoftLimit" xml:space="preserve">
+    <value>cmd Y2 = {0} outside soft limit</value>
+  </data>
+  <data name="VmCycle.EchoRunIdMismatch" xml:space="preserve">
+    <value>EchoRunId ≠ RunId written — result from another run</value>
+  </data>
+  <data name="VmCycle.GateAlignPosMoved" xml:space="preserve">
+    <value>nozzle #{0} insp pos. ({1:0.000}) vs rot. test pos. ({2:0.000}) &gt; {3:0.000} mm — rerun rot. test for this nozzle</value>
+  </data>
+  <data name="VmCycle.GateHandEyeMissing" xml:space="preserve">
+    <value>nozzle #{0} hand-eye not set</value>
+  </data>
+  <data name="VmCycle.GateHandEyeOld" xml:space="preserve">
+    <value>nozzle #{0} hand-eye outdated (pre-30/09 Bottom CAM Y fix) — rerun hand-eye step</value>
+  </data>
+  <data name="VmCycle.GateNoModel" xml:space="preserve">
+    <value>no model/cfg</value>
+  </data>
+  <data name="VmCycle.GateNoSign" xml:space="preserve">
+    <value>nozzle #{0} angle sign not measured (rot. test)</value>
+  </data>
+  <data name="VmCycle.GateNotReady" xml:space="preserve">
+    <value>Calib: NOT ready — {0}</value>
+  </data>
+  <data name="VmCycle.GateReady" xml:space="preserve">
+    <value>Calib: ready — hand-eye #1 ({0:0.000}, {1:0.000}, ref {6:0.00}°), #2 ({2:0.000}, {3:0.000}, ref {7:0.00}°); sign {4:+0;-0}/{5:+0;-0}</value>
+  </data>
+  <data name="VmCycle.GateThresholds" xml:space="preserve">
+    <value>invalid limits in Setting (comp angle, ctr ofs, insp pos. X tol.)</value>
+  </data>
+  <data name="VmCycle.GateTopDown" xml:space="preserve">
+    <value>top-down check not OK</value>
+  </data>
+  <data name="VmCycle.Missing" xml:space="preserve">
+    <value>(missing)</value>
+  </data>
+  <data name="VmCycle.MissingOutput" xml:space="preserve">
+    <value>missing output {0}</value>
+  </data>
+  <data name="VmCycle.NaNMissing" xml:space="preserve">
+    <value>NaN (missing)</value>
+  </data>
+  <data name="VmCycle.NgAngle" xml:space="preserve">
+    <value>comp angle {0:0.00}° &gt; limit {1:0.#}° (ctr ofs {2:0.000} mm)</value>
+  </data>
+  <data name="VmCycle.NgEcc" xml:space="preserve">
+    <value>ctr ofs {0:0.000} mm &gt; limit {1:0.##} mm (comp angle {2:0.00}°)</value>
+  </data>
+  <data name="VmCycle.NoResult" xml:space="preserve">
+    <value>no result</value>
+  </data>
+  <data name="VmCycle.NoSuchFlow" xml:space="preserve">
+    <value>Flow not in contract</value>
+  </data>
+  <data name="VmCycle.NoteGroupCmdOutputs" xml:space="preserve">
+    <value>8 outputs Status / CmdX_mm / CmdY2_mm / CmdA_deg / Diag* are Group Cmd's — all missing: Group not built or not in Flow Output Params</value>
+  </data>
+  <data name="VmCycle.NoteTool2Echo" xml:space="preserve">
+    <value>Tool 2 Group Cmd imported from Tool 1: set Echo0 to A2_deg</value>
+  </data>
+  <data name="VmCycle.NoVisionNames" xml:space="preserve">
+    <value>vision name cfg missing</value>
+  </data>
+  <data name="VmCycle.ObjRunIdMismatch" xml:space="preserve">
+    <value>ObjRunId ≠ RunId — Group Cmd Script didn't reach last line</value>
+  </data>
+  <data name="VmCycle.PoseNotFinite" xml:space="preserve">
+    <value>{0}/{1}/{2} non-finite or missing</value>
+  </data>
+  <data name="VmCycle.RunIdNotReached" xml:space="preserve">
+    <value>{0} ≠ RunId — Script didn't reach last line</value>
+  </data>
+  <data name="VmCycle.SimSource" xml:space="preserve">
+    <value>sim</value>
+  </data>
+  <data name="VmCycle.SkipCmdOffGrid" xml:space="preserve">
+    <value>cmd off taught grid X {0:+0.000;-0.000}, Y {1:+0.000;-0.000} mm (limit {2:0.00} mm)</value>
+  </data>
+  <data name="VmCycle.SkipTargetOffGrid" xml:space="preserve">
+    <value>tgt off taught grid X {0:+0.000;-0.000}, Y {1:+0.000;-0.000} mm (limit {2:0.00} mm)</value>
+  </data>
+</root>

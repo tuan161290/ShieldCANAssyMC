@@ -1,0 +1,241 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-CE5BEEFF-1840-4BD4-8123-FD1D4835F14F.html
+
+Calibration Transformation
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Calibration Transformation
+
+ Calibration Transformation
+
+ The Calibration Transformation module can convert
+ the feature points in the same coordinate system into the feature points in another
+ coordinate system by loading the calibration file. This module is often used for the
+ transformation between pixel points in the image coordinate system and physical points in
+ the physical coordinate system.
+
+ After inputting the feature point information and load the calibration file,
+ you can obtain the coordinate and angle of each point after calibration transformation.
+ The output transformation results include TransPointX/Y and TransPointA. The
+ inherent attributes of the calibration file include PixelScale, TranslateX/Y, Rotate, Scale, Skew, and Aspect.
+
+ [img:GUID-9648C7A7-6327-443E-958D-9A8E53C66C3A-high.png] 
+ Figure 1 Output Info
+
+ This section contains:
+
+- 
+ How It Works
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How It Works
+
+ A set
+ of coordinates can be mapped to another location through the transformation
+ relationship, and the corresponding formula is
+ Pw
+ =HPI.
+
+ PI
+ represents the image coordinate,
+ Pw
+ represents the physical coordinate, and H represents the transformation
+ relationship. Through the formula you can convert the point from the image
+ coordinate system to the physical coordinate system.
+
+ Also you can use the formula
+ PI
+ =H-1
+ Pw,
+ where
+ H-1
+ represents the opposite transformation relation of H. Through the formula you can
+ convert the point from the physical coordinate system to the image coordinate
+ system.
+
+ The
+ output pixel scale corresponds to the Scale in H,
+ and the TranslateX/Y, Rotate, Scale, Skew, and Aspect
+ corresponds
+ to the parameter components in
+ H-1.
+
+ How To Use
+
+ This module should also be used with the Image Source module that can provide image input and the Locating modules that can provide the information of image
+ feature points. The Calibration Transformation module can
+ subscribe to the image feature points and align file to calculate the physical
+ coordinate after calibration transformation.
+
+ Parameter Configuration
+
+ This part introduces the configuration of basic parameters. For the
+ result parameters, see Result Show.
+
+ Image Input
+
+ Subscribe to images in the Input
+ Source module.
+
+ Coord Input
+
+ Set the coordinate point and coordinate type.
+
+ Input Mode
+
+ Optional by point or by coordinate.
+
+ Coordinate Point
+
+ Coordinate X/Y
+
+ Set the coordinate of the feature points to be
+ converted.
+
+ Angle
+
+ Set the angle of the feature points to be
+ converted.
+
+ Coord Type
+
+ Optional image coordinate or physical coordinate.
+ Determines
+ whether the coordinate point set in the Coord Input is in image
+ coordinate or physical coordinates.
+
+ Align File
+
+ Refer to the parameter in the Single Point Grab module.
+
+ Module Result
+
+ Module Result of Calibration
+ Transformation is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ OutputPoint
+
+ TransPointX
+
+ Float. The X-coordinate of the point obtained after
+ calibration or inverse conversion of the input coordinate.
+
+ TransPointY
+
+ Float. The Y-coordinate of the point obtained after
+ calibration or inverse conversion of the input coordinate.
+
+ TransPointA
+
+ Float. The angle obtained by the calibration transformation
+ of the input angle.
+
+ PixelScale
+
+ Float. The size of per pixel in the physical coordinate
+ system.
+
+ TranslateX
+
+ Float. The X-coordinate of the point in the image coordinate
+ system mapped from the original point in the world coordinate system
+ calculated by calibration matrix.
+
+ TranslateY
+
+ Float. The Y-coordinate of the point in the image coordinate
+ system mapped from the original point in the world coordinate system
+ calculated by calibration matrix.
+
+ Rotate
+
+ Float. The rotation angle (in radians) of the machine in the
+ physical coordinate system relative to the image coordinate system. 
+ 
+- 
+ When the rotation angle is positive, the X-axis of
+ the physical coordinate system of the mechanism rotates
+ counterclockwise by this angle, and its X-axis is consistent
+ with the X-axis of the image coordinate system.
+
+- 
+ When the rotation angle is negative, the X-axis of
+ the physical coordinate system of the mechanism
+ rotates
+ clockwise by this angle, and its X-axis is
+ consistent with the X-axis of the image coordinate system.
+
+ Scale
+
+ Float. The number of pixels per unit length in the image
+ coordinate system relative to the world coordinate system.
+
+ Skew
+
+ Float. The difference between the rotation angle of the Y-axis
+ and that of the X-axis in the world coordinate system. (Unit: radian)
+
+ Aspect
+
+ Float. The ratio of zoom amount of the Y-axis and that of the
+ X-axis in the world coordinate system.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

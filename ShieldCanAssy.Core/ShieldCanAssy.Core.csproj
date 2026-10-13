@@ -1,0 +1,103 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>ShieldCanAssy</RootNamespace>
+    <AssemblyName>ShieldCanAssy.Core</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <Configurations>Debug;Release;Remote</Configurations>
+    <BaseOutputPath>\\1.2.1.218\Users\Public\App</BaseOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Drawing" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <!-- Chữ hiển thị hai ngôn ngữ (Core.Lang\Loc.cs). Đặt tên tài nguyên tường minh: Loc tra đúng tên này, khỏi phụ
+       thuộc cách SDK ghép RootNamespace với thư mục. Hai bảng đều nhúng vào Core.dll, không sinh thư mục en\. -->
+  <ItemGroup>
+    <EmbeddedResource Update="Core.Lang\StringsVi.resx" LogicalName="ShieldCanAssy.Core.Lang.StringsVi.resources" />
+    <EmbeddedResource Update="Core.Lang\StringsEn.resx" LogicalName="ShieldCanAssy.Core.Lang.StringsEn.resources" />
+  </ItemGroup>
+
+  <!-- P1 — Panasonic MINAS A6SF qua Modbus RTU. Thư viện của Tuấn, tham chiếu theo project
+       chứ không theo DLL để sửa bên đó là bên này thấy ngay. ServoControl là repo git riêng,
+       clone nằm CẠNH thư mục dự án (vd. C:\PGM\ShieldCANAssyMC và C:\PGM\ServoControl). -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\ServoControl\ServoControl.csproj" />
+  </ItemGroup>
+
+  <!--
+    P1 — Fastech Ezi-SERVO Plus-E và Ezi-IO Ethernet.
+    EziMOTIONPlusELib.cs là P/Invoke thuần nên chỉ cần compile kèm (đã nằm trong
+    Lib.Fastech\, tự vào build nhờ EnableDefaultCompileItems). Phần native nằm ở
+    Lib\EziMOTIONPlusE.dll — x64, copy sang thư mục exe lúc build.
+
+    Thiếu file DLL này thì app VẪN chạy được ở chế độ mô phỏng; chỉ khi nào thật sự gọi
+    xuống Fastech mới ném DllNotFoundException, và cả FastechAxis lẫn IoConnect đều bắt
+    ngoại lệ đó rồi báo "không tìm thấy EziMOTIONPlusE.dll" thay vì làm sập app.
+  -->
+  <ItemGroup>
+    <None Include="..\Lib\EziMOTIONPlusE.dll" Link="EziMOTIONPlusE.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--
+    P4 — HIKROBOT VisionMaster 4.4.0 SDK. VisionMasterDevice.cs (Lib.VisionMaster\) chỉ cần lớp
+    OOP VM.Core (VmSolution/VmProcedure) + VM.PlatformSDKCS (VmException) — không cần các
+    VMControls.* (những cái đó là control WPF cho trang Vision Edit, tham chiếu bên
+    ShieldCanAssy.Wpf.csproj). Private=false + nạp runtime qua AppDomain.AssemblyResolve trong
+    App.xaml.cs: nếu copy local, một số DLL phụ thuộc bắc cầu của SDK (PropertyGrid.dll, v.v.)
+    không tự theo về nên load lúc chạy thật vẫn lỗi — trỏ thẳng AssemblyResolve về thư mục cài
+    SDK là cách chắc ăn hơn.
+
+    Máy KHÔNG cài VisionMaster4.4.0 thì hai Reference dưới đây không resolve được và cả solution
+    không build — chấp nhận đánh đổi này vì máy dev đang có sẵn SDK (đã xác minh assembly tồn tại
+    đúng đường dẫn), và P4 vốn không thể viết đúng nếu không có API thật để đối chiếu.
+  -->
+  <ItemGroup>
+    <Reference Include="VM.Core">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VM.PlatformSDKCS">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.PlatformSDKCS.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Module "Global Variable" của solution: App ghi vị trí trục thật vào đây trước mỗi lần kích
+         Flow hiệu chuẩn, module hiệu chuẩn trong solution subscribe vào đúng các biến đó
+         (GlobalVariableModuleTool : VM.Core.VmModule, implements VM.PlatformSDKCS.IVarModule). -->
+    <Reference Include="GlobalVariableModuleCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\GlobalVariableModuleCs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Tạo biến toàn cục từ App (VM.ExtensionMethod.GlobalVariableHelper.AddVar — đường cửa sổ
+         Global Variable của VisionMaster dùng, không có trong tài liệu SDK; xem
+         VisionMasterDevice.AddGlobalVar). Cùng thư mục Assembly của SDK. -->
+    <Reference Include="VM.ExtensionMethod">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.ExtensionMethod.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Hai module hiệu chuẩn — N-point Calibration (CAM top-down) và Translation Calibration (CAM bottom-up):
+         App lấy instance trong Flow để bấm "Clear Point" trước mỗi chuỗi nạp điểm (VisionMasterDevice.ClearCalibPoints). -->
+    <Reference Include="IMVSNPointCalibModuCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\IMVSNPointCalibModuCs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TranslationCalibModuCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\TranslationCalibModuCs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

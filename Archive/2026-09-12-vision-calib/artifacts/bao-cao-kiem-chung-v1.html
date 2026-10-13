@@ -1,0 +1,698 @@
+<title>Kiểm Chứng Vision Align</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ink:#1a1f27; --ink-soft:#454c56; --muted:#6b7280;
+    --paper:#f1f2ee; --panel:#ffffff; --panel-mock:#eef0ec; --stage:#e7eae4;
+    --line:#d9dbd3; --line-strong:#c3c6bc;
+    --accent:#c1670e; --accent-ink:#ffffff;
+    --vision:#34519e; --vision-soft:#e9edf9;
+    --ok:#1f8a4c; --ok-soft:#e8f5ec;
+    --warn:#a8560c; --warn-soft:#fbeddb;
+    --crit:#a32b2b; --crit-soft:#fae8e6;
+    --minor:#5b6470; --minor-soft:#e9ebee;
+    --shadow:0 1px 2px rgba(20,20,10,.06), 0 6px 16px rgba(20,20,10,.05);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e9ebf0; --ink-soft:#c4c8d1; --muted:#9aa0ab;
+      --paper:#12151a; --panel:#1a1e25; --panel-mock:#20252c; --stage:#171b21;
+      --line:#2b3038; --line-strong:#3a4049;
+      --accent:#e2952f; --accent-ink:#1a1206;
+      --vision:#8ba4ec; --vision-soft:#1c2438;
+      --ok:#4fc97e; --ok-soft:#122a1c;
+      --warn:#e2952f; --warn-soft:#2e2109;
+      --crit:#f08a80; --crit-soft:#331a18;
+      --minor:#9aa3af; --minor-soft:#232830;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 20px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#e9ebf0; --ink-soft:#c4c8d1; --muted:#9aa0ab;
+    --paper:#12151a; --panel:#1a1e25; --panel-mock:#20252c; --stage:#171b21;
+    --line:#2b3038; --line-strong:#3a4049;
+    --accent:#e2952f; --accent-ink:#1a1206;
+    --vision:#8ba4ec; --vision-soft:#1c2438;
+    --ok:#4fc97e; --ok-soft:#122a1c;
+    --warn:#e2952f; --warn-soft:#2e2109;
+    --crit:#f08a80; --crit-soft:#331a18;
+    --minor:#9aa3af; --minor-soft:#232830;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 20px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Be Vietnam Pro', system-ui, sans-serif; font-size:15px; line-height:1.6;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding-block:40px 80px; padding-left:20px; padding-right:20px;}
+  h1,h2,h3{margin:0; text-wrap:balance;}
+  .mono{font-family:'JetBrains Mono', ui-monospace, monospace;}
+  a{color:var(--vision); text-underline-offset:2px;}
+
+  .eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--crit);}
+  h1.title{font-size:clamp(28px,4.4vw,38px); font-weight:800; letter-spacing:-.01em; margin-bottom:10px;}
+  .lede{color:var(--ink-soft); font-size:16.5px; max-width:64ch; margin:0 0 28px;}
+
+  .card{
+    border:1px solid var(--line); border-radius:12px; background:var(--panel);
+    box-shadow:var(--shadow); padding:22px; margin-bottom:20px;
+  }
+  .card h2{font-size:17px; font-weight:700; margin-bottom:10px;}
+  .card h3{font-size:13px; font-weight:700; margin:18px 0 8px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted);}
+  .card p{margin:0 0 10px;}
+  .card p:last-child{margin-bottom:0;}
+
+  /* ── dải số liệu ── */
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(124px,1fr)); gap:10px; margin:0 0 20px;}
+  .stat{
+    border:1px solid var(--line); border-radius:11px; background:var(--panel);
+    padding:13px 15px; box-shadow:var(--shadow);
+  }
+  .stat .n{
+    display:block; font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700;
+    line-height:1.1; color:var(--ink); font-variant-numeric:tabular-nums;
+  }
+  .stat .l{display:block; font-size:12px; color:var(--muted); margin-top:4px;}
+  .stat.hi .n{color:var(--crit);}
+  .stat.ok .n{color:var(--ok);}
+
+  /* ── sơ đồ khối quy trình ── */
+  .bd{display:grid; grid-template-columns:104px 1fr; gap:0 14px; margin:14px 0 0;}
+  .bd-actor{
+    align-self:center; text-align:right;
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+  }
+  .bd-card{border:1px solid var(--line-strong); border-radius:10px; background:var(--panel-mock); padding:10px 14px;}
+  .bd-card b{display:block; font-size:13.5px; color:var(--ink);}
+  .bd-card .d{display:block; font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+  .bd-link{grid-column:2; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:6px 0 6px 16px; font-size:12px; color:var(--muted);}
+  .bd-link .ar{color:var(--accent); font-weight:700; font-size:15px; line-height:1;}
+  .bd-link .dt{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft);
+    background:var(--panel); border:1px solid var(--line); padding:2px 8px; border-radius:5px;
+  }
+
+  /* ── nguồn ── */
+  .srcs{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-top:6px;}
+  .src{border-left:3px solid var(--vision); padding:2px 0 2px 12px;}
+  .src b{display:block; font-size:13.5px;}
+  .src span{font-size:12.5px; color:var(--ink-soft);}
+
+  /* ── bộ lọc ── */
+  .filters{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px;}
+  .filters button{
+    font-family:'Be Vietnam Pro',sans-serif; font-size:13px; font-weight:600;
+    border:1px solid var(--line-strong); background:var(--panel); color:var(--ink-soft);
+    padding:7px 14px; border-radius:999px; cursor:pointer;
+  }
+  .filters button:hover{border-color:var(--ink-soft);}
+  .filters button[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .filters button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  /* ── phát hiện ── */
+  .f{
+    border:1px solid var(--line); border-left-width:4px; border-radius:0 11px 11px 0;
+    background:var(--panel); padding:14px 17px; margin-bottom:10px; box-shadow:var(--shadow);
+  }
+  .f[data-sev="critical"]{border-left-color:var(--crit);}
+  .f[data-sev="major"]{border-left-color:var(--warn);}
+  .f[data-sev="minor"]{border-left-color:var(--minor);}
+  .f-head{display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-bottom:7px;}
+  .f-id{
+    font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:var(--ink);
+    background:var(--panel-mock); border:1px solid var(--line-strong); padding:1px 8px; border-radius:5px;
+  }
+  .sev{
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+    letter-spacing:.05em; text-transform:uppercase; padding:3px 9px; border-radius:5px;
+  }
+  .sev-c{background:var(--crit-soft); color:var(--crit);}
+  .sev-j{background:var(--warn-soft); color:var(--warn);}
+  .sev-m{background:var(--minor-soft); color:var(--minor);}
+  .f-where{font-size:12.5px; color:var(--muted);}
+  .f-what{font-size:14px; color:var(--ink-soft); margin:0 0 8px;}
+  .f-what b{color:var(--ink);}
+  .f-row{display:grid; grid-template-columns:84px 1fr; gap:10px; font-size:12.5px; margin-top:5px;}
+  .f-row .lbl{
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding-top:3px;
+  }
+  .f-row .val{color:var(--ink-soft);}
+  .f-row.fix .lbl{color:var(--ok);}
+  .f-row.fix .val{color:var(--ink-soft);}
+
+  .box{border-radius:0 9px 9px 0; padding:13px 16px; margin-top:14px; font-size:13.5px;}
+  .box .bt{display:block; font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin-bottom:6px;}
+  .box.ok{background:var(--ok-soft); border-left:3px solid var(--ok); color:var(--ink-soft);}
+  .box.ok .bt{color:var(--ok);}
+  .box.err{background:var(--warn-soft); border-left:3px solid var(--warn); color:var(--ink-soft);}
+  .box.err .bt{color:var(--warn);}
+  .box ul{margin:6px 0 0; padding-left:18px;}
+  .box li{margin-bottom:5px;}
+  .box li:last-child{margin-bottom:0;}
+
+  .tblwrap{overflow-x:auto; border:1px solid var(--line); border-radius:9px; margin-top:8px;}
+  table{border-collapse:collapse; width:100%; min-width:520px; font-size:13px;}
+  th{
+    text-align:left; padding:9px 13px; background:var(--panel-mock); border-bottom:1px solid var(--line);
+    font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+  }
+  td{padding:9px 13px; border-top:1px solid var(--line); color:var(--ink-soft); vertical-align:top;}
+  tbody tr:first-child td{border-top:0;}
+  td.k{font-family:'JetBrains Mono',monospace; font-size:11.5px; white-space:nowrap;}
+
+  ul.plain{margin:8px 0 0; padding-left:18px; font-size:14px; color:var(--ink-soft);}
+  ul.plain li{margin-bottom:7px;}
+  ul.plain li:last-child{margin-bottom:0;}
+  ul.plain b{color:var(--ink);}
+
+  footer{margin-top:36px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:12.5px;}
+
+  @media (max-width:560px){
+    .bd{grid-template-columns:1fr; gap:0;}
+    .bd-actor{text-align:left; margin-bottom:4px;}
+    .bd-link{grid-column:1;}
+    .f-row{grid-template-columns:1fr; gap:2px;}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="eyebrow"><span class="dot"></span>SHIELD CAN ASSY MC · báo cáo kiểm chứng · 12/09/2026</div>
+  <h1 class="title">Kiểm chứng cẩm nang Vision Align</h1>
+  <p class="lede">Đối chiếu từng câu của cẩm nang "Calib &amp; Teaching" với tài liệu Hikrobot, Help VisionMaster 4.4.0, SDK cài trên máy và mã nguồn thật của app. Báo cáo này liệt kê cái gì sai, bằng chứng ở đâu, và mỗi cái đã được xử lý ra sao.</p>
+
+  <div class="stats">
+    <div class="stat"><span class="n">119</span><span class="l">phát hiện thô</span></div>
+    <div class="stat"><span class="n">60</span><span class="l">sau khi gộp trùng</span></div>
+    <div class="stat"><span class="n">48</span><span class="l">đưa đi phản bác</span></div>
+    <div class="stat hi"><span class="n">46</span><span class="l">đứng vững</span></div>
+    <div class="stat"><span class="n">2</span><span class="l">không đứng vững</span></div>
+    <div class="stat ok"><span class="n">46</span><span class="l">đã xử lý xong</span></div>
+  </div>
+
+  <div class="box err" style="border-radius:11px; border-left-width:4px; margin-top:0; margin-bottom:22px;">
+    <span class="bt">Đọc nhanh</span>
+    Cẩm nang bản cũ mô tả <b>một quy trình không chạy được</b>: nó dựa trên một module VisionMaster không tồn tại, một chế độ hiệu chuẩn không tồn tại, và bỏ trống đúng câu hỏi quyết định — <i>toạ độ vật lý của từng điểm hiệu chuẩn đi vào VisionMaster bằng đường nào</i>. Cả ba đều đã được xử lý: quy trình mới đã vào code (build sạch, <span class="mono">--selftest</span> 256/256) và cẩm nang đã viết lại toàn bộ.
+  </div>
+
+  <!-- ══════════ NGUỒN ══════════ -->
+  <div class="card">
+    <h2>Đối chiếu với nguồn nào</h2>
+    <div class="srcs">
+      <div class="src"><b>PDF Hikrobot</b><span><i>VisionMaster – Use of Calibration and Positioning Operation Modules</i> (2023 Q3), 61 trang. Đọc cả bản trích text lẫn <b>ảnh từng trang</b> — nhiều kết luận quan trọng nằm trong hình và ảnh chụp màn hình, bản trích text không có.</span></div>
+      <div class="src"><b>Help VisionMaster 4.4.0</b><span>33 trang liên quan, trích trực tiếp từ máy cài (<span class="mono">Applications\Help\EN</span>): từng module hiệu chuẩn, từng module tính toán, tham số và kết quả.</span></div>
+      <div class="src"><b>SDK trên máy</b><span><span class="mono">VM.Core</span>, <span class="mono">VM.PlatformSDKCS</span>, <span class="mono">guide.chm</span> — đọc bằng tài liệu XML, giải nén CHM và reflection trên chính DLL, để biết API nào <b>thật sự</b> tồn tại.</span></div>
+      <div class="src"><b>Mã nguồn app</b><span>Toàn bộ đường chạy vision: <span class="mono">Routine_Calib</span>, <span class="mono">Routine_Auto</span>, <span class="mono">PlacementSolver</span>, <span class="mono">VisionConnect</span>, <span class="mono">VisionMasterDevice</span>, ViewModel và XAML của trang Vision Edit / Teaching / Setting.</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PHƯƠNG PHÁP ══════════ -->
+  <div class="card">
+    <h2>Cách kiểm chứng</h2>
+    <p>Điểm yếu của mọi đợt rà soát là người rà tự tin vào phát hiện của chính mình. Ở đây mỗi phát hiện phải <b>sống sót qua các agent độc lập được giao nhiệm vụ bác bỏ nó</b>, mỗi agent nhìn từ một góc khác nhau và phải dẫn được nguồn.</p>
+
+    <div class="bd">
+      <div class="bd-actor">Tìm</div>
+      <div class="bd-card"><b>8 lăng kính song song</b><span class="d">Tên và tham số module · cơ chế nạp điểm N-point · lý thuyết trong PDF · đối chiếu code · bản chuẩn · hợp đồng SDK · thao tác vật lý · nhãn giao diện.</span></div>
+      <div class="bd-link"><span class="ar">↓</span><span class="dt">103 phát hiện thô + 16 hạt giống</span></div>
+      <div class="bd-actor">Gộp</div>
+      <div class="bd-card"><b>Khử trùng lặp</b><span class="d">119 → <b>60</b> phát hiện riêng biệt. Kiểm chứng 48 cái nặng nhất, bỏ 12 cái nhẹ nhất do giới hạn ngân sách agent.</span></div>
+      <div class="bd-link"><span class="ar">↓</span></div>
+      <div class="bd-actor">Phản bác</div>
+      <div class="bd-card"><b>Mỗi phát hiện bị tấn công độc lập</b><span class="d">34 phát hiện nặng × <b>3 agent phản bác</b> (tài liệu · code · tác động thực tế). 14 phát hiện nhẹ gộp lô, mỗi lô 1 agent. Giữ lại phát hiện nào <b>không bị bác</b>.</span></div>
+      <div class="bd-link"><span class="ar">↓</span><span class="dt">46 đứng vững · 2 không</span></div>
+      <div class="bd-actor">Bổ sung</div>
+      <div class="bd-card"><b>Kiểm chứng tay sau đó</b><span class="d">Đọc ảnh từng trang PDF và tra SDK bằng reflection — chỗ này cho ra những kết luận quyết định nhất, xem mục cuối.</span></div>
+    </div>
+
+    <p style="margin-top:14px; font-size:13px; color:var(--muted);">Tổng 116 agent. 4 agent cuối không chạy được do hết hạn mức phiên: 2 agent phản bác của F34, agent rà lỗ hổng, và agent xác nhận "điểm cẩm nang đúng" — hệ quả nêu ở mục <a href="#gioihan">Giới hạn</a>.</p>
+  </div>
+
+  <!-- ══════════ PHÁT HIỆN ══════════ -->
+  <div class="card" id="phathien">
+    <h2>46 phát hiện đứng vững</h2>
+    <p style="font-size:13.5px; color:var(--ink-soft);">Mức <b>sai cốt lõi</b> nghĩa là làm theo cẩm nang thì quy trình không chạy được hoặc ra số sai mà không có thông báo lỗi nào. Mức <b>sai quy trình</b> là làm được nhưng sai bước hoặc thiếu điều kiện. Mức <b>chi tiết</b> là sai nhãn, sai thông báo, sai ví dụ.</p>
+
+    <div class="filters" role="group" aria-label="Lọc theo mức độ">
+      <button type="button" data-filter="all" aria-pressed="true">Tất cả 46</button>
+      <button type="button" data-filter="critical" aria-pressed="false">Sai cốt lõi 12</button>
+      <button type="button" data-filter="major" aria-pressed="false">Sai quy trình 20</button>
+      <button type="button" data-filter="minor" aria-pressed="false">Chi tiết 14</button>
+    </div>
+
+    <div id="findings">
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F01</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Phụ lục §2 · sơ đồ Flow AlignBottom</span></div>
+        <p class="f-what"><b>Module "Position Correction" không tồn tại trong VisionMaster 4.4.0</b>, và không có kết quả <span class="mono">dX/dY/dAngle</span> nào như cẩm nang vẽ. Tên gần giống là <i>Position Fixture</i> nhưng module đó chỉ sửa ROI cho module sau theo pixel, không so với mốc teach, không trả mm.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Mục lục Help không có "Position Correction"; <span class="mono">30_Position_Fixture</span> chỉ có <span class="mono">FixtureInitPoint*/FixtureRunPoint*</span>. Các module tính độ lệch thật: Single Point Alignment / Rectify / Grab / Map Alignment.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Dựng Flow <span class="mono">PlaceAlign</span> dùng <b>Single Point Alignment</b>; app gán 6 input rồi đọc <span class="mono">DeltaX/DeltaY/DeltaTheta</span>. Sơ đồ Flow trong cẩm nang vẽ lại theo module thật.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F02</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Bước 4 · Hình 3 · Phụ lục §1</span></div>
+        <p class="f-what"><b>"N-point Calibration chế độ có xoay, 6 điểm, chỉ xoay" không tồn tại.</b> N-point cần tối thiểu 4 điểm <i>tịnh tiến</i>; phần xoay chỉ là thành phần thêm. Sáu ảnh thuần xoay chỉ fit được tâm xoay, không cho thang đo.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help N-point (Translation Times / Rotation Times, dải [4,16] và [0,16]); Help Rotation Calibration; PDF tr.16–18.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Chốt <b>Translation Calibration</b> kiểu <span class="mono">TransAndRotateCalib</span> — tịnh tiến theo X + xoay tại vị trí soi. Cẩm nang Bước 3 có bảng cấu hình đầy đủ 11 dòng.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F03</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Bước 2 · Hình 2 · ghi chú TopDownCalib</span></div>
+        <p class="f-what"><b>Cẩm nang không nói toạ độ vật lý của 9 điểm đi vào VisionMaster bằng đường nào.</b> App chỉ gọi <span class="mono">Run()</span> nên VisionMaster không biết bước lưới. Không trả lời được câu này thì cả phép hiệu chuẩn không có nghĩa.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help N-point mục "Physical Coordinate Parameters"; PDF tr.22 và tr.48 cho thấy Hikrobot lấy toạ độ từ <i>Receive Data → Protocol Parsing</i>.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">App ghi vị trí <b>encoder</b> vào <b>biến toàn cục</b> của solution ngay trước mỗi lần kích Flow; module hiệu chuẩn để <span class="mono">By Coordinate</span> và subscribe vào đó. Đây là thay đổi lớn nhất của cả đợt.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F04</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Bước 1 · sơ đồ CalibBottomUp</span></div>
+        <p class="f-what"><b>CalibBoard Calibration không có kết quả <span class="mono">ScaleU/ScaleV/SkewDeg</span></b> như cẩm nang khai. Kết quả thật là Scale (px/mm), Pixel Accuracy (mm/px), Aspect, và <b>Skew tính bằng radian</b> — app lại coi là độ.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help CalibBoard Calibration, mục Module Result.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Bỏ hẳn wizard checkerboard khỏi app và khỏi cẩm nang — bước đó không còn nuôi con số nào. Máy nay không cần bản chuẩn nào cả.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F05</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Mục "Output → phép tính Align"</span></div>
+        <p class="f-what"><b>Nguy cơ bù hai lần.</b> Các module độ lệch của VisionMaster đã <i>gồm sẵn</i> lượng dịch do xoay, mà <span class="mono">PlacementSolver</span> lại nhân <span class="mono">R(Δθ)·p</span> thêm lần nữa. Kết quả: lệch đúng gấp đôi độ lệch tâm, không có lỗi nào báo.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help Single Point Alignment (công thức Δx = x₁ − R(Δθ)·x₂); PDF tr.35, tr.60; <span class="mono">PlacementSolver.cs:92-111</span> bản cũ.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">VisionMaster tính toàn bộ lượng bù trong Flow <span class="mono">PlaceAlign</span>. <span class="mono">PlacementSolver</span> rút còn ba việc: dựng đích từ encoder, đổi dấu góc, chặn ngưỡng.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F06</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Bước 2 "Kết quả đúng" · Bước 5</span></div>
+        <p class="f-what"><b>Lối numpad không ghi ma trận vào model.</b> Nên dòng trạng thái mãi là "Chưa hiệu chuẩn", nút hand-eye ở Bước 5 bị chặn ngay, và Auto không chạy được — trong khi cẩm nang bảo sẽ thấy scale mm/px cùng RMS.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val"><span class="mono">Routine_Calib.cs:177-202</span>, <span class="mono">VisionCalibViewModel.cs:97,130-138</span>, <span class="mono">ModelData.cs:96-103</span> (bản cũ).</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">App không giữ ma trận nào nữa nên mâu thuẫn biến mất. Điều kiện chạy Auto đổi thành hai thứ app <b>thật sự đo được</b>: hand-eye và phép thử vòng xoay, cho cả hai tay.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F07</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Công thức Align bước 2–3</span></div>
+        <p class="f-what"><b>Sai hệ quy chiếu.</b> Cẩm nang gọi <span class="mono">tdx</span> là "lượng dịch trục", nhưng hàm fit của app hồi quy pixel → <i>vị trí trục tuyệt đối</i> lúc chụp. Hai thứ khác dấu nhau; hand-eye triệt tiêu được hằng số nên lỗi ẩn rất sâu.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Đối chiếu <span class="mono">CalibrateTopDownAsync</span> với cách <span class="mono">PlacementSolver</span> dùng kết quả.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Hợp đồng định nghĩa lại rõ: <span class="mono">LocateTop</span> trả <b>lượng phải dịch trục</b>, tính bằng mm. Bước 2 kiểm đúng định nghĩa đó bằng chuyển động trục thật.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F08</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Công thức Align bước 1 và 5</span></div>
+        <p class="f-what"><b>Ngược dấu.</b> Module VisionMaster xuất lượng <i>cần di chuyển</i> để đưa vật về mốc teach, còn app hiểu là <i>vị trí/góc của sản phẩm</i>. Hai đại lượng này ngược dấu nhau.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help các module Single Point*; <span class="mono">DeltaTheta</span> dương theo chiều kim đồng hồ.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Hợp đồng ghi rõ ý nghĩa output của từng Flow. Dấu góc không còn đoán: <b>phép thử vòng xoay đo nó</b> rồi ghi vào model, chưa đo thì app từ chối tính.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F09</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Công thức Δθ = θt − θp</span></div>
+        <p class="f-what"><b>Trộn hai hệ góc.</b> θt là góc thô trong ảnh top-down (chưa trừ góc lắp camera), θp nằm trong hệ đã hiệu chuẩn của camera dưới — mà camera dưới nhìn từ dưới lên là <b>ảnh gương</b>. Trừ hai góc khác hệ cho ra số vô nghĩa.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">PDF tr.40; <span class="mono">PlacementSolver.cs:83,92</span> bản cũ.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cả hai Flow đo tư thế đều kết thúc bằng <b>Calibration Transformation</b> nên cùng một hệ vật lý. Phần lật gương còn lại do phép thử vòng xoay bắt.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F10</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Bước 4 bước 6 "(Tuỳ chọn)"</span></div>
+        <p class="f-what"><b>Teach mẫu chuẩn không phải tuỳ chọn.</b> Không có mốc thì không có "mm/độ đã bù mẫu chuẩn". Quan trọng hơn: công thức chỉ đúng khi <b>số 0 của mẫu top-down và số 0 của mẫu bottom-up ứng với cùng một tư thế vật lý</b>.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help Single Point Grab/Alignment (Create Reference); PDF tr.49.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Create Reference thành bước bắt buộc trong cẩm nang, kèm điều kiện: chụp mẫu bằng <b>sản phẩm đã lắp đúng</b> và <b>không xoay A giữa lúc hút và lúc chụp</b>.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F11</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Bước 2 bước 1 · Hình 2 · Bước 5</span></div>
+        <p class="f-what"><b>Dấu chuẩn dán sai chỗ.</b> Cẩm nang bảo dán "cố định trên bàn". Camera top-down chỉ đi theo X; các hàng của lưới do trục Y2 (tray) tạo ra. Dán trên bàn thì 9 điểm co về 3 điểm thẳng hàng và phép fit suy biến.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val"><span class="mono">Routine_Calib</span> chạy <span class="mono">MoveToCellAsync(Y2, …)</span>; hình học máy.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cẩm nang Bước 1 có khung riêng: dấu chuẩn phải nằm trên <b>đồ gá tray lắp ráp</b>, kèm lý do.</span></div>
+      </article>
+
+      <article class="f" data-sev="critical">
+        <div class="f-head"><span class="f-id">F12</span><span class="sev sev-c">Sai cốt lõi</span><span class="f-where">Bước 1 · đối chiếu chéo ΔX</span></div>
+        <p class="f-what"><b>Phép đối chiếu chéo vô nghĩa nếu bản chuẩn lớn hơn khung hình.</b> Nó so <span class="mono">OriginPixelU</span> — "góc đầu tiên phía trên bên trái <i>nhìn thấy được</i>" — nên sau khi chạy 20 mm, "góc đầu tiên" đã là một góc khác.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help CalibBoard "Calibration Origin"; chính cẩm nang ghi 812 góc phủ kín khung hình 30 mm.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Wizard checkerboard xoá hẳn — phép đối chiếu này không còn tồn tại.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F14</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Phụ lục §1 · Bước 2 · Bước 4</span></div>
+        <p class="f-what"><b>Không có nút "nạp điểm" hay "Tính/Fit" như cẩm nang mô tả.</b> Ở chế độ Trigger Acquisition, <b>mỗi lần Flow chạy là tự nạp thêm một điểm</b>, và VisionMaster không giữ ảnh cũ để fit sau.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help N-point mục Calib Points Acquisition.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cẩm nang nói đúng cơ chế; app hỏi xác nhận đã <b>Clear Point</b> trước khi chạy chuỗi, và tooltip cảnh báo nút "trigger thử" cũng nạp điểm.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F15</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 4 bước 6 · Phụ lục §1 bước 7</span></div>
+        <p class="f-what"><b>Không có nút "Teach chuẩn" trong module hiệu chuẩn.</b> Mục <i>Demonstration</i> chỉ kích hoạt bằng chuỗi ký tự từ thiết bị truyền thông, mà app chỉ gọi <span class="mono">Run()</span>.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help N-point (External Input Character / External Triggered Character).</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Teach mẫu chuẩn chuyển sang <b>Create Reference</b> trong Flow runtime <span class="mono">AlignBottom_ToolN</span> — đúng chỗ VisionMaster để chức năng đó.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F16</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 4 bước 7 · Phụ lục · Checklist</span></div>
+        <p class="f-what"><b>Ctrl+S không tạo file hiệu chuẩn.</b> Phải đặt đường dẫn rồi bấm <b>Create Calibration File</b>. Tên module cũng sai: đúng là <i>Calibration Transformation</i>.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help N-point, Load Calibration, Single Point Grab.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cẩm nang nhắc ở cả Bước 1, Bước 3 và checklist; hộp thoại của app sau khi nạp đủ điểm cũng nhắc đúng câu này.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F17</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 4 · Phụ lục §1 bước 3</span></div>
+        <p class="f-what"><b>Angle Range mặc định −45°…45°.</b> Ở 60°, 120°, 180° module sẽ không tìm thấy mẫu. Ngược lại mở hết cỡ thì vỏ đối xứng 180° dễ khớp nhầm hướng.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help High Precision Match, mục Angle Range.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cảnh báo trong cẩm nang Bước 3, và app báo lỗi gợi ý thẳng: <i>"góc 60.0° không tìm thấy sản phẩm — mở rộng Angle Range của High Precision Match?"</i></span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F18</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Hợp đồng Output · Phụ lục §1</span></div>
+        <p class="f-what"><b>Output kiểu Int không đọc được bằng <span class="mono">GetOutputFloat</span>.</b> <span class="mono">MatchNum</span>, <span class="mono">Module Status</span>, <span class="mono">CalibPointNum</span> đều là Int.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help "Output Settings"; Help Variable Calculation; <span class="mono">VisionMasterDevice.cs</span>.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Thành một trong "bốn điều bắt buộc khi dựng solution": cho đi qua <b>Variable Calculation</b> (Output Type = float) rồi mới khai ra output của Flow.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F19</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Cách đọc sơ đồ Flow · chú thích 3</span></div>
+        <p class="f-what"><b>Rectangle Search không có Score và không có số lượng khớp</b> — nên không thể bind đủ 5 output từ nhánh này như cẩm nang gợi ý.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help Rectangle Search, mục Module Result.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Chú thích sơ đồ viết lại: chọn một nhánh định vị rồi cho nhánh đó chảy qua Calibration Transformation.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F20</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 1 · cấu hình CalibBoard</span></div>
+        <p class="f-what"><b>Thiếu hai tham số bắt buộc</b> của CalibBoard Calibration: Board Type và Physical Size. Sai Physical Size thì mọi tỉ lệ pixel→mm sai mà không có lỗi nào báo.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help CalibBoard Calibration.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Không còn dùng CalibBoard ở bất kỳ bước nào.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F21</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 2 · Bước 4 · Phụ lục</span></div>
+        <p class="f-what"><b>Camera Mode quyết định dấu, và cẩm nang không nhắc.</b> Chọn sai thì ma trận lật gương một trục mà phép fit vẫn báo "đạt" — mm sai lặng lẽ.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help N-point Run Parameters (Camera Stationary Up/Down, Dynamic Camera).</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cẩm nang nói rõ, <b>và</b> có Bước 2 kiểm bằng chuyển động thật. Riêng máy này là trường hợp lai nên không suy luận ra được — xem mục kiểm chứng bổ sung.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F22</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 2 · Bước 4 · Phụ lục §2</span></div>
+        <p class="f-what"><b>Bấm lại nút số không thay điểm cũ mà chèn thêm một điểm sai vị trí.</b> Nút test và nút teach cũng làm bẩn danh sách điểm.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help N-point, chế độ Trigger Acquisition.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Quy tắc vàng số 2 của cẩm nang là <b>Clear Point trước mỗi lần hiệu chuẩn</b>; app hỏi lại trước khi chạy chuỗi.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F23</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Phụ lục · hộp "Kiểm tra chéo"</span></div>
+        <p class="f-what"><b>Phép kiểm tra chéo đề xuất không kiểm được dấu</b> — chỉ so độ lớn, trong khi dấu mới là chỗ dễ sai nhất. Trên camera dưới lại chỉ dịch được theo X.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Đối chiếu nội dung hộp với khả năng chuyển động thật của máy.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Thay bằng hai phép kiểm tra chạy trục thật và <b>so cả dấu</b>: kiểm tra top-down (Bước 2) và phép thử vòng xoay (Bước 4). Cả hai là điều kiện chạy Auto.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F24</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 4 · mục Output → Align</span></div>
+        <p class="f-what"><b>Thiếu hai điều kiện chụp.</b> Hệ mm của Flow AlignBottom có gốc tại tâm xoay đo <i>đúng tại vị trí soi</i> và <i>đúng cao độ Z</i> lúc hiệu chuẩn. Chụp ở chỗ khác là sai gốc.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">PDF tr.45; <span class="mono">Routine_Auto.cs:378-386</span>.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Thành quy tắc trong PLAN §6.1; app ghi lại vị trí đã kiểm chứng và <b>hỏi lại nếu trục X không đứng đúng vị trí soi</b> lúc chạy phép thử vòng xoay.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F25</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 1 bước 1 · Hình 1</span></div>
+        <p class="f-what"><b>Canh cao độ bản chuẩn theo Z_Pick là sai.</b> Lúc soi camera dưới, đầu hút đã nâng về cao độ an toàn — mặt đáy sản phẩm cao hơn lúc hút cả một hành trình.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val"><span class="mono">Routine_Auto.cs:335,372-386</span>.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Hết vấn đề: camera dưới nay học thang đo từ <b>chính sản phẩm đang hút, ở đúng cao độ làm việc</b>, không qua bản chuẩn nào.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F26</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 3 (xác minh dấu trục Y)</span></div>
+        <p class="f-what"><b>Phép thử không có tác dụng.</b> Sản phẩm nằm trên đầu hút của gantry, còn Y2 là trục tray — dịch Y2 không làm sản phẩm dịch trong ảnh camera dưới. Hai lần đo như nhau.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Hình học máy; app cũng không hiển thị giá trị Y nào để operator so.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Bước này xoá hẳn. Việc của nó do <b>phép thử vòng xoay</b> làm, bằng số đo thật thay vì bấm tay chọn +1/−1.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F27</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 3 · proc-why và Kết quả đúng</span></div>
+        <p class="f-what"><b><span class="mono">BottomUpYSign</span> không được đọc ở bất kỳ đâu.</b> Câu "bỏ qua thì bù Y ngược chiều" sai — bỏ qua bước này không đổi gì trong Auto.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">grep toàn bộ source: chỉ có hai chỗ ghi, không chỗ nào đọc.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Xoá khỏi model và khỏi giao diện.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F28</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 4 · Bước 6 · Checklist</span></div>
+        <p class="f-what"><b>Thiếu hẳn bước teach vị trí soi camera dưới.</b> Nút "Tới T1 Trigger" và cả chu trình Auto đều dùng số này; model mới thì nó bằng 0 nên trục X chạy về 0.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val"><span class="mono">TeachingViewModel.cs:128-129,363-374</span>; <span class="mono">TeachingView.xaml:479-513</span>.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">App chặn và báo rõ: <i>"Chưa teach vị trí soi CAM bottom-up của tay #1 … chuỗi hiệu chuẩn sẽ chạy X về 0"</i> — dừng chứ không chạy. Cẩm nang đưa vào phần chuẩn bị của Bước 3.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F29</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 1 · vị trí gá tấm chuẩn</span></div>
+        <p class="f-what"><b>Tấm chuẩn phải do gantry mang theo</b> thì phép đối chiếu mới có nghĩa, nhưng cẩm nang lại gợi ý gá trên bàn/tray.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Chính phép đối chiếu ΔX đòi tấm dịch theo trục X.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Không còn tấm chuẩn nào trong quy trình.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F30</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 2 bước 3 · Quy tắc vàng 3</span></div>
+        <p class="f-what"><b>Bấm Save không ghi xuống đĩa.</b> Calibration Center Point nằm trong <span class="mono">system.json</span>, chỉ được ghi khi bấm Lưu ở trang Setting — mà nút "Lưu model" ở trang Teaching không lưu nó. Tắt app là mất.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val"><span class="mono">VisionCalibViewModel.cs:161-179</span>; <span class="mono">SettingViewModel.cs:22-29</span> (bản cũ).</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sửa code: nút Save ghi thẳng <span class="mono">system.json</span>, và nhãn nút nói đúng điều đó — <i>"Save (ghi xuống system.json)"</i>.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F31</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Phụ lục §2 · hộp Kiểm tra chéo</span></div>
+        <p class="f-what"><b>Không kiểm chứng được Flow chạy Auto.</b> Các nút góc chỉ trigger Flow hiệu chuẩn; ngoài chu trình Auto, app không có nút nào chạy <span class="mono">AlignBottom_ToolN</span>.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val"><span class="mono">Routine_Calib.cs:318-339</span> so với <span class="mono">Routine_Auto.cs:385-386</span>.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Phép thử vòng xoay chạy đúng <span class="mono">AlignBottom_ToolN</span> và <span class="mono">PlaceAlign</span> — tức là kiểm chính đường chạy thật, không phải đường tương đương.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F32</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Cách đọc sơ đồ Flow · Phụ lục §1</span></div>
+        <p class="f-what"><b>Cẩm nang không nói output khai ở đâu.</b> VisionMaster có hai thứ đều "thuộc Flow" — biến toàn cục/cục bộ và Output Params — mà SDK chỉ đọc được Output Params.</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val">Help "Output Settings"; <span class="mono">ProcedureResult.GetOutputFloat</span>.</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Phụ lục nói rõ khai ở tab nào, và app ném lỗi có tên biến cụ thể ngay lần kích Flow đầu tiên nếu thiếu.</span></div>
+      </article>
+
+      <article class="f" data-sev="major">
+        <div class="f-head"><span class="f-id">F33</span><span class="sev sev-j">Sai quy trình</span><span class="f-where">Bước 5 (hand-eye)</span></div>
+        <p class="f-what"><b>Hand-eye gọi nhầm Flow.</b> Code gọi <span class="mono">LocateTop</span> — mẫu teach trên chi tiết thật trong ô tray — nhưng cẩm nang bảo soi <b>dấu chuẩn</b>. Không khớp mẫu, app báo "Không thấy dấu chuẩn".</p>
+        <div class="f-row"><span class="lbl">Bằng chứng</span><span class="val"><span class="mono">Routine_Calib.cs:356</span> (bản cũ).</span></div>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Thêm Flow <b><span class="mono">LocateMark</span></b> riêng cho dấu chuẩn, dùng cho cả hand-eye lẫn phép kiểm tra top-down. Không dùng Flow hiệu chuẩn để đo, vì mỗi lần chạy là nạp thêm một điểm.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F35</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Sơ đồ Flow · tên kết quả module</span></div>
+        <p class="f-what">Tên kết quả trong sơ đồ không khớp VisionMaster thật (<span class="mono">MatchNum</span>, <span class="mono">MatchPointX/Y</span>, <span class="mono">MatchBoxAngle</span>, <span class="mono">MatchScore</span> 0…1), nên operator tìm trong cửa sổ subscribe sẽ không thấy.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sơ đồ dùng tên thật; hợp đồng ghi rõ Score là 0…1 chứ không phải 0…100.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F36</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Phụ lục §1 bước 2</span></div>
+        <p class="f-what">Module Image Source <b>không có</b> tham số kiểu trigger; chế độ trigger nằm ở Global Camera.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sửa trong phụ lục.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F37</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Từ vựng · tên Flow</span></div>
+        <p class="f-what">Tên Flow trong mục Từ vựng viết thiếu gạch dưới (<span class="mono">AlignBottomTool1</span> thay vì <span class="mono">AlignBottom_Tool1</span>) — chính cẩm nang nói tên phải khớp tuyệt đối.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sửa; bảng tám Flow dùng tên mặc định đúng.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F38</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 2 bước 3</span></div>
+        <p class="f-what">"Calibration Center Point" là khái niệm của app; bên VisionMaster tương ứng là <span class="mono">InitPointX/Y</span> hoặc Use Relative Coordinates.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Không còn ý nghĩa: app gửi toạ độ thật của từng điểm nên VisionMaster không phải tự suy ra gốc.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F39</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 4 "Kết quả đúng"</span></div>
+        <p class="f-what">Các nút góc <b>không hiện hộp thoại nào</b> khi thành công. Operator sẽ chờ một hộp thoại không bao giờ tới.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cẩm nang trích đúng chuỗi thông báo thật của từng nút.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F40</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 1 "Kết quả đúng"</span></div>
+        <p class="f-what">Dòng trạng thái mẫu là số bịa: RMS và max luôn 0.000, góc luôn 0.00° vì wizard không tính chúng.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Bước này xoá hẳn.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F41</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 1 "Nếu báo lỗi"</span></div>
+        <p class="f-what">Chuỗi lỗi trích trong cẩm nang gần như không xuất hiện; wizard cũng không kiểm tra đã về gốc.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Bước này xoá hẳn; các bước còn lại đều kiểm tra đã về gốc.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F42</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 1 proc-why · Bước 4 chuẩn bị</span></div>
+        <p class="f-what">"Chưa có Bước 1 thì Bước 4 bị chặn" là sai — Bước 4 chỉ kiểm tra đã về gốc. Operator sẽ đổ lỗi nhầm chỗ.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sơ đồ trình tự mới vẽ rõ <b>hai cổng chặn thật</b> (Bước 2 và Bước 4) và cái gì thật sự chặn Auto.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F43</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 5 bước 4</span></div>
+        <p class="f-what">Trang Manual <b>không có</b> nút chọn tốc độ "Chậm" — nút đó nằm ở trang Teaching và áp dụng toàn cục.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sửa; đồng thời chỉ đúng cách chạm chính xác trên trang Manual là cột Inching.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F44</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 4 bước 2 và bước 8</span></div>
+        <p class="f-what">Không có nút "Hút #1 ON" — nút là "Hút #1" kiểu toggle, trạng thái xem bằng màu. Vòng lặp cho Tool 2 cũng không nói phải đổi Z1→Z2 và các nút tương ứng.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sửa nhãn; vòng lặp Tool 2 ghi rõ đổi những gì.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F45</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Checklist cuối</span></div>
+        <p class="f-what">Hai mục kiểm tra cuối không phát hiện được gì: dòng Hand-eye không bao giờ hiện "Chưa hiệu chuẩn", còn chạy mô phỏng thì dùng model giả.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Checklist viết lại quanh dòng trạng thái thật <i>"Đủ điều kiện chạy Auto"</i>, và thêm mục kiểm biến toàn cục có đổi giá trị không.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F46</span><span class="sev sev-m">Chi tiết</span><span class="f-where">"Hai lỗi hay gặp khi khai Output"</span></div>
+        <p class="f-what">Thông báo "thiếu output" chỉ nằm trong <b>log</b>; trên màn hình operator chỉ thấy "… thất bại".</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Cẩm nang nói rõ chỗ nào hiện ở đâu.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F47</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Sơ đồ CalibBottomUp</span></div>
+        <p class="f-what">Nhãn "đối chiếu X" gán cho <span class="mono">OriginPixelV</span> là sai — biến đó được đọc nhưng không tham gia tính toán.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Sơ đồ này xoá hẳn.</span></div>
+      </article>
+
+      <article class="f" data-sev="minor">
+        <div class="f-head"><span class="f-id">F48</span><span class="sev sev-m">Chi tiết</span><span class="f-where">Bước 2 "Nếu báo lỗi"</span></div>
+        <p class="f-what">Thông báo trích sai: khi chạy Auto Calib câu thật là <i>"Auto Calib dừng tại điểm N…"</i>, còn dạng "Điểm N…" chỉ hiện khi bấm lẻ nút số. Cùng thông báo đó còn do nhiều nguyên nhân khác.</p>
+        <div class="f-row fix"><span class="lbl">Đã xử lý</span><span class="val">Trích đúng chuỗi trong code và liệt kê các nguyên nhân.</span></div>
+      </article>
+
+    </div>
+    <p id="empty-note" hidden style="font-size:13.5px; color:var(--muted); margin-top:12px;">Không có phát hiện nào ở mức này.</p>
+  </div>
+
+  <!-- ══════════ KHÔNG ĐỨNG VỮNG ══════════ -->
+  <div class="card">
+    <h2>Hai phát hiện không đứng vững</h2>
+    <p>Hai cái này quan trọng không kém phần trên: chúng cho thấy phép phản bác có tác dụng thật, và một trong hai buộc phải sửa lại chính lý do đã ghi trong tài liệu.</p>
+
+    <article class="f" data-sev="major" style="margin-top:14px; border-left-color:var(--vision);">
+      <div class="f-head"><span class="f-id">F13</span><span class="sev sev-m">Bị bác 3/3</span><span class="f-where">Bước 4 · teach mẫu chuẩn ở A = 300°</span></div>
+      <p class="f-what"><b>Cáo buộc:</b> sau chuỗi 0°→300°, trục A đứng lại ở 300°; ảnh mẫu chuẩn chụp ngay sau đó lệch 60° so với lúc Auto chạy, nên Auto sẽ loại mọi sản phẩm.</p>
+      <div class="f-row"><span class="lbl">Vì sao sai</span><span class="val">Cả ba agent chỉ ra cùng một chỗ: <b>từ lúc hút sản phẩm mẫu tới lúc chụp, trục A không hề xoay</b> ("Tới T1 Trigger" chỉ chạy X, nút trigger không xoay). Camera dưới đo <i>hướng thật của sản phẩm</i>, không đo giá trị tuyệt đối của A — nên A đang ở 0° hay 300° không ảnh hưởng. Thêm nữa, Auto <b>không bao giờ</b> đưa A về 0°: nó cộng dồn <span class="mono">CurrentPos + Δθ</span>, nên không tồn tại tư thế "A = 0° lúc chạy Auto" để mà lệch so với.</span></div>
+      <div class="f-row fix"><span class="lbl">Hệ quả</span><span class="val">Việc cho chuỗi hiệu chuẩn kết thúc ở A = 0° <b>vẫn giữ</b> — nó để máy ở trạng thái xác định và giúp làm đúng quy tắc thật. Nhưng <b>lý do ghi trong tài liệu đã sai và đã sửa</b>: điều kiện đúng không phải "teach ở 0°" mà là <b>không xoay A giữa lúc hút sản phẩm mẫu và lúc chụp</b>.</span></div>
+    </article>
+
+    <article class="f" data-sev="major" style="border-left-color:var(--vision);">
+      <div class="f-head"><span class="f-id">F34</span><span class="sev sev-m">Không kết luận được</span><span class="f-where">Hộp "Cần xử lý trước khi chạy thật"</span></div>
+      <p class="f-what"><b>Nội dung:</b> app không có công tắc nào bỏ bước quy đổi pixel→mm, nên "hướng thứ hai" mà cẩm nang gợi ý không làm được nếu không sửa code; và vì trục X là camera đi còn Y2 là vật đi, dấu của hai trục khác nhau.</p>
+      <div class="f-row"><span class="lbl">Vì sao rơi ra</span><span class="val">Đây <b>không phải bị bác</b>. Agent đọc code bỏ phiếu "phát hiện đứng vững, độ tin cậy cao", nhưng hai agent còn lại không chạy được do hết hạn mức phiên, nên phát hiện không đủ số phiếu và bị loại theo đúng luật đã đặt.</span></div>
+      <div class="f-row fix"><span class="lbl">Về sau</span><span class="val">Cả hai nửa đều <b>đúng</b> và đã được xác nhận độc lập khi đọc ảnh PDF tr.19 — xem mục dưới. Phần dấu trục thành một khung cảnh báo riêng trong cẩm nang.</span></div>
+    </article>
+  </div>
+
+  <!-- ══════════ KIỂM CHỨNG BỔ SUNG ══════════ -->
+  <div class="card">
+    <h2>Kiểm chứng bổ sung — và bốn kết luận quyết định</h2>
+    <p>Bản trích text của PDF làm rơi mất toàn bộ hình và ảnh chụp màn hình. Đọc lại <b>ảnh từng trang</b>, cộng với tra SDK bằng reflection trên chính DLL, cho ra bốn điều mà đợt kiểm chứng tự động không thể có.</p>
+
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Kết luận</th><th>Nguồn</th><th>Vì sao quyết định</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Toạ độ vật lý do cơ cấu gửi sang</b>, không phải VisionMaster tự sinh</td>
+            <td class="k">PDF tr.22, tr.48</td>
+            <td>Ảnh hộp thoại <span class="mono">TranslationCalibModu</span> cho thấy <i>Calibration Points Input = By Coordinate</i> và <i>Physical Coordinate X ← Protocol Parsing</i>. Đây là lời giải cho F03.</td>
+          </tr>
+          <tr>
+            <td><b>Mọi quỹ đạo đều hợp lệ</b> khi nạp điểm kèm toạ độ</td>
+            <td class="k">PDF tr.18 mục 1</td>
+            <td>"Trình tự hình S không bắt buộc… nếu hiệu chuẩn theo giao thức truyền thông thì mọi quỹ đạo của máy đều được." Đây là điều kiện để camera dưới — chỉ có X và xoay — hiệu chuẩn được.</td>
+          </tr>
+          <tr>
+            <td><b>Chỉ hiệu chuẩn có xoay mới đặt gốc toạ độ tại tâm xoay</b></td>
+            <td class="k">PDF tr.17, tr.18 mục 3</td>
+            <td>Đúng thứ <span class="mono">Single Point Alignment</span> bắt buộc phải có. Loại luôn hai phương án còn lại (CalibBoard, N-image) cho bước này.</td>
+          </tr>
+          <tr>
+            <td><b>Camera Mode đảo dấu cả hai trục cùng lúc</b></td>
+            <td class="k">PDF tr.19</td>
+            <td>Máy này là trường hợp lai (X là camera đi, Y2 là vật đi) nên <b>không giá trị nào của Camera Mode làm đúng cả hai trục</b>. Không đọc hình này thì không thể biết.</td>
+          </tr>
+          <tr>
+            <td><b>API gửi toạ độ có thật</b></td>
+            <td class="k">SDK trên máy</td>
+            <td><span class="mono">GlobalVariableModuleTool.SetVarFloat</span> và <span class="mono">ProcedureParam.SetInputFloat</span> — xác thực bằng tài liệu XML, guide.chm và reflection trên DLL, không phải suy đoán.</td>
+          </tr>
+          <tr>
+            <td><b>Giới hạn số điểm</b></td>
+            <td class="k">guide.chm</td>
+            <td><span class="mono">TranslationCalibParam</span>: Translation Times dải <b>[4,16]</b>, Rotation Times <b>[0,16]</b>, và có sẵn <span class="mono">HomoFreedomEnum.Similarity</span>. Quyết định số vị trí X tối thiểu.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════ TRẠNG THÁI ══════════ -->
+  <div class="card">
+    <h2>Đã xử lý tới đâu</h2>
+    <div class="box ok" style="margin-top:0;">
+      <span class="bt">Đã xong</span>
+      <ul>
+        <li><b>Code app</b> — viết lại theo quy trình mới: bỏ ma trận camera của app, thêm Flow <span class="mono">PlaceAlign</span> và <span class="mono">LocateMark</span>, thêm hai phép kiểm tra bằng chuyển động trục, gửi vị trí encoder qua biến toàn cục. Build 0 lỗi, <span class="mono">--selftest</span> <b>256 đạt / 0 không đạt</b>.</li>
+        <li><b>Cẩm nang</b> — viết lại toàn bộ tại cùng URL, thêm ba sơ đồ khối cho người mới, và mục "Thay đổi so với bản trước".</li>
+        <li><b>PLAN.md §6</b> — viết lại theo đúng ranh giới VisionMaster ⇄ App, thêm hợp đồng biến toàn cục.</li>
+      </ul>
+    </div>
+    <div class="box err">
+      <span class="bt">Còn lại — làm trên máy thật</span>
+      <ul>
+        <li>Dựng solution VisionMaster theo hợp đồng: module Global Variable + 8 Flow.</li>
+        <li>Chạy <b>Bước 2</b> để chốt dấu trục của camera trên — đây là chỗ trường hợp lai lộ ra, và cách sửa đã ghi sẵn trong cẩm nang.</li>
+        <li>Chạy <b>Bước 4</b> cho cả hai tay để lấy dấu góc và kiểm tâm xoay.</li>
+        <li>Chốt <span class="mono">DOF</span> của hiệu chuẩn camera dưới: thử Affine trước, không đạt thì hạ Similarity.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════ GIỚI HẠN ══════════ -->
+  <div class="card" id="gioihan">
+    <h2>Giới hạn của đợt kiểm chứng này</h2>
+    <ul class="plain">
+      <li><b>Chưa có solution thật để đối chiếu.</b> Mọi kết luận về VisionMaster dựa trên tài liệu, Help và SDK — không phải trên một solution đã chạy. Những chỗ tài liệu không nói rõ đều được ghi là "thử rồi xử theo kết quả" chứ không đoán bừa.</li>
+      <li><b>12 phát hiện nhẹ nhất bị bỏ</b> khỏi vòng phản bác do giới hạn ngân sách agent. Chúng đều ở mức nhãn/thông báo.</li>
+      <li><b>4 agent không chạy được</b> vì hết hạn mức phiên: hai agent phản bác của F34 (làm phát hiện đúng bị loại nhầm), agent rà lỗ hổng, và agent xác nhận "điểm cẩm nang đúng" — nên báo cáo này <b>không có mục liệt kê chỗ cẩm nang cũ làm đúng</b>.</li>
+      <li><b>Mô phỏng không thay được máy thật.</b> Vision mô phỏng trả nhiễu quanh 0, không gắn với vị trí trục, nên nó kiểm được <i>logic</i> và <i>dấu</i>, không kiểm được quang học. Đó chính là lý do hai phép kiểm tra ở Bước 2 và Bước 4 phải chạy trên máy thật.</li>
+      <li><b>Một quyết định còn treo:</b> DOF của hiệu chuẩn camera dưới. Không tài liệu nào nói rõ module có dùng cả điểm xoay để fit ma trận hay không, nên phải thử.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Đợt kiểm chứng 12/09/2026 · 116 agent · nguồn: PDF Hikrobot "Use of Calibration and Positioning Operation Modules" (2023 Q3) · Help VisionMaster 4.4.0 · SDK V4.x trên máy · mã nguồn ShieldCanAssy. Cẩm nang đã cập nhật nằm ở artifact riêng.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var buttons = document.querySelectorAll('.filters button');
+  var items = document.querySelectorAll('#findings .f');
+  var note = document.getElementById('empty-note');
+
+  function apply(filter){
+    var shown = 0;
+    for (var i = 0; i < items.length; i++){
+      var match = filter === 'all' || items[i].getAttribute('data-sev') === filter;
+      items[i].hidden = !match;
+      if (match) shown++;
+    }
+    if (note) note.hidden = shown > 0;
+  }
+
+  for (var i = 0; i < buttons.length; i++){
+    buttons[i].addEventListener('click', function(){
+      for (var j = 0; j < buttons.length; j++)
+        buttons[j].setAttribute('aria-pressed', String(buttons[j] === this));
+      apply(this.getAttribute('data-filter'));
+    });
+  }
+})();
+</script>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>PollTest</AssemblyName>
+    <WpfBin>C:\Users\Tuan\OneDrive\Tuan\2026\Actro\SO1C86-SHIELD CAN ASSY MC\ShieldCANAssyMC\ShieldCanAssy.Wpf\bin\Debug\net48</WpfBin>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ServoControl"><HintPath>$(WpfBin)\ServoControl.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="FluentModbus"><HintPath>$(WpfBin)\FluentModbus.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

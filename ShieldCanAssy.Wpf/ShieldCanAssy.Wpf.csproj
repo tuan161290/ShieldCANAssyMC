@@ -1,0 +1,99 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ShieldCanAssy.Wpf</RootNamespace>
+    <AssemblyName>ShieldCanAssy.Wpf</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>disable</Nullable>
+    <ApplicationIcon />
+    <Configurations>Debug;Release;Remote</Configurations>
+  </PropertyGroup>
+
+  <!-- Cấu hình Remote — build thẳng ra UNC share của Remote PC (1.2.1.218:4026) để debug từ xa
+       (Tuấn yêu cầu, 2026-09-08). Chỉ áp dụng riêng config Remote — để BaseOutputPath vô điều
+       kiện ở PropertyGroup trên sẽ khiến build Debug/Release bình thường cũng bị đẩy ra share
+       mạng, chậm và không dùng được khi máy không thấy share đó. OutputPath (thay vì
+       BaseOutputPath) để ra thẳng đúng thư mục, không lồng thêm \Remote\net48\ bên trong. -->
+  <PropertyGroup Condition="'$(Configuration)'=='Remote'">
+    <OutputPath>\\1.2.1.219\Users\Public\App\</OutputPath>
+    <!-- SDK vẫn tự thêm \net48\ vào cuối OutputPath dù đã gán tay — tắt hẳn bằng cờ này mới ra
+         đúng phẳng \App\ như yêu cầu, không lồng thêm thư mục framework bên trong. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShieldCanAssy.Core\ShieldCanAssy.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Images\*.png" />
+    <!-- FontAwesome 4 webfont — icon 3 nút điều khiển cửa sổ của title bar tự vẽ.
+         Tên font nội bộ là "FontAwesome" (xem Themes\Controls.xaml).-->
+    <Resource Include="Fonts\fontawesome-webfont.ttf" />
+  </ItemGroup>
+
+  <!-- Bảng mã alarm — copy cạnh exe làm bản mẫu. Lúc chạy, AlarmCatalog nạp từ
+       %APP_PATH%\Config\alarms.json và chỉ rơi về bản cạnh exe nếu file kia chưa có
+       (xem Core.Infor\AlarmCatalog.cs). -->
+  <ItemGroup>
+    <None Include="..\Config\alarms.json" Link="Config\alarms.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--
+    P4 — VisionEditView.xaml khai báo trực tiếp VmMainViewConfigControl của VisionMaster nên cần
+    reference compile-time thật cho trình biên dịch XAML (BAML), không nạp muộn bằng reflection
+    được như VisionConnect.cs bên Core. Private=false + AssemblyResolve trong App.xaml.cs —
+    cùng cơ chế và cùng đánh đổi như ShieldCanAssy.Core.csproj.
+
+    CHƯA kiểm chứng đầy đủ: control biên dịch và hiển thị được khung (đã build thật), nhưng vài
+    module công cụ của VisionMaster có thể cần thêm resource gốc (icon, ngôn ngữ, plugin thuật
+    toán) nằm ngoài hai DLL này — xem ghi chú trên VisionEditView.xaml. Không phải rủi ro cho vận
+    hành máy: trang này thuần là tiện ích sửa solution, không nằm trên đường chạy Auto.
+  -->
+  <ItemGroup>
+    <Reference Include="VM.Core">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VMControls.WPF.Release">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.WPF.Release.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VMControls.Interface">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.Interface.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Dependency ẩn của VM.Core.VmProcedure (IParamsConfig/IUserStringData/IUserBytesData) —
+         cần cho MainView.xaml.cs gán VmProcedure vào VmRenderControl.ModuleSource (kiểu
+         IVmModule). Không tự lộ ra cho tới khi có code chạm thẳng vào VmProcedure như vậy. -->
+    <Reference Include="VMControls.BaseInterface">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.BaseInterface.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    VmMainViewConfigControl tự tìm myLibs\Apps.BaseLog.config CẠNH EXE lúc chạy (đã xác nhận bằng
+    cách chạy thật: thiếu thư mục này thì chỉ lỗi log nội bộ của SDK, không sập app — nhưng chép
+    đủ cho chắc, vì control thật có thể cần thêm file khác trong này mà chỉ lộ ra khi mở tab Vision
+    Edit). Nguồn: C:\Program Files\VisionMaster4.4.0\Applications\myLibs (~34 MB).
+  -->
+  <ItemGroup>
+    <None Include="C:\Program Files\VisionMaster4.4.0\Applications\myLibs\**\*.*">
+      <Link>myLibs\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

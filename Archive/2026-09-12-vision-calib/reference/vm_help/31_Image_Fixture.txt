@@ -1,0 +1,172 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-550C41E6-EC6A-4779-8F6E-2613AED7F58E.html
+
+Image Fixture
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Image Processing
+
+- Image Fixture
+
+ Image Fixture
+
+ The Image Fixture module can be used in
+ conjunction with the Contour Match, Gray Model
+ Match, and Position Fixture modules to correct the
+ position deviation on the image of the object with changed position on the production line. 
+
+ Application Scenario
+
+ The object being transferred on the production line may contain position
+ offset, as shown in the figure below. 
+
+ [img:GUID-5AB05C38-E269-4CF9-8117-7C6D20FC0ABB-high.png] 
+ Figure 1 Scenario Example
+
+ When the position of the captured object is offset in the image, the
+ image of the object needs to be corrected to ensure the accuracy of subsequent
+ positioning processing. 
+
+ How To Use
+
+ Possible Predecessors
+
+ The possible predecessors of Image
+ Fixture module contain
+ Image Source and Position Fixture. The latter provides position fixture
+ information for the Image Fixture module.
+
+ Application Example
+
+ In the following example: 
+
+- 
+ The Contour Match module locates the sample, and outputs the
+ position information to the Position
+ Fixture. 
+
+ Note 
+ It is recommended to create template with
+ standard image in the Contour Match
+ module to ensure that the Position
+ Fixture can deliver precise fixture related
+ information. 
+
+- 
+ The Position Fixture module
+ delivers fixture related information to the Image
+ Fixture module. 
+
+- 
+ The Image Fixture module
+ processes and fixes the image based on the fixture related
+ information from the Position Fixture.
+
+ [img:GUID-B7C23919-B8EF-43FA-97B6-B3B9E692EFD9-high.png] 
+ Figure 2 Application
+ Example
+
+ [img:GUID-A60D2AF4-C8A7-4FD6-B623-E19DDDB26726-high.png] 
+ Figure 3 Image Fixture
+ Effect Example
+
+ Parameter Configuration
+
+ Parameters Details
+
+ By Info
+
+ Bind the fixture related information from the
+ Position Fixture. 
+
+ By Point
+
+ Subscribe the FixturePoint, FixtureInitAngle,
+ FixtureRunPoint, and FixtureRunAngle from the predecessor
+ modules. 
+
+ By Coordinate
+
+ Subscribe the coordinates of the fixture point
+ and the fixture run point. You can select this mode when you
+ need to rotate an image. For example, if you need to rotate
+ an image with a resolution of 2000*1000 by 90° clockwise,
+ refer to the following figure for coordinate configuration.
+
+ [img:GUID-35985DBD-F53C-4CCC-A9AD-F71CC6E757D2-high.png] 
+ Figure 4 Configuration Example Of
+ Fixture By Coordinate
+
+ Module Result
+
+ The module results of the Image Fixture module
+ are as follows: 
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ Output Image
+
+ Out Image
+
+ Binary. The binary data of the output image.
+
+ Out Image Width
+
+ Int. The width of the output image.
+
+ Out Image Height
+
+ Int. The height of the output image.
+
+ Out Image Pixel Format
+
+ Int. The pixel format of the output image. Eg., 17301501
+ indicates Mono8, and 35127316 indicates RGB24.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- Application Scenario
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

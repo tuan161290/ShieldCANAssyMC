@@ -1,0 +1,71 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-9D4AEEFC-ED21-437E-B20D-9DEB5C85288D.html
+
+Calibration Configuration Guide
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Auxiliary Tool Guide
+
+- Calibration Configuration Guide
+
+ Calibration Configuration Guide
+
+ The Calibration Configuration Guide tool allows
+ you to quickly complete the complex calibration process through step-by-step guide. To open
+ the tool window, click Tools in the menu bar and select
+ Calibration Configuration Guide. 
+
+ Select the needed Calibration Type and
+ click Create to enter the calibration configuration process. 
+
+ Now the three calibration types below are supported.
+
+- 
+ 
+ Static Calibration: Use a stationary camera
+ and a
+ calibration
+ board to determine the transformation relationship between the image coordinate
+ system and the physical coordinate system.
+
+- 
+ 
+ Dynamic Calibration: Use the movement of
+ feature points to determine the rotation center and the transformation
+ relationship between the image coordinate system and the physical coordinate
+ system. 
+
+- 
+ 
+ Mapping Calibration: Use feature points to
+ determine the transformation relationship between the image coordinate systems
+ of two cameras.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->

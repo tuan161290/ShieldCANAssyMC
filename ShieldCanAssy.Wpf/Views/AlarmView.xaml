@@ -1,0 +1,116 @@
+<UserControl x:Class="ShieldCanAssy.Wpf.Views.AlarmView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:ShieldCanAssy.Wpf.Mvvm">
+
+    <!-- Trang Alarm riêng (Tuấn yêu cầu, 2026-09-10) — thay cho việc chỉ xem được bảng chi tiết
+         alarm qua overlay che kín màn hình (banner "Chi tiết", vẫn giữ nguyên không đụng tới).
+         KHÔNG đặt UserControl.DataContext riêng như các trang khác: toàn bộ dữ liệu
+         (ActiveAlarms/AlarmHistory/ResetCommand/MuteCommand/Status) đã có sẵn trên
+         ShellViewModel (DataContext của MainWindow) — kế thừa thẳng qua cây visual, không cần
+         ViewModel riêng chỉ để lặp lại đúng những property đó. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ══════════ Alarm đang tác động ══════════ -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+            <DockPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Alarm.ActiveHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                            HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <TextBlock Text="{Binding Status.Message}" VerticalAlignment="Center"
+                               Foreground="{StaticResource CriticalBrush}" Margin="0,0,16,0"
+                               MaxWidth="480" TextWrapping="Wrap"/>
+                    <Button Content="{l:T Alarm.Mute}" Width="100" Height="36" Margin="0,0,8,0"
+                            Command="{Binding MuteCommand}"/>
+                    <Button Content="RESET" Width="120" Height="36"
+                            Command="{Binding ResetCommand}" Style="{StaticResource PrimaryButton}"/>
+                </StackPanel>
+
+                <DataGrid ItemsSource="{Binding ActiveAlarms}" IsReadOnly="True" HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="{l:T Alarm.ColTime}" Binding="{Binding RaisedAt, StringFormat='HH:mm:ss'}" Width="70"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColCode}" Binding="{Binding Code}" Width="55"/>
+                        <DataGridTemplateColumn Header="{l:T Alarm.ColLevel}" Width="70">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="3" Padding="6,1"
+                                            Background="{Binding Level, Converter={StaticResource AlarmLevelBrush}}">
+                                        <TextBlock Text="{Binding Level}" Foreground="White" FontSize="11"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="{l:T Alarm.ColSource}" Binding="{Binding Source}" Width="70"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColRoot}" Binding="{Binding IsRootCause}" Width="52"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColConditionActive}" Binding="{Binding ConditionActive}" Width="115"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColMessage}" Binding="{Binding Message, Mode=OneWay}" Width="*"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColDetail}" Binding="{Binding Detail}" Width="180"/>
+                    </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="20,4,8,10">
+                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}">
+                                    <Run Text="{l:T Alarm.CausePrefix}"/><Run Text="{Binding CauseText, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" Margin="0,3,0,0">
+                                    <Run Text="{l:T Alarm.RemedyPrefix}"/><Run Text="{Binding RemedyText, Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+
+        <!-- ══════════ Lịch sử alarm — tới 200 dòng gần nhất, kể cả đã hết (AlarmManager.History)
+             ══════════ -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+            <DockPanel>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock Text="{l:T Alarm.HistoryHeader}" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+
+                <DataGrid ItemsSource="{Binding AlarmHistory}" IsReadOnly="True" HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="{l:T Alarm.ColRaisedAt}" Binding="{Binding RaisedAt, StringFormat='HH:mm:ss dd/MM'}" Width="110"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColClearedAt}" Binding="{Binding ClearedAt, StringFormat='HH:mm:ss dd/MM'}" Width="110"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColCode}" Binding="{Binding Code}" Width="55"/>
+                        <DataGridTemplateColumn Header="{l:T Alarm.ColLevel}" Width="70">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="3" Padding="6,1"
+                                            Background="{Binding Level, Converter={StaticResource AlarmLevelBrush}}">
+                                        <TextBlock Text="{Binding Level}" Foreground="White" FontSize="11"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="{l:T Alarm.ColSource}" Binding="{Binding Source}" Width="70"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColRoot}" Binding="{Binding IsRootCause}" Width="52"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColMessage}" Binding="{Binding Message, Mode=OneWay}" Width="*"/>
+                        <DataGridTextColumn Header="{l:T Alarm.ColDetail}" Binding="{Binding Detail}" Width="180"/>
+                    </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="20,4,8,10">
+                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}">
+                                    <Run Text="{l:T Alarm.CausePrefix}"/><Run Text="{Binding CauseText, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock TextWrapping="Wrap" Margin="0,3,0,0">
+                                    <Run Text="{l:T Alarm.RemedyPrefix}"/><Run Text="{Binding RemedyText, Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

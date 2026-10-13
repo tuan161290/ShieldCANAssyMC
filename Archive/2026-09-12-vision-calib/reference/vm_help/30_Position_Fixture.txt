@@ -1,0 +1,307 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-6DF4A29F-1B7F-4910-8AF0-9C93C18F9985.html
+
+Position Fixture
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Locating
+
+- Position Fixture
+
+ Position Fixture
+
+ Position Fixture module corrects the ROI of the
+ subsequent module in real time based on the template matching results. This module is often
+ used to correct the motion offset of the target to achieve precise positioning. 
+
+ How It Works
+
+ The algorithm workflow of this module includes the following three main steps:
+
+- 
+ Receive target position from Contour Match module. 
+
+- 
+ Select a fixture point in the fixture image based on the target
+ position. 
+
+ For example, in the left image below, it selects the orange
+ point on top of the right pentagram as the fixture point. 
+
+- 
+ The module calculates offset and rotation angle relative to the
+ fixture point in the image to be corrected. 
+
+- 
+ Mark the fixture point in the target image. 
+
+ The fixture point in the unfixed image has the same
+ coordinates as the fixture point in the fixture image. 
+
+- 
+ Based on the matched target in Contour Match, it selects another point (referred as "unfixtured point") in the
+ unfixture image. The position of unfixtured point relative to the
+ target is the same with the position of the fixture point relative
+ to the target in the fixture image. For example, the black point in
+ the right picture below has the same relative position to the
+ pentagram as the orange point in the left picture. 
+
+- 
+ Based on position of unfixtured point and fixture point
+ in the unfixture image, it calculates the pose change of unfixture
+ image relative to the fixture image. 
+
+ | 
+ 
+ | 
+ fixture image
+
+ | 
+ unfixture image
+
+ | 
+ 
+ [img:GUID-7C23A46F-D5BF-42AE-A4C2-89ABE1B8F348-high.png] 
+
+ | 
+ 
+ [img:GUID-2963B59D-6EB3-4CA9-A67C-B6E3D566DCC4-high.png] 
+
+ How To Use
+
+ Possible Predecessors/Successor
+
+ In the procedure, possible predecessors of the
+ Position Fixture module includes Image Source, Contour Match, and other related modules. Possible successors
+ includes Circle Search, Line Search, Caliper, Image Fixture, or other modules. Position Fixture can
+ correct ROIs for these successors to acquire a more precise position to
+ find targets. 
+
+ Configuration Process
+
+ Position Fixture module configuration
+ process is as follows:
+
+- 
+ Click Execute to execute the
+ flow once to obtain or update the data output by the predecessor
+ modules before Position Fixture. 
+
+- 
+ Select subscribe input on the Basic
+ Parameters. 
+
+- 
+ Click Create fixture. 
+
+ [img:GUID-1B6F27B2-AE57-4DB3-9E4A-EBC314DF6065-high.png] 
+ Figure 1 Configuration
+ Steps
+
+ Application examples
+
+ In the example below, Position Fixture
+ corrects the ROI position from Contour Match, allowing Circle Search to precisely find the round hole on the part. 
+
+ [img:GUID-47CD9B02-5B18-41E4-A907-ACBAB3B6046E-high.png] 
+ Figure 2 Example: Precise
+ Positioning and Hole Finding
+
+ Parameter Configuration
+
+ The following only introduces the details of the run parameters of this
+ module. You can configure the run parameters to define how it processes data it
+ received. 
+
+ Note 
+ For result display parameters details, seeResult Show. 
+
+Table 1 Choose Mode
+
+ | 
+ 
+ | 
+ Subparameter
+
+ | 
+ Secondary subparameter
+
+ | 
+ Description
+
+ | 
+ By Point
+
+ | 
+ Origin
+
+ | 
+ Select the fixture point position or subscribe the
+ position from predecessors. 
+
+ | 
+ Angle
+
+ | 
+ The origin is based on the angle of the horizontal line. 
+
+ | 
+ ScaleX
+
+ | 
+ The scale of the image in the X-axis direction. 
+
+ | 
+ ScaleY
+
+ | 
+ The scale of the image in the Y-axis direction. 
+
+ | 
+ By coordinates
+
+ | 
+ Origin X/Y
+
+ | 
+ Select or enter the X/Y axis coordinates of the
+ fixture point. 
+
+ | 
+ Angle
+
+ | 
+ The origin is based on the angle of the horizontal line. 
+
+ | 
+ ScaleX
+
+ | 
+ The expansion and contraction scale of the image in the X-axis direction. 
+
+ | 
+ ScaleY
+
+ | 
+ The expansion and contraction scale of the image in the Y-axis direction. 
+
+ Cautions
+
+ If the predecessor module is Contour Match, The Position Fixture module
+ can automatically subscribes to the scale from them to correct positions of targets
+ with different sizes in images with same resolution. 
+
+ Module Result
+
+ The module result of Position Fixture is as
+ follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ Position Fixture Info
+
+ Fixture Point
+
+ FixtureInitPointX
+
+ Float. The X coordinate of fixture
+ point.
+
+ FixtureInitPointY
+
+ Float. The Y coordinate of fixture
+ point.
+
+ FixtureInitAngle
+
+ Float. The angle of the fixture point relative to
+ the horizontal line, with clockwise angle is positive, while
+ the counterclockwise is negative.
+
+ FixtureInitScaleX
+
+ Float. The scale of the fixture point in the
+ X-axis direction.
+
+ FixtureInitScaleY
+
+ Float. The scale of the fixture point in the
+ Y-axis direction.
+
+ Unfixtured point
+
+ FixtureRunPointX
+
+ Float. The X coordinate of finding
+ unfixtured point.
+
+ FixtureRunPointY
+
+ Float. The Y coordinate of finding
+ unfixtured point.
+
+ FixtureRunAngle
+
+ Float. The angle of the unfixtured point relative
+ to the horizontal line, with clockwise angle is positive,
+ while the counterclockwise is negative.
+
+ FixtureRunScaleX
+
+ Float. The scale of the unfixtured point in the
+ X-axis direction.
+
+ FixtureRunScaleY
+
+ Float. The scale of the unfixtured point in the
+ Y-axis direction.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Cautions
+
+- Module Result

@@ -1,0 +1,46 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*_wpftmp.csproj
+*.Backup.tmp
+
+# Claude Code — cấu hình cá nhân của từng máy
+.claude/settings.local.json
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+[Xx]64/
+[Xx]86/
+[Aa]pp[Pp]ackages/
+BundleArtifacts/
+Generated Files/
+
+# Build artifacts
+*.pdb
+*.ilk
+*.ipch
+*.iobj
+*.ipdb
+*.exp
+*.tlog
+*.VC.db
+*.VC.opendb
+*.aps
+*.cache
+
+# NuGet (restore via packages.config / PackageReference)
+packages/
+*.nupkg
+
+# Runtime data
+Logs/
+ImageTemp/
+AwakenGPUToolLog.txt
+images_v2.db

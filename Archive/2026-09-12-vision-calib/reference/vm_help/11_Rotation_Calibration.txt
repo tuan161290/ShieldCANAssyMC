@@ -1,0 +1,204 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-7BDADB33-D129-4ED4-8ADF-BD7A26E93B5C.html
+
+Rotation Calibration
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calibration
+
+- Rotation Calibration
+
+ Rotation Calibration
+
+ The Rotation Calibration module has the same
+ function of the rotation part in the Translation Calibration module.
+ This module is usually used in calibration scenarios with a single camera and the motion
+ mechanism to calibrate the rotation center.
+
+ Note 
+ When using this module, ensure that only rotation and no translation is
+ included in the scenario. Each rotation angle should be strictly equal, and at least
+ 3 times of rotation are needed.
+
+ How It Works
+
+ For the module principle, refer to the rotation calibration part in
+ Translation Calibration.
+
+ The Translation Calibration module can generate
+ translation calibration file or translation and rotation calibration file, but the
+ calibration file with only rotation information cannot be generated. Therefore, if
+ you only need rotation calibration file, use the Rotation
+ Calibration module.
+
+ How To Use
+
+ This module can be used together with the Translation
+ Calibration module. And in the Translation
+ Calibration module, you need to select translation calibration as
+ the Calibration Type.
+
+ Parameter Configuration
+
+ This section introduces the configuration of basic parameters and run
+ parameters. For the result parameters, see Result Show.
+
+ Input Source
+
+ Select the images to be calibrated that are output by the
+ predecessor.
+
+ Input Mode
+
+ Optional by point or by coordinate
+
+ Image Point
+
+ ImagePointX/Y
+
+ Position of calibration points, which are usually subscribed
+ from the predecessors.
+
+ Physical Rotation Angle
+
+ The physical angle of each rotation of the motion
+ mechanism.
+
+ Rotation Times
+
+ Set the number of input points for rotation motion. This
+ parameter is required when the rotation axis is not co-axial with the
+ image center, and is usually set to 3. Note that the rotation is
+ performed at the position of the 5th point.
+
+ RevOutputFlag
+
+ If the rotation radius is large or the physical rotation
+ angle is small, and the fitted rotation center coordinates differ
+ greatly from the actual, you can enable this parameter to re-calibrate
+ the rotation
+ center.
+
+ Load Calibration File
+
+ Click [img:GUID-A67293D7-03B2-4F66-80BE-40ADC56B8280-high.png] to select or create a
+ calibration file. Or you can subscribe to the existing calibration file
+ in other modules.
+
+ Note 
+ Only calibration files in xml or iwcal format are
+ supported.
+
+ Refresh Signal
+
+ Enter or subscribe to data as a signal of whether to
+ refresh the calibration file.
+ 
+- 
+ When the parameter is set to 0 or null,
+ the selected calibration file is loaded only during
+ the first run of the module and is not updated
+ thereafter.
+
+- 
+ When the parameters are not 0 or null,
+ the selected calibration file is reloaded each time
+ the module runs. Ensure that the calibration file to
+ be read is up to date.
+
+ Module Result
+
+ Module Result of Rotation
+ Calibration is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ remainCount
+
+ Int. The remaining number of calibration cycles until the
+ process is completed.
+
+ RotAxisPoint
+
+ RotCenterImageX
+
+ Float. The X-coordinate of the rotation center in
+ the image coordinate system.
+
+ RotCenterImageY
+
+ Float. The Y-coordinate of the rotation center in
+ the image coordinate system.
+
+ Physical Points of Rotation Center
+
+ Rotation Center Physical X
+
+ Float. The X-coordinate of the rotation center in
+ the physical coordinate system.
+
+ Rotation Center Physical Y
+
+ Float. The Y-coordinate of the rotation center in
+ the physical coordinate system.
+
+ Pixel Error of Rotation Estimation
+
+ Float. The average difference between the measured value and the
+ true value during pixel rotation. The larger the error, the less accurate
+ the measurement result.Note 
+ Rotating pixels refers to moving pixels in an image
+ according to a given offset.
+
+ Real Error of Rotation Estimation
+
+ Float. The average difference between the measured value and the
+ true value after rotating the pixels.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

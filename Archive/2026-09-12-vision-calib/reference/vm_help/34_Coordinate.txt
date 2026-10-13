@@ -1,0 +1,200 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-92E4FAD2-A19B-4F3D-8360-94A5088D8ED4.html
+
+Coordinate
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calibration
+
+- Coordinate
+
+ Coordinate
+
+ The Coordinate module allows you
+ to
+ customize a
+ coordinate system within the image coordinate
+ system
+ and create
+ a
+ transformation matrix
+ to describe the
+ transformation
+ between the image
+ coordinate system
+ and the customized
+ one.
+
+ In
+ an image coordinate system as shown in the figure below,
+ the
+ coordinate
+ of
+ point
+ P
+ is (x,
+ y).
+ With
+ this
+ module,
+ you can convert point P from the original image coordinate system to a custom coordinate
+ system and obtain the converted coordinate of point P, which is (M,
+ N).
+
+ [img:GUID-CDD8DDDE-8CB8-428E-9D0C-5087E2894B82-high.png] 
+ Figure 1 Sample
+
+ How to Use
+
+ You can use the module to customize a coordinate system on an acquired
+ image or to subscribe to a calibration matrix. The 2 ways of use are different in
+ their possible predecessors and configurations.
+
+ Customizing a Coordinate
+
+ Possible Predecessors/Successors
+
+ When customizing a coordinate, the predecessor
+ generally is Image Source, and the successors are
+ those modules for measurement, such as L2L Measurement. 
+
+ Main Configuration Steps
+
+ To use the module, you need to draw a coordinate
+ on the image. Then, configure the running parameters of its
+ successor module. 
+
+ Specifically, set Choose
+ Coordinate to Special
+ Coordinate and set the Coordinate Matrix.
+
+ Application Example
+
+ In the following example, the crossing coordinate
+ result of L2L Measurement is modified
+ based on the customized coordinate.
+
+ [img:GUID-B60AE443-F576-45C4-B257-3D5DCC08F7B0-high.png] 
+ Figure 2 Coordinate Example
+
+ Converting a Coordinate
+
+ Possible Predecessors/Successors
+
+ When you are, for example, converting from image
+ coordinate to physical coordinate, you need to connect the
+ module to predecessors such as Load Calibration.
+
+ Main Configuration Steps
+
+ In the configuration window, set Create Coordinate to Subscribe and configure related
+ settings.
+
+ Parameter Configuration
+
+ You can configure the Image Input and
+ Draw in this module. Refer to Basic Parameters for the explanation of
+ Image Input. This section explains Draw.
+
+ Note 
+ You can
+ translate, rotate, and zoom to customize the
+ coordinate.
+
+ Create Coordinate
+
+ You can choose from two ways: Draw or Subscribe.
+
+ Draw
+
+ Click [img:GUID-605565AE-66FB-4776-8FB6-0F319C88F4B1-high.png] to draw. For
+ related information, see ROI Area for Module Detection.
+
+ Subscribe
+
+ Create
+ a self-defined coordinate
+ by
+ subscribing to the relevant data from the
+ predecessors.
+ The
+ parameters to configure differ by
+ Input
+ Mode.
+
+ By point
+
+ Subscribe to the coordinate system
+ through Point and
+ Angle.
+
+ By Coordinate
+
+ Subscribe to the coordinate system
+ through PointX,
+ Pointy,
+ and Angle.
+
+ By Matrix
+
+ Subscribe directly to the coordinate
+ matrix of the preceding module through Matrix.
+
+ Module Result
+
+ The module results of the Coordinate module are
+ as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ Coordinate Matrix
+
+ Float.
+ The
+ coordinate matrix relative to the image coordinate system.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How to Use
+
+- Parameter Configuration
+
+- Module Result

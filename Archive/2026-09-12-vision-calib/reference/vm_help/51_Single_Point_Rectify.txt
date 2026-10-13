@@ -1,0 +1,183 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-7A3742E9-2D93-4577-AB78-3F4F1DD37585.html
+
+Single Point Rectify
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Single Point Rectify
+
+ Single Point Rectify
+
+ The Single Point Rectify module is used for the
+ correction of materials photographed by a single camera. When the single camera photographs
+ the material, this module can calculate the positional and angular shifts required
+ by
+ the running point moving to the reference point according to the input position and angle of
+ the running point and reference point.
+
+ This section contains:
+
+- 
+ How It Works
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How It Works
+
+ The Single Point Rectify module should be used
+ with the Translation Calibration module as one of its predecessors. The translation
+ calibration can provide the transformation relationship of coordinate systems
+ between the camera and motion mechanism, which is known as the calibration matrix M.
+ Then according to the calibration matrix, the Single Point
+ Rectify module can convert the image feature points from the image
+ coordinate system to the physical coordinate system of the moving mechanism, so as
+ to calculate the correction coordinate for guiding the motion mechanism to correct
+ the attitude of the material.
+
+ The motion mechanism carries the reference material to the teaching
+ physical point P1, and the static camera photographs the pixel coordinate p1 of the
+ feature point to create the reference.
+
+ In application scenarios, the motion mechanism carries the materials to
+ be corrected to the teaching photographing position P1, and now the pixel coordinate
+ of the feature point captured by the camera is p2.
+ Now
+ the pixel coordinates p1 and p2 are converted from the image coordinate system to
+ the physical coordinate system of the motion mechanism, and then this module can
+ calculate the relative offset according to the physical coordinate after correction.
+ The sum of the relative offset and the teaching physical coordinate is the absolute
+ correction coordinate.
+
+ How To Use
+
+ This module should also be used with the Image Source module that can provide image input and the Locating modules that can provide the information of image
+ feature points and angles. The Single Point Rectify module
+ can subscribe to the image point, teaching and grasp physical point, and align file
+ to calculate the relative offset and the absolute correct coordinate.
+
+ [img:GUID-95BD0649-8D85-4F35-8252-18A7F64BE5CF-high.png] 
+ Figure 1 Single Point Rectify
+ Application Example
+
+ Parameter Configuration
+
+- 
+ Basic Parameters: For the basic parameters, see Single Point Grab.
+
+- 
+ Result Show: For the result parameters, see Result Show.
+
+ Module Result
+
+ Module Result of
+ SinglePointRectifyModu is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ InitPoint
+
+ InitPointX
+
+ Float. The X-coordinate of featured point abstracted
+ from the image.
+
+ InitPointY
+
+ Float. The Y-coordinate of featured point abstracted
+ from the image.
+
+ InitPointAngle
+
+ Float. The angle of featured point abstracted from the
+ image.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ OffsetX
+
+ Float. The offset X-coordinate of the material grasped by the
+ robot machine relative to reference position 
+
+ OffsetY
+
+ Float. The offset Y-coordinate of the material grasped by the
+ robot machine relative to reference position 
+
+ OffsetR
+
+ Float. The offset of angle of the robot arm grasping objects
+ relative to base location.
+
+ AbssetX
+
+ Float.
+ The offset of angle of the robot arm grasping objects relative to base
+ location.
+
+ Float. The absolute physical position X-coordinate of the object
+ grasped by the mechanism.
+
+ AbssetY
+
+ Float. The absolute physical position Y-coordinate of the object
+ grasped by the mechanism.
+
+ AbssetR
+
+ Float. The absolute physical position angle captured by the
+ mechanism.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

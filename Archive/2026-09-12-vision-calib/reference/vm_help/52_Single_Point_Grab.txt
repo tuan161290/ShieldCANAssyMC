@@ -1,0 +1,275 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-82E4A1A6-2331-4AF3-89EF-5981C7D0FBD8.html
+
+Single Point Grab
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calculation
+
+- Single Point Grab
+
+ Single Point Grab
+
+ The Single Point Grab module can be used in
+ grabbing scenarios with only one camera to obtain
+ the
+ relative offset of the reference point moving to the running point, and the absolute
+ grabbing coordinates.
+
+ This section contains:
+
+- 
+ How It Works
+
+- 
+ How To Use
+
+- 
+ Parameter Configuration
+
+- 
+ Module Result
+
+ How It Works
+
+ This module should be used with Translation Calibration as the predecessor. When obtaining the
+ transformation relationship between coordinate systems (the calibration matrix M),
+ the Single Point Grab module can convert the image feature
+ points to the physical coordinate system of the motion mechanism, and calculate the
+ grab coordinates to guide the motion mechanism to grab materials.
+
+- 
+ When the end fixture is coaxial with the rotating axis, you do
+ not need to consider the angle offset. The pixel coordinates of the feature
+ point captured by the motion mechanism at the teaching photographing
+ position P1 is defined as p1, and then the motion mechanism is moved to the
+ teaching physical position P2 so that the end fixture is just aligned with
+ the center of the feature points. In application scenarios, the pixel
+ coordinates of the feature points captured when the motion mechanism moves
+ to P1 is defined as p2.
+
+ The pixel coordinates p1 and p2 are converted from the image
+ coordinate system to the physical coordinate system of the motion mechanism,
+ and the relative offset of the coordinates after the conversion can be
+ calculated. The sum of the relative offset and the teaching physical point
+ coordinate is the absolute grasp point coordinate.
+
+- 
+ When the end fixture is not coaxial with the rotating axis, the
+ target object has angle deviation and the motion mechanism rotates
+ synchronously, which will cause the X/Y coordinate deviation of the end
+ fixture. In order to compensate the offset, it is necessary to introduce the
+ teaching photographing point and the teaching physical point to calculate
+ the length of the non-coaxial axis and then the rotation offset caused by
+ the non-coaxial movement.
+
+ Therefore, when selecting translation and rotation calibration as
+ the calibration type, you need to set the teaching photographing point. The
+ deviation output by this module includes translation deviation and deviation
+ caused by non-coaxial rotation. The rotation calculation formula is shown in
+ the figure below.
+
+ [img:GUID-63E31EFF-AA36-41FB-8412-87412667B205-high.png] 
+
+ How To Use
+
+ This module should also be used with the Image Source module that can provide image input and Locating
+ that can provide the information of image feature points. The Single
+ Point Grab module can subscribe to the image feature point, teaching
+ and grasp physical point, teaching and photographing physical point, and align file
+ to calculate the relative offset and the absolute grab coordinate.
+
+ [img:GUID-ECA441B8-4201-475B-9553-81ABC2284220-high.png] 
+ Figure 1 Single Point Grab Application
+ Example
+
+ Parameter Configuration
+
+ This part introduces the configuration of basic parameters. For the
+ result parameters, see Result Show.
+
+ Input Mode
+
+ Set the Calibration Type and
+ Input Mode.
+
+ Calibration Type
+
+ Optional translation calibration or translation
+ and rotation calibration.
+
+ Input Mode
+
+ Optional by point or by coordinate.
+
+ ImagePoint
+
+ Set the Point (or Coordinate X/Y) and Angle of the reference point and running point. After
+ you configure the parameters, click Execute and
+ then click Create Reference to complete setting
+ the reference point. The subsequently subscribed image points are all
+ running points.
+
+ Teaching and grasp physical point
+
+ Set the absolute physical coordinate and angle at which the
+ motion mechanism grasps the object in the base position.
+
+ Teaching and photographing physical point
+
+ Set the absolute physical coordinate and angle of the motion
+ mechanism carrying the camera to take pictures when the object is in the
+ base position. Generally use the physical coordinates of the fourth
+ point.
+
+ If the camera angle changes during relative calibration, turn
+ on the Snap Point Rotate Enable and
+ configure the Snap Point Delta Angle. 
+
+ Note 
+ You need to set this parameter if selecting translation
+ and rotation calibration as the calibration type.
+
+ Align
+ File
+
+ You can set relevant settings for loading and refreshing
+ calibration files.
+
+ Calib Load Type
+
+ You can set the loading type of calibration file,
+ including calibration matrix or load calibration file.
+
+ Calibration Matrix
+
+ You can subscribe through Calibration
+ Matrix.
+
+ Load Calibration File
+
+ Click [img:GUID-A67293D7-03B2-4F66-80BE-40ADC56B8280-high.png] to
+ load the calibration file.
+
+ Refresh Signal
+
+ Enter or subscribe to data as a signal of whether to
+ refresh the calibration file.
+ 
+- 
+ When the parameter is set to 0 or null,
+ the selected calibration file is loaded only during
+ the first run of the module and is not updated
+ thereafter.
+
+- 
+ When the parameters are not 0 or null,
+ the selected calibration file is reloaded each time
+ the module runs. Ensure that the calibration file to
+ be read is up to date.
+
+ Module Result
+
+ Module Result of Single Point
+ Grab is as follows: 
+
+ Time (ms)
+
+ Float. The module running time.
+
+ InitPoint
+
+ InitPointX
+
+ Float. The X-coordinate of featured point abstracted
+ from the image.
+
+ InitPointY
+
+ Float. The Y-coordinate of featured point abstracted
+ from the image.
+
+ InitPointAngle
+
+ Float. The angle of featured point abstracted from the
+ image.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ OffsetX
+
+ Float. The offset X-coordinate of the material grasped by the
+ robot machine relative to reference position 
+
+ OffsetY
+
+ Float. The offset Y-coordinate of the material grasped by the
+ robot machine relative to reference position 
+
+ OffsetR
+
+ Float. The offset of angle of the robot arm grasping objects
+ relative to base location.
+
+ AbssetX
+
+ Float.
+ The offset of angle of the robot arm grasping objects relative to base
+ location.
+
+ Float. The absolute physical position X-coordinate of the object
+ grasped by the mechanism.
+
+ AbssetY
+
+ Float. The absolute physical position Y-coordinate of the object
+ grasped by the mechanism.
+
+ AbssetR
+
+ Float. The absolute physical position angle captured by the
+ mechanism.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module Result

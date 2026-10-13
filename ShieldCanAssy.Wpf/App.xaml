@@ -1,0 +1,51 @@
+<Application x:Class="ShieldCanAssy.Wpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:ShieldCanAssy.Wpf.Converters"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Palette.xaml"/>
+                <ResourceDictionary Source="Themes/Controls.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- true = xanh lá (bình thường), false = xám đậm ("tắt" trung tính — không phải lỗi
+                 nên KHÔNG dùng đỏ, không phải "đang chọn" nên KHÔNG dùng xanh dương/accent). -->
+            <conv:BoolToBrushConverter x:Key="StatusBrush"
+                                       TrueBrush="{StaticResource SuccessBrush}"
+                                       FalseBrush="{StaticResource StatusOffBrush}"/>
+            <!-- true = đỏ — dùng cho các bit nghĩa là BẤT THƯỜNG (ALM, POT, NOT) -->
+            <conv:BoolToBrushConverter x:Key="FaultBrush"
+                                       TrueBrush="{StaticResource CustomLightRedBrush}"
+                                       FalseBrush="{StaticResource CustomDarkGreenBrush}"/>
+            <!-- true (NG liên tiếp > 0) = đỏ cảnh báo, false = màu chữ thường -->
+            <conv:BoolToBrushConverter x:Key="NgStreakBrush"
+                                       TrueBrush="{StaticResource CriticalBrush}"
+                                       FalseBrush="{StaticResource TextPrimaryBrush}"/>
+            <!-- Ô tray trang Main: TrayCellVm.Look → màu khai ở Palette.xaml -->
+            <conv:TrayCellLookToBrushConverter x:Key="TrayCellBrush"
+                                               Empty="{StaticResource TrayCellEmptyBrush}"
+                                               Scanned="{StaticResource TrayCellScannedBrush}"
+                                               Loaded="{StaticResource TrayCellLoadedBrush}"
+                                               Processing="{StaticResource TrayCellProcessingBrush}"
+                                               Ok="{StaticResource TrayCellOkBrush}"
+                                               Ng="{StaticResource TrayCellNgBrush}"
+                                               Skipped="{StaticResource TrayCellSkippedBrush}"/>
+            <conv:AlarmLevelToBrushConverter x:Key="AlarmLevelBrush"/>
+            <conv:DialogKindToBrushConverter x:Key="DialogKindBrush"/>
+            <conv:DialogKindToGlyphConverter x:Key="DialogKindGlyph"/>
+            <conv:McStateToBrushConverter x:Key="McStateBrush"/>
+            <conv:TowerLampToBrushConverter x:Key="TowerLampBrush"/>
+            <conv:TowerLampToTintBrushConverter x:Key="TowerLampTintBrush"/>
+            <conv:TowerLampConverter x:Key="TowerLamp"/>
+            <conv:CountToVisibilityConverter x:Key="CountToVis"/>
+            <conv:StringToVisibilityConverter x:Key="StringToVis"/>
+            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+            <conv:InverseBooleanConverter x:Key="InverseBool"/>
+            <conv:NullToVisibilityConverter x:Key="NullToVis"/>
+            <conv:ReferenceEqualsConverter x:Key="RefEquals"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

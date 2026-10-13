@@ -1,0 +1,404 @@
+SOURCE: C:\Program Files\VisionMaster4.4.0\Applications\Help\EN\GUID-4EDDF74E-7327-4BE4-9BF0-22A2847A5EBF.html
+
+Mapping Calibration
+
+- 
+
+- 
+ 
+- 
+ 
+- 
+
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+ 
+- 
+
+ en-US
+
+- Home Page
+
+- Vision Module Reference
+
+- Calibration
+
+- Mapping Calibration
+
+ Mapping Calibration
+
+ The Mapping Calibration module has the same
+ function and purpose as that of the Camera Mapping module. The
+ difference lies in the way of obtaining the point sets. Camera mapping subscribes to the
+ point sets output by predecessors such as feature extraction modules, while mapping
+ calibration
+ obtains
+ point sets through the images or files of the Hikrobot calibration board.
+
+ Note 
+ For details about Hikrobot calibration boards,
+ refer
+ to the
+ How It Works
+ section
+ of the
+ CalibBoard
+ Calibration
+ topic.
+
+ How It Works
+
+ Suppose there are two sets of points, in the coordinate system
+ I1 and I2 are [img:GUID-63BE415D-3411-4314-9EB4-2081C2BE95EF-high.png] and [img:GUID-65A35C6D-2368-4535-BFD0-44B54C8DFFAA-high.png] , and in the coordinate system W1 and
+ W2 are [img:GUID-9C411037-486D-4394-A73B-51E89FEA0BEE-high.png] and [img:GUID-17B0871A-8739-4ED4-8114-560D5D056494-high.png] . The I1 and I2 are not the same
+ coordinate system (assumed to be the image coordinate system), and the coordinate
+ system W is the physical coordinate system.
+
+ Then the relationship H1 and H2 mapped from coordinate system I
+ to coordinate system W can be calculated through the two formulas shown below.
+
+ [img:GUID-ECC81FDA-66B7-4C7D-946F-29C7B2E4AC5B-high.png] 
+
+ Since [img:GUID-9C411037-486D-4394-A73B-51E89FEA0BEE-high.png] and [img:GUID-17B0871A-8739-4ED4-8114-560D5D056494-high.png] have the same coordinate, when mapping each point
+ [img:GUID-65A35C6D-2368-4535-BFD0-44B54C8DFFAA-high.png] in I2 to W, and then to I1, the
+ point can be mapped from I2 to I1, as shown in the formula
+ below. In the formula, H1-1 represents the inverse mapping
+ relationship of H1.
+
+ [img:GUID-305E3A34-8E61-414F-9559-1C5EEC25A851-high.png] 
+
+ The aim of mapping calibration is to calculate
+ the
+ final mapping matrix H1-1H2.
+
+ How To Use
+
+ Ensure that the predecessors of the Mapping
+ Calibration module include two Image Source
+ modules, which are used to obtain the images of
+ the
+ Hikrobot calibration board captured by two cameras.
+
+ Parameter Configuration
+
+ This section introduces the configuration of basic parameters and run
+ parameters. For the result parameters, see Result Show.
+
+- 
+ Basic Parameters:
+
+ Input Mode
+
+ Select the input method of the information needed in
+ this module. Optional Image
+ Input or File
+ Input.
+
+ Image Input
+
+ When selecting Image Input as the input mode, you
+ need to obtain the images of Hikrobot calibration
+ boards from the predecessors.
+
+ Input Source 1/2
+
+ Select two images output from the
+ predecessors.
+
+ Shape
+
+ Set the full screen as ROI or draw
+ rectangular ROI. For details, see Draw an ROI.
+
+ Physical Input
+
+ Select a method of entering the physical point.
+ Optional By
+ Point or By
+ Coordinate.
+
+ Physical Point
+
+ Physical Coordinate X/Y
+
+ World Rotate Angle
+
+ Position and angle information of
+ the coordinate points of the motion mechanism.
+ Each image point corresponds to a physical point
+ of the motion mechanism.
+
+ Demonstration
+
+ When enabled, you need to configure the
+ following parameters to determine whether the
+ external input signal is a demonstration signal.
+
+ External Input Character
+
+ Subscribe to external input
+ characters, such as the TRIGGER STRING for
+ external communication.
+
+ External Triggered Character
+
+ The basis for judging whether the
+ External Input Character is
+ a demonstration signal. When the
+ External Input Character is
+ the same as the External Triggered
+ Character, the signal is judged to be
+ a demonstration signal.
+
+ File Input
+
+ When selecting File Input as the input mode, you need
+ to obtain the calibration files of Hikrobot
+ calibration boards from the predecessors.
+
+ Calibration File1/2
+
+ Click [img:GUID-A67293D7-03B2-4F66-80BE-40ADC56B8280-high.png] to
+ select the calibration file that includes Hikrobot
+ calibration board images.
+
+ Refresh Signal
+
+ Enter or subscribe to data as a signal of
+ whether to refresh the calibration file.
+ 
+- 
+ When the parameter is set to 0 or null, the
+ selected calibration file is loaded only during
+ the first run of the module and is not updated
+ thereafter.
+
+- 
+ When the parameters are not 0 or null, the
+ selected calibration file is reloaded each time
+ the module runs. Ensure that the calibration file
+ to be read is up to date.
+
+ Set Calibration File Path
+
+ Update File
+
+ Create Calibration File
+
+ For the three common parameters of calibration
+ modules, see N-point Calibration Parameter
+ Configuration.
+
+- 
+ Run Parameters:
+
+ Calibration Board Type
+
+ Select
+ a checkerboard type according to the actual situation.
+ Optional Hikrobot I Calibration Board,
+ Hikrobot II Calibration Board, Hikrobot I V2 Calibration
+ Board,
+ or Hikrobot II V2 Calibration Board.
+
+ DOF
+
+ Set the degree of freedom when fitting the homo
+ matrix. Optional Scale, Rotation, Aspect
+ Ratio, Tilt, Translation, and Transmission
+ (perspective transformation), Scale,
+ Rotation, Aspect Ratio, Tilt and Translation
+ (affine transformation), and Scale,
+ Rotation and Translation (similarity
+ transformation). The degree of freedom is gradually reduced in
+ the three modes above. You are recommended to use the default
+ option.
+
+ For example, a square may become a trapezoid in
+ perspective transformation, a rectangle in affine
+ transformation,
+ and a square with different sizes in
+ similarity transformation.
+
+ Weighting Function
+
+ Optional Least Squares, Huber, and Tukey. You are
+ recommended to use the default value. 
+
+ When selecting Huber or Tukey, you need to configure
+ the Weighting Coefficient.
+
+ Weighting Coefficient
+
+ Select the Sigma Clip of the function.
+ It is recommended to use the default value.
+
+ Median Filtering State
+
+ Refer to run parameters of the N-image
+ Calibration module to configure the three parameters
+ for Input Source 1 and Input Source 2, respectively.
+
+ Module
+ Result
+Module Result of Mapping
+ Calibration is as follows:
+
+ Time (ms)
+
+ Float. The module running time.
+
+ Module Status
+
+ Int. 0 indicates NG, with the module red; 1 indicates OK, with
+ the module green.
+
+ CalibStatus
+
+ Float. 0 indicates failed calibration while 1 indicates
+ successful calibration.
+
+ X-direction Ratio
+
+ Float. The X coordinate ratio of the coordinate system of
+ the running point and that of the teaching point.
+
+ Y-direction Ratio
+
+ Float. The Y coordinate ratio of the coordinate system of
+ the running point and that of the teaching point.
+
+ Mapping Error
+
+ Float. The difference between the measured value and the
+ true value during the mapping. The larger the mapping error, the more
+ inaccurate the measurement result is.
+
+ Current Corners Point
+
+ Current Angle Point X Coordinate
+
+ Float. The X coordinate of the extracted corner
+ point from the first calibration board image.
+
+ Current Angle Point Y Coordinate
+
+ Float. The Y coordinate of the extracted corner
+ point from the first calibration board image.
+
+ Object Corners Point
+
+ Object Angle Point X Coordinate
+
+ Float. The X coordinate of the extracted corner
+ point from the second calibration board image.
+
+ Object Angle Point Y Coordinate
+
+ Float. The Y coordinate of the extracted corner
+ point from the second calibration board image.
+
+ Projection Corners Point
+
+ Projection Angle Point X Coordinate
+
+ Float. The X coordinate of the
+ corner
+ point in the second image mapped from the first image.
+
+ Projection Angle Point Y Coordinate
+
+ Float. The Y coordinate of the
+ corner
+ point in the second image mapped from the first image.
+
+ Current Corners Point Number
+
+ Int. The number of corner points extracted from the current
+ image.
+
+ Object Corners Point Number
+
+ Int. The number of corner points extracted from the object
+ image.
+
+ Projection Corners Point Number
+
+ Int. The number of corner points in the current image
+ extraction that can be mapped to the target image.
+
+ ROI
+
+ The region of interest used for detection.
+
+ DetectCenterPoint
+
+ DetectCenterX
+
+ Float. The X-coordinate of the center
+ point of ROI.
+
+ DetectCenterY
+
+ Float. The Y-coordinate of the center
+ point of ROI.
+
+ DetectWidth
+
+ Float. The width of ROI.
+
+ DetectHeight
+
+ Float. The height of ROI.
+
+ DetectAngle
+
+ Float. The rotation angle of the ROI is relative to
+ the horizontal direction. A positive angle denotes a clockwise
+ rotation, while a negative angle signifies a counterclockwise
+ rotation.
+
+ If ROI is in a positive position, the angle is 0
+ degree.
+
+ Image 1/2 Calibration Status
+
+ Int. 0 indicates failed calibration
+ while
+ 1
+ indicates
+ successful
+ calibration.
+
+ Pixel Scale 1/2
+
+ Float. The size of each pixel
+ point
+ in the
+ corresponding
+ physical coordinate system.
+
+Share
+
+ Previous Page
+Next Page
+
+ -->
+
+ On This Page
+
+- How It Works
+
+- How To Use
+
+- Parameter Configuration
+
+- Module
+ Result

@@ -1,0 +1,888 @@
+
+
+===== PAGE 1 =====
+Calibration and Locating Theory
+2023.08Hikrobot MV
+
+===== PAGE 2 =====
+Overview of Calibration theory
+Locating Calculation Module in VM
+Typical Locating Application Examples
+Catalog
+Locating Application Summary
+Calibration module in VM
+
+===== PAGE 3 =====
+Overview of Calibration theory
+
+===== PAGE 4 =====
+Target of Calibration
+Target of Calibration
+Get the internal and external 
+parameter matrix of the camera 
+Acquiring the distortion factor of 
+the camera
+
+===== PAGE 5 =====
+Target of Calibration
+Get the internal and external parameter matrix of the camera, in one word: 
+Calculate the mapping from the camera's pixel coordinate system to the real world coordinate system
+X
+Y
+𝑓 𝑥, 𝑦 = 𝑢
+𝑣
+
+===== PAGE 6 =====
+World 
+coordinate 
+system
+Camera 
+coordinate 
+system
+Image 
+coordinate 
+system
+Pixel 
+coordinate 
+system
+Rigid Transformation Perspective Projection Affine Transformation
+𝑍
+𝑢
+𝑣
+1
+=
+1
+𝑑𝑋 − 𝑐𝑜𝑡𝜃
+𝑑𝑋 𝑢0
+0 1
+𝑑𝑌𝑠𝑖𝑛𝜃 𝑣0
+0 0 1
+∗
+𝑓 0 0
+0 𝑓 0
+0 0 1
+0
+0
+0
+∗ 𝑅 𝑇
+0 1 ∗
+𝑈
+𝑉
+𝑊
+1
+Rigid
+Transformation
+Perspective
+Projection
+Affine
+Transformation
+Extrinsic matrixIntrinsic matrix
+Single-point distortion-free camera imaging model
+( 𝑈, 𝑉, 𝑊 ) are the physical coordinates in the actual coordinate system, ( 𝑢, 𝑣 ) are the image 
+coordinates in the pixel coordinate system, and 𝑍 is the scale factor.
+
+===== PAGE 7 =====
+Camera Intrinsic matrix
+1
+𝑑𝑋 − 𝑐𝑜𝑡𝜃
+𝑑𝑋 𝑢0
+0 1
+𝑑𝑌𝑠𝑖𝑛𝜃 𝑣0
+0 0 1
+∗
+𝑓 0 0
+0 𝑓 0
+0 0 1
+0
+0
+0
+=
+𝑓
+𝑑𝑋 − 𝑓𝑐𝑜𝑡𝜃
+𝑑𝑋 𝑢0 0
+0 𝑓
+𝑑𝑌𝑠𝑖𝑛𝜃 𝑣0 0
+0 0 1 0
+𝑓 is the image distance, 𝑑𝑋, 𝑑𝑌 refer to the physical length of a pixel on the camera’s
+photographic plate in the 𝑋, 𝑌 directions respectively (also known as the pixel size), 𝑢0, 𝑣0 are
+the coordinates of the center of the camera's photoreceptor plate in the pixel coordinate system,
+𝜃 is the angle between the horizontal and vertical edges of the photoreceptor plate ( 90° means
+no error).
+Camera Intrinsic matrix
+
+===== PAGE 8 =====
+Camera Extrinsic matrix
+𝑅 𝑇
+0 1 =
+𝑐𝑜𝑠𝜃 −𝑠𝑖𝑛𝜃 𝑇𝑥
+𝑠𝑖𝑛𝜃 𝑐𝑜𝑠𝜃 𝑇𝑦
+0 0 1
+𝑅 is the rotation matrix, 𝑇 is the translation matrix, 𝜃 is the angle between the world
+coordinate system and the pixel coordinate system, 𝑇𝑥 , 𝑇𝑦 is the translation of the world
+coordinate system with respect to the pixel coordinate system in the X and Y directions.
+Camera Extrinsic matrix
+
+===== PAGE 9 =====
+Brief overview of calibration
+𝑢
+𝑣
+1
+=
+𝑎00 𝑎01 𝑎02
+𝑎10 𝑎11 𝑎12
+𝑎20 𝑎21 𝑎22
+∗
+𝑥
+𝑦
+1
+World coordinate system Calibration matrix Image coordinate
+𝑢 = 𝑎00𝑥 + 𝑎01𝑦 + 𝑎02
+𝑎20𝑥 + 𝑎21𝑦 + 𝑎22
+𝑣 = 𝑎10𝑥 + 𝑎11𝑦 + 𝑎12
+𝑎20𝑥 + 𝑎21𝑦 + 𝑎22
+Without taking perspective into account: 𝐚𝟐𝟎 = 0 ，𝐚𝟐𝟏 = 0，𝐚𝟐𝟐=1
+The value of this matrix can be obtained in VM by using the N-point calibration tool, saved as a calibration file
+
+===== PAGE 10 =====
+1
+Distortion and distortion correction
+Distortion of the camera image consists of Radial distortion and Tangential distortion
+Lens
+vertical plane
+Lens
+optical 
+sensor
+Causes of Tangential Distortion:
+When the camera sensor and lens
+are not parallel to each other,
+there is a pinch angle, the
+imaging position changes when
+light travels through the lens to
+the image sensor, which is caused
+by camera assembly errors.
+Ideal Situation
+ R
+eal Situation
+Causes of Radial Distortion: 
+Light is more curved away
+from the center of the lens
+than near the center, this
+distortion is more obvious
+in regular cheap lenses.
+ Ideal
+Situation
+Barrel
+Distortion
+Pincushion
+Distortion
+optical 
+sensor
+vertical plane
+
+===== PAGE 11 =====
+Distortion and distortion correction
+Distortion of the camera image consists of Radial distortion and Tangential distortion
+ො𝑦 = 𝑦(1 + 𝑘1𝑟2+𝑘2𝑟4+𝑘3𝑟6)
+ො𝑥 = 𝑥(1 + 𝑘1𝑟2+𝑘2𝑟4+𝑘3𝑟6)Radial distortion model
+ො𝑦 = 𝑦 + (𝑝1(𝑟2+2𝑦2) + 2𝑝2 𝑥)
+ො𝑥 = 𝑥 + (2𝑝1𝑦 + 𝑝2(𝑟2+2𝑥2))Tangential distortion model
+𝑥， 𝑦 are idealized distortion-free normalized image coordinates, ො𝑥， ො𝑦 are the normalized image
+coordinates after distortion, 𝑟 is the distance from the image point to the center of the image,
+which is 𝑟2 = 𝑥2+𝑦2 𝑥 .
+The second purpose of camera calibration is to obtain the camera's distortion parameters, which is to get the 
+value of 𝒌𝟏 𝒌𝟐 𝒌𝟑 𝒑𝟏 𝒑𝟐 in the formula above.
+In VM, is obtained by using the checkerboard distortion calibration tool, saved as a distortion calibration file.
+
+===== PAGE 12 =====
+Calibration module in VM
+
+===== PAGE 13 =====
+N-Point Calibration
+Function: Compute the mapping matrix based on the one-to-one correspondence of N pair points
+1974.378, 861.757
+1806.283, 862.286
+1626.983, 862.503
+1627.381, 1040.624
+1796.191, 1041.077
+1974.199, 1041.594
+1973.741, 1221.094
+1805.784, 1220.898
+1626.610, 1221.074
+11.010, 15.020
+7.005, 21.060
+21.020, 13.010
+14.050, 21.006
+30.002, 18.041
+65.001, 51.002
+80.002, 60.021
+82.003, 90.001
+98.004, 21.012
+𝑢
+𝑣
+1
+= 𝑀 ∗
+𝑥
+𝑦
+1
+𝑥 𝑦 𝑢 𝑣
+Mathematically, only 3 pairs of points of correspondence are required, the exact solution of the coefficient matrix M can 
+be found by solving the system of linear equations, the reason for using more than 3 pairs of points is that the purpose is 
+to solve the optimal solution of the matrix M, so that the matrix satisfies the equation:
+෍
+𝑘=0
+𝑛 𝑢𝑘
+𝑣𝑘
+1
+− 𝑀 ∗
+𝑥𝑘
+𝑦𝑘
+1
+2
+= 𝑀𝑖𝑛𝑖𝑚𝑢𝑚
+That is, the solution M satisfies the minimum sum of the squares of the actual values minus the calibration conversion 
+values, i.e., the minimum sum of the squares of the errors.
+
+===== PAGE 14 =====
+1
+N-Point Calibration
+Calibration path
+Coordinate
+Normalization
+Support for zoom, 
+rotate, aspect ratio, 
+skew, translation and 
+perspective
+N-Point Calibration in VM
+
+
+===== PAGE 15 =====
+N-Point Calibration without rotation
+Application Scenario: 
+1. The robot establishes the tool coordinate system, location of the gripping point of the robot, is the current 
+coordinates of the robot.
+2. When grabbing a product, if the angle of the product to be grabbed needs to be corrected, the rotation is 
+around the grabbing point. 
+N-point calibration without rotation is very limited in its application, but for vision it is 
+very simple, the target is directly calibrated to the conversion, without having to be 
+concerned about the effect of the change of angle. 
+Grab PointRotation Center
+Image Coordinate System
+Locating Feature Points
+Tool Coordinate System
+
+===== PAGE 16 =====
+N-Point Calibration with rotation
+N-point calibration with rotation is suitable for most applications, values obtained by direct
+calibration conversion of image points cannot be used directly, the effect of angular changes needs
+to be calculated, and the larger the radius of rotation, the greater the effect of positioning errors.
+Application Scenario: 
+1. The robot establishes the tool coordinate system, location of the gripping point of the robot, is the current 
+coordinates of the robot.
+2. When grabbing a product, if the angle of the product to be grabbed needs to be corrected, the rotation is 
+around the grabbing point. 
+Image Coordinate System
+Grab Point
+Rotation Center
+Locating Feature Points
+World Coordinate System
+
+===== PAGE 17 =====
+1
+Essential difference between two calibration
+𝑢
+𝑣
+1
+= M1 ∗
+𝑥
+𝑦
+1
+image coordinate physical coordinate
+Mark
+R
+otation Center
+A
+B
+Note: Through the translation calibration, it does
+not get the correspondence from the image point at
+A to the physical point at A. After the conversion of
+M1 calibration, the physical point at B is obtained.
+𝑢
+𝑣
+1
+= M2 ∗
+𝑥
+𝑦
+1
+Note: Through the rotation calibration, it really solves 
+the one-to-one conversion relationship between the 
+image point and the physical point at the same point in 
+the plane space specified by the physical to the image.
+Rotation 
+Center
+Translation
+Calibration
+image coordinate physical coordinate
+Rotate
+Calibration
+
+===== PAGE 18 =====
+1
+Details on N-point calibration
+1. The 12-point calibration sequence agreed to go S-shape, but it is not necessary, walk S-shaped just to calibrate 
+the point can be in accordance with the offset step X, step Y, offset angle automatically deduced from the 
+mechanical coordinates of the point. If it is calibrated according to the communication protocol, any trajectory of 
+the machine is possible
+2. N-point calibration without rotation, if relative coordinates are used, the image coordinates of the fifth point of 
+the calibration are (0,0) after the calibration transformation
+3. N-point calibration with rotation, whether using relative or absolute coordinates, both are calibrated with the 
+center of the pixel obtained by fitting the transformed coordinates as (0,0)
+
+===== PAGE 19 =====
+1
+Details on N-point calibration
+Whether the camera is stationary or in motion requires attention
+If the object at ① and ⑨ pixel coordinates are aligned when the camera is stationary to
+take a picture, and similarly ② and ⑧ are aligned, ③ and ⑦ are aligned, and ④ and ⑥
+are aligned, with the world coordinates at each location remaining unchanged, the
+resulting calibration matrix is the one of the camera at ⑤ in the camera motion mode
+
+
+===== PAGE 20 =====
+1
+Details on N-point calibration
+The camera takes pictures at different positions, and as long as the camera does not rotate, the
+calibration matrix of the camera at A and the calibration matrix of the camera at B are only different in
+the third column value
+HIKVISION
+ HIKVISION
+A
+ B
+𝑀𝐴 ∗
+𝑥
+𝑦
+1
+− 𝑀𝐵 ∗
+𝑥
+𝑦
+1
+=
+𝑋𝐴 − 𝑋𝐵
+𝑌𝐴 − 𝑌𝐵
+0
+The camera takes a picture at B and there is no need to do calibration at B. Calculating the target 
+localization value when the camera takes a picture in B requires only the resultant data from the 
+calibration conversion + the camera's movement
+
+
+===== PAGE 21 =====
+1
+Details on N-point calibration
+Calibration matrix with internal and external 
+references, where the third row of the matrix is not 
+0,0,1
+Calibration matrix with only external parameters, the 
+third row of the matrix is 0,0,1
+Do not select the first column if the camera image does not have a perspective visible to the naked eye
+More degrees of freedom doesn't mean more thorough, more secure, more accurate calibration.
+
+
+===== PAGE 22 =====
+1
+Translation calibration
+The translation calibration is not essentially different from the N-point calibration, except that the translation calibration 
+makes the translation and rotation parts combinable, it can be a translation without rotation, or it can be both a translation 
+and a rotation.
+
+
+===== PAGE 23 =====
+Translation calibration
+Application Scenario:
+1. The robot establishes the tool coordinate system, location of the gripping point of the robot, is the current
+coordinates of the robot.
+2. When grabbing a product, if the angle of the product to be grabbed needs to be corrected, the rotation is
+around the grabbing point.
+N-point calibration with rotation is suitable for most applications, values obtained by direct calibration
+conversion of image points cannot be used directly, the effect of angular changes needs to be calculated,
+and the larger the radius of rotation, the greater the effect of positioning errors.
+Manual Input Trigger Acquisition
+Rotation CenterImage Coordinate System
+Grab Point
+Locating Feature Points
+World Coordinate System
+
+
+===== PAGE 24 =====
+1
+Mapping Calibration
+HIKVISION
+ HIKVISION
+A
+ B
+𝑋𝑎
+𝑌𝑎
+1
+= M ∗
+𝑋𝑏
+𝑌𝑏
+1
+A image coordinate B image coordinate
+Mapping calibration is not a brand new calibration method, it's just translation calibration with a new
+name. The image-to-physical conversion relationship is called calibration, while the image-to-image
+conversion relationship is called mapping
+Usually mapping calibration is to solve the problem of limited field of view of a single camera, need to use
+another camera to act as its own "eyes" to expand the field of view, mapping calibration will introduce errors,
+do not rely too much on mapping calibration to solve the problem of limited field of view.
+
+
+===== PAGE 25 =====
+Calibration Board calibration
+Calibration board calibration is to calibrate the coordinate conversion relationship from the camera
+image coordinate system to the calibration board coordinate system, generally used to measure the
+dimensions of the product.
+Round Calibration Board Checkboard Calibration Board
+Hikvision I Calibration Board
+ Hikvision II Calibration Board
+
+===== PAGE 26 =====
+Distortion calibration
+Perspective distortion effect
+Radial distortion effect
+Support for perspective distortion and radial distortion
+
+
+===== PAGE 27 =====
+N-image calibration
+N image calibration is performed by constructing a series of image points and
+fitting them to physical points to calculate the relationship between the image
+coordinate system to the world coordinate system of the robotic arm.
+Generally the camera is set up directly above the self-research calibration plate,
+a single image acquisition needs to capture enough corner points and self-
+research codes, the number of input translation image inputs is a minimum of 3,
+and when >= 4, the direction of movement is changed once every 3 images.
+Currently, it can support translation calibration, rotation calibration and
+translation-rotation calibration, as shown in the figure below.
+3 images 5 images 9 images
+
+
+===== PAGE 28 =====
+Locating Calculation Module in VM
+
+===== PAGE 29 =====
+1
+Rotate Calculate
+𝑥2
+𝑦2 = 𝑥1 − 𝑥𝑐
+𝑦1 − 𝑦𝑐 ∗ 𝑐𝑜𝑠𝜃 −𝑠𝑖𝑛𝜃
+𝑠𝑖𝑛𝜃 𝑐𝑜𝑠𝜃 + 𝑥𝑐
+𝑦𝑐
+The Rotate Calculate is in the same coordinate system, the point A(x1,y1) is rotated by an angle of 𝜃
+around the point B(xc,yc) to reach the coordinates of the position (x2,y2)
+Rotate Calculate are the basic formulas for many positioning calculations and are the basis for
+calculations in many positioning calculation modules
+
+
+===== PAGE 30 =====
+Single Point Alignment
+𝑑𝑥
+𝑑𝑦 = 𝑇𝑒𝑎𝑐ℎ𝑋
+𝑇𝑒𝑎𝑐ℎ𝑌 − 𝑐𝑜𝑠𝜃 −𝑠𝑖𝑛𝜃
+𝑠𝑖𝑛𝜃 𝑐𝑜𝑠𝜃 ∗ 𝑅𝑢𝑛𝑋
+𝑅𝑢𝑛𝑌
+𝜃 = 𝑇𝑒𝑎𝑐ℎ𝐴𝑛𝑔𝑙𝑒 − 𝑅𝑢𝑛𝐴𝑛𝑔𝑙𝑒
+𝑇𝑒𝑎𝑐ℎ𝑋: demonstration point X
+𝑇𝑒𝑎𝑐ℎ𝐴𝑛𝑔𝑙𝑒: demonstration angle
+𝑅𝑢𝑛𝑋: Run Point X
+𝑅𝑢𝑛𝐴𝑛𝑔𝑙𝑒: Run angle
+The single-point alignment tool calculates the deviation 𝑑𝑥,deviation 𝑑𝑦,deviation angle 𝜃 from the 
+running position to the demonstration position in the same coordinate system.
+𝑇𝑒𝑎𝑐ℎ𝑌: demonstration point Y 𝑅𝑢𝑛𝑌: Run Point Y
+
+===== PAGE 31 =====
+Typical application scenarios for single point alignment
+Application of downward camera correction
+UVW platform alignment application
+The camera position during operation, during teaching, and during calibration at the center of 
+rotation are the same position. Single point alignment tools can be used directly, and other 
+situations need to be analyzed on a case by case basis!
+
+
+===== PAGE 32 =====
+1
+Single point mapping alignment module
+What is single point mapping alignment?
+Single point mapping alignment is used to solve alignment 
+calculations similar to the following situations
+The lower camera takes a picture of the material and the upper 
+camera takes a picture of the material tray. Then, based on the 
+input object point position and angle, as well as the target point 
+position and angle, the amount of movement required for the 
+object point to align and fit to the target point is calculated, 
+including the amount of position movement and angle 
+movement
+Target
+Object
+Usually the pixels 
+captured by the 
+bottom camera
+Usually the pixels 
+captured by the 
+upper camera
+
+
+===== PAGE 33 =====
+1
+Single point mapping alignment
+Generally, it is the calibration 
+of the bottom camera image 
+to the mechanical 
+coordinate system
+Generally, it is the mapping
+of the coordinate system
+from the bottom camera
+image to the upper camera
+image
+
+
+===== PAGE 34 =====
+Single point grabbing
+Teaching 
+position
+Running position
+HIKVISION
+vertical viewside view
+The function of single point grasping is to calculate the amount of movement required to move the teaching position to the 
+operating position based on the input position and angle of the operating point, as well as the position and angle of the 
+reference point. The applicable scenario is shown in the following figure.
+
+===== PAGE 35 =====
+The calculation process of single point grabbing
+𝐴𝐴′ + 𝐴𝐴′′ = 𝐴′𝐴′′
+The amount of translation generated by rotation
+The amount of translation 
+generated by direct translation
+Overall translation amount
+
+
+===== PAGE 36 =====
+1
+Single point grabbing module
+Pixel points use point multiplexing, please pay 
+attention to the creation of benchmark steps!
+Applicable scenarios ：A single camera captures the scene of material grabbing.
+Restrictions：It does not support scenarios such as multi camera simultaneous coordinate systems, separation 
+axis grabbing, or camera photo position changes (which can be achieved by subsequent variable calculation 
+modules).
+Single point grabbing module parameters ：
+Calibration type:
+1、Translation calibration（ Not calculate rotation deviation ）
+2、Translation and rotation calibration（ calculate rotation deviation）
+Image point：
+1、feature point X,Y
+2、feature point angle
+Teaching and grasping physical points：
+1、Physical point X,Y
+2、Physical point angle
+Teaching and photographing physical points：
+1、 Physical points of the photography position X,Y
+2、Physical angle of photography
+Calibration file：support xml/iwcal format calibration file
+Refresh signal： Filling in 1 will automatically load the latest calibration 
+file
+*The default camera position of this module is fixed, and 
+the scene where the camera moves to the camera 
+position requires a variable calculation module.
+
+
+===== PAGE 37 =====
+Single point rectifying module
+Teaching 
+position
+Running 
+position
+There is essentially no difference between single point rectifying and single point 
+grabbing modules, but the calculation process is slightly different
+Teaching position
+Running position
+Single point grabbing calculates 
+the deviation from the virtual 
+position parallel to the running 
+position to the running position
+Single point rectifying calculates 
+the deviation from the virtual 
+position parallel to the teaching 
+position to the teaching position
+
+===== PAGE 38 =====
+1
+Single point rectifying module
+Pixel points use point multiplexing, please pay 
+attention to the creation of benchmark steps!
+Applicable scenarios ：A single camera captures the correction scene of materials.
+Restrictions：It does not support scenarios such as multi camera simultaneous coordinate systems, separation 
+axis correction, or camera photo position changes (which can be achieved by subsequent variable calculation 
+modules).
+Single point grabbing module parameters ：
+Calibration type:
+1、Translation calibration（ Not calculate rotation deviation ）
+2、Translation and rotation calibration（ calculate rotation deviation）
+Image point：
+1、feature point X,Y
+2、feature point angle
+Teaching and grasping physical points：
+1、Physical point X,Y
+2、Physical point angle
+Teaching and photographing physical points：
+1、 Physical points of the photography position X,Y
+2、Physical angle of photography
+Calibration file：support xml/iwcal format calibration file
+Refresh signal： Filling in 1 will automatically load the latest calibration 
+file
+
+===== PAGE 39 =====
+Several conclusions on positioning and guiding 
+typical scenarios
+ 1. Total deviation of positioning guidance=rotation matrix × The deviation from the teaching Mark point to
+the center of rotation + the deviation from the running Mark point to the reference Mark point.
+ 2. The non merging of MARK points and mechanical grasping point centers does not affect the positioning
+calculation results, as the relative position relationship between image positioning MARK points and grasping
+centers is rigid and independent of rotation.
+ 3. When the Mark point of the image coincides with the center of rotation of the machine, there will be no
+deviation in rotation. Therefore, there is no need to pay attention to the position of the rotation center, and
+there is no need for a 12 point calibration with rotation. Instead, a 9 point calibration with only translation can
+be used.
+ 4. The so-called non coaxial refers to the fact that the Mark point and rotation center of the image do not
+coincide. When non coaxial occurs, it is only necessary to consider the additional deviation caused by rotation.
+The calculation process of positioning guidance is how to calculate the deviation
+
+
+===== PAGE 40 =====
+Several conclusions on the alignment of 
+upper and bottom camera mapping
+ 1. Be sure to unify to the same coordinate system before performing operations. Map the
+image coordinates of the upper camera to the coordinate system of the bottom camera, and
+then calculate the deviation from the reference point to the running point in the image
+coordinate system of the lower camera.
+ 2. Attention should be paid to the mapping of the angle of the upper camera image to the
+angle of the lower camera, and the corresponding relationship between the points before and
+after the mapping should be noted.
+ 3. The camera also indirectly taught while mapping, killing two birds with one stone.
+ 4. The calculation process of positioning guidance is similar, which calculates the deviation
+from the teaching position to the operating position.
+The mapping process not only involves image conversion between cameras, but also teaching!
+
+===== PAGE 41 =====
+Typical Locating Application Examples
+
+===== PAGE 42 =====
+Explanation of typical scenarios for single point grabbing
+Application Scenario：For the application of material grasping, the algorithm needs to return the relative offset
+coordinates or absolute grasping coordinates to the mechanism.
+Restrictions：The mechanism is XYR integrated, and the camera is installed on the R-axis, which can translate and
+rotate along with the XY axis/the camera remains stationary.
+
+
+===== PAGE 43 =====
+Single Point Grabbing Typical Scenarios - Calibration
+Calibration selection: Select the calibration method and camera
+status
+Calibration action:
+1) Place a material or calibration piece in the field of view
+2) The mechanism is translated with the camera 9 times,
+maintaining a fixed angle during translation
+3) Returning to the center point, the mechanism rotates with the
+camera 3 times, keeping XY fixed during rotation
+
+
+===== PAGE 44 =====
+Single Point Grabbing Typical Scenarios - Teaching
+Teaching movements：
+1) Place production materials on the workbench
+2) Adjust the position of the mechanism so that the suction nozzle or gripper of the mechanism can be well aligned with the 
+material, and record the physical coordinates of the mechanism at this time
+3) The mechanism moves to the photography position (i.e. the coordinates of the fifth point in calibration), captures the 
+material, and obtains the pixel coordinates
+4) Teaching to grasp physical points refers to the physical coordinates of the robotic arm that grabs materials during teaching
+5) For image points, which are the image pixels obtained by taking photos at this time
+6) Create reference
+
+
+===== PAGE 45 =====
+Single Point Grabbing Typical Scenarios - Production
+Offset calculation
+Parameters
+Offset calculation：
+1) The working distance between the production photography position and the calibration must remain unchanged
+2) The coordinates of the production photography position should be consistent with the calibration of the fifth
+point photography position, which can generate X/Y offset, but the photography posture (camera rotation angle)
+must remain unchanged.
+3) During production, it is necessary to ensure that the extracted feature points are consistent with the feature
+points of the teaching image.
+4) The teaching physical point is the coordinate of the robotic arm that happens to grasp the material during
+teaching.
+
+
+===== PAGE 46 =====
+Single point grabbing of typical scenarios - videos
+
+
+===== PAGE 47 =====
+Explanation of typical scenarios for single point rectifying
+Application scenario: The correction application of materials requires the algorithm to return the relative
+offset coordinates or absolute correction coordinates to the mechanism
+Restrictions: The mechanism is XYR integrated, with the camera in a stationary bottom position
+
+
+===== PAGE 48 =====
+Single point rectifying typical scenario - calibration
+Calibration selection: Select the calibration method and camera 
+status.
+Calibration action:
+1) The robotic arm absorbs a material or calibration piece in the field 
+of view.
+2) The mechanism is translated with the camera 9 times, maintaining 
+a fixed angle during translation.
+3) Returning to the center point, the mechanism rotates with the 
+camera 3 times, keeping XY fixed during rotation.
+
+
+===== PAGE 49 =====
+Typical scenario of single point correction - teaching
+Teaching step：
+1) Grasp the material suction nozzle or gripper in a standard posture.
+2) Record the physical coordinates of the mechanism at this time.
+3) Capture the material and obtain pixel coordinates.
+4) Create reference： 1) At this point, the physical coordinates of the mechanism are the teaching physical 
+points ；2) The obtained image coordinates are created as a benchmark as shown in the figure.
+
+
+===== PAGE 50 =====
+Typical scenario of single point deviation correction 
+- Production
+Offset calculation
+Parameters
+Offset Calculation：
+1) During production, the robotic arm grabs the material and moves it to the teaching and photography position
+2) During production, it is necessary to ensure that the extracted feature points are consistent with the feature 
+points of the teaching image
+
+
+===== PAGE 51 =====
+Typical scene of camera mapping and alignment
+Unifying the deviation of the camera image coordinate system to the bottom is the key
+Application scenario: The upper camera captures the target, while the lower camera captures the object's
+alignment and fitting to the scene
+Restrictions: There are two cameras, the target camera (usually the upper camera) and the object camera (usually
+the bottom camera). The target camera is installed on the actuator or stationary, and the object camera is inverted
+
+
+===== PAGE 52 =====
+Typical scene of camera mapping and alignment - calibration
+Calibration selection: Select the calibration method and camera status; Upper and bottom camera mapping 
+calibration, bottom camera translation and rotation calibration.
+Steps：
+1) Mapping calibration: The upper camera captures the calibration board (Hik Type I/II calibration board), the 
+mobile robot grabs the calibration board and moves it to the bottom camera position, the bottom camera 
+takes photos, and finally inputs the two calibration board images into the mapping calibration module to 
+generate a mapping calibration file.
+2) Bottom camera translation and rotation calibration: Same as above.
+Mapping between 2 cameras
+Bottom camera 12 
+points  calibration
+
+
+===== PAGE 53 =====
+Typical scene of up and down camera mapping alignment 
+- teaching
+Teaching steps:
+Teaching physical points: Mapping the absolute physical coordinates of the calibration board when
+the calibration timing mechanism reversely absorbs the calibration board.
+
+
+===== PAGE 54 =====
+Typical Scene of Camera Mapping and Alignment 
+- Production
+Calculation of 
+upper camera 
+position deviation
+Bottom camera grab
+Offset calculation：
+1) Firstly, the robotic arm grabs the material and moves it to the lower camera position to obtain the characteristic points o f the material
+2) Then the robotic arm moves to the upper camera position to take photos of the material to be fitted and calculates the deviation
+
+
+===== PAGE 55 =====
+Locating Application Summary
+
+===== PAGE 56 =====
+Positioning application types
+HIKVISION
+The complex positioning references are various combinations of the basic types mentioned in the above 4
+Application
+Guide
+Rectify
+Place
+Fit
+
+===== PAGE 57 =====
+Trilogy of Positioning Applications
+Calibration Teaching Calculation
+Whether you are a novice or an experienced player, whether you understand or not, please remember 
+these three steps first!!!
+
+===== PAGE 58 =====
+Unify coordinate system
+Coordinate 
+A
+Coordinate 
+B
+Coordinate 
+C
+Observe how many coordinate systems there are, and design how to unify them into one 
+coordinate system
+Only when calculated in a unified coordinate system will it not be chaotic!
+This process is called calibration, but from image 
+to physics is generally called "calibration", and 
+from image to image is called "mapping", which is 
+essentially the same
+
+===== PAGE 59 =====
+The purpose of teaching
+The purpose of teaching is to
+ maintain consistent posture
+Teaching posture
+ running 
+posture
+The meaning of consistent posture is to maintain a rigid relative position relationship between the teaching 
+image points and the rotation center
+Mark
+Rotation center
+ Rotation center
+
+===== PAGE 60 =====
+1
+Deviation Calculation
+Total offset
+ = rotation offset+ translation offset
+The calculation process for all positioning references ultimately boils down to deviation. Understanding how to 
+calculate deviation will enable you to master the calculation methods for all positioning applications
+𝑟𝑑𝑥
+𝑟𝑑𝑦 = 𝑐𝑜𝑠𝜃 −𝑠𝑖𝑛𝜃
+𝑠𝑖𝑛𝜃 𝑐𝑜𝑠𝜃 ∗ 𝑇𝑒𝑎𝑐ℎ𝑋 − 𝑅𝑜𝑡𝐶𝑒𝑛𝑡𝑋
+𝑇𝑒𝑎𝑐ℎ𝑌 − 𝑅𝑜𝑡𝐶𝑒𝑛𝑡𝑌
+𝑡𝑑𝑥
+𝑡𝑑𝑦 = 𝑅𝑢𝑛𝑋 − Teach𝑋
+𝑅𝑢𝑛𝑌 − 𝑇𝑒𝑎𝑐ℎ𝑌
+𝑇𝑜𝑡𝑎𝑙𝐷𝑥
+𝑇𝑜𝑡𝑎𝑙𝐷𝑦 = 𝑟𝑑𝑥
+𝑟𝑑𝑦 + 𝑡𝑑𝑥
+𝑡𝑑𝑦
+Rotation matrix
+Running points
+Rotation center
+Teaching points
+Teaching points
+Translation offset
+Rotation offset
+
+===== PAGE 61 =====
+Thanks！

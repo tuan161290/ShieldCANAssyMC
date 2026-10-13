@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "ShieldCanAssy.Wpf": {
+      "commandName": "Project"
+    },
+    "RemoteDebug": {
+      "commandName": "Executable",
+      "executablePath": "\\\\1.2.1.218\\Users\\Public\\App\\ShieldCanAssy.Wpf.exe",
+      "workingDirectory": "\\\\1.2.1.218\\Users\\Public\\App",
+      "remoteDebugEnabled": true,
+      "remoteDebugMachine": "1.2.1.218:4026"
+    }
+  }
+}
