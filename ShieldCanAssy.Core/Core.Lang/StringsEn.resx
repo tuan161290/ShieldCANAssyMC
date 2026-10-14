@@ -910,9 +910,6 @@
   <data name="Io.Spare" xml:space="preserve">
     <value>(spare)</value>
   </data>
-  <data name="Main.Aligned" xml:space="preserve">
-    <value>aligned</value>
-  </data>
   <data name="Main.AssyTray" xml:space="preserve">
     <value>ASSY TRAY</value>
   </data>
@@ -991,29 +988,11 @@
   <data name="Main.NgStreakTip" xml:space="preserve">
     <value>&gt; 0: early sign of vision/mech drift.</value>
   </data>
-  <data name="Main.No" xml:space="preserve">
-    <value>no</value>
-  </data>
   <data name="Main.NoImage" xml:space="preserve">
     <value>(no image)</value>
   </data>
-  <data name="Main.NotAligned" xml:space="preserve">
-    <value>not aligned</value>
-  </data>
   <data name="Main.NotTriggered" xml:space="preserve">
     <value>Not triggered</value>
-  </data>
-  <data name="Main.NozzleAngle" xml:space="preserve">
-    <value>Angle (AlignBottom): {0:0.0}° · {1}</value>
-  </data>
-  <data name="Main.NozzleMismatch" xml:space="preserve">
-    <value>  ⚠ MISMATCH</value>
-  </data>
-  <data name="Main.Nozzles" xml:space="preserve">
-    <value>NOZZLES</value>
-  </data>
-  <data name="Main.NozzleState" xml:space="preserve">
-    <value>SW: {0} · sensor: {1}{2}</value>
   </data>
   <data name="Main.OnlyNozzle" xml:space="preserve">
     <value>Nozzle #{0} only (change in Setting)</value>
@@ -1059,9 +1038,6 @@
   </data>
   <data name="Main.WaitTrayBanner" xml:space="preserve">
     <value>Trays in: Start 1 = input, Start 2 = assy (panel B).</value>
-  </data>
-  <data name="Main.Yes" xml:space="preserve">
-    <value>yes</value>
   </data>
   <data name="Manual.AxisAlarmNoServo" xml:space="preserve">
     <value>{0} in ALM — RST and clear fault before SVO ON</value>

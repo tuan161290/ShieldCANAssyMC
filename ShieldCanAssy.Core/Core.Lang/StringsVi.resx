@@ -910,9 +910,6 @@
   <data name="Io.Spare" xml:space="preserve">
     <value>(trống)</value>
   </data>
-  <data name="Main.Aligned" xml:space="preserve">
-    <value>đã canh</value>
-  </data>
   <data name="Main.AssyTray" xml:space="preserve">
     <value>TRAY LẮP RÁP</value>
   </data>
@@ -991,29 +988,11 @@
   <data name="Main.NgStreakTip" xml:space="preserve">
     <value>NG liên tiếp &gt; 0 là dấu hiệu sớm của lệch vision/cơ, trước khi kịp kéo tỉ lệ NG tổng lên đáng kể.</value>
   </data>
-  <data name="Main.No" xml:space="preserve">
-    <value>không</value>
-  </data>
   <data name="Main.NoImage" xml:space="preserve">
     <value>(chưa có ảnh)</value>
   </data>
-  <data name="Main.NotAligned" xml:space="preserve">
-    <value>chưa canh</value>
-  </data>
   <data name="Main.NotTriggered" xml:space="preserve">
     <value>Chưa trigger</value>
-  </data>
-  <data name="Main.NozzleAngle" xml:space="preserve">
-    <value>Góc đo (AlignBottom): {0:0.0}° · {1}</value>
-  </data>
-  <data name="Main.NozzleMismatch" xml:space="preserve">
-    <value>  ⚠ LỆCH</value>
-  </data>
-  <data name="Main.Nozzles" xml:space="preserve">
-    <value>TAY HÚT</value>
-  </data>
-  <data name="Main.NozzleState" xml:space="preserve">
-    <value>phần mềm: {0} · cảm biến: {1}{2}</value>
   </data>
   <data name="Main.OnlyNozzle" xml:space="preserve">
     <value>Chỉ chạy tay #{0} — tay kia không hút (đổi ở trang Setting)</value>
@@ -1059,9 +1038,6 @@
   </data>
   <data name="Main.WaitTrayBanner" xml:space="preserve">
     <value>Đặt tray xong: tray đầu vào bấm Start 1, tray lắp ráp bấm Start 2 (cụm B).</value>
-  </data>
-  <data name="Main.Yes" xml:space="preserve">
-    <value>có</value>
   </data>
   <data name="Manual.AxisAlarmNoServo" xml:space="preserve">
     <value>{0} đang Alarm — bấm RST xử lý xong lỗi trước khi bật servo</value>

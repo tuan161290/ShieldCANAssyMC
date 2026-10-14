@@ -156,6 +156,12 @@ namespace ShieldCanAssy.Wpf.ViewModels
         private bool _zSafeOk;
         public bool ZSafeOk { get => _zSafeOk; private set => SetProperty(ref _zSafeOk, value); }
 
+        // Nút "SVO ON tất cả" / "Mở phanh tất cả" kiêm đèn báo (Tuấn 2026-10-13): xanh khi MỌI trục liên quan đã ở trạng
+        // thái nút đó bật — servo cả 7 trục, phanh cả Z1 lẫn Z2. Nút Về gốc dùng sẵn Status.OrgOk.
+        private bool _allServoOn, _allBrakesReleased;
+        public bool AllServoOn { get => _allServoOn; private set => SetProperty(ref _allServoOn, value); }
+        public bool AllBrakesReleased { get => _allBrakesReleased; private set => SetProperty(ref _allBrakesReleased, value); }
+
         private string _rawDi, _rawDo;
         public string RawDiText { get => _rawDi; private set => SetProperty(ref _rawDi, value); }
         public string RawDoText { get => _rawDo; private set => SetProperty(ref _rawDo, value); }
@@ -178,6 +184,8 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 if (row.Name == AxisId.Z1) row.BrakeReleased = io.GetDo(IoMap.DoBrakeReleaseZ1);
                 else if (row.Name == AxisId.Z2) row.BrakeReleased = io.GetDo(IoMap.DoBrakeReleaseZ2);
             }
+            AllServoOn = McControl.Motion.AllServoOn;
+            AllBrakesReleased = io.GetDo(IoMap.DoBrakeReleaseZ1) && io.GetDo(IoMap.DoBrakeReleaseZ2);
 
             BlockReason = McControl.Safety.SafeToMove ? "" : McControl.Safety.BlockReason;
             ZSafeOk = McControl.Motion.ZSafeOk;

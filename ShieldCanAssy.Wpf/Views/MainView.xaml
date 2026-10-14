@@ -29,6 +29,54 @@
             </Setter>
         </Style>
 
+        <!-- Card Operation chỉ có ba kiểu điều khiển (Tuấn 2026-10-13, trước đó mỗi nút một cỡ nên trông rối): công tắc
+             chế độ, cặp nút chính RUN/STOP, và nút phụ. -->
+        <!-- Công tắc AUTO/MANUAL — một nút gạt: rãnh bo tròn, con trượt màu nằm dưới chữ chế độ đang áp dụng. Template
+             riêng (không FlatButtonStyle) để nội dung giãn hết rãnh; con trượt chạy ở MainView.xaml.cs (PlaceModeThumb). -->
+        <SolidColorBrush x:Key="ModeTrackBrush" Color="#0F000000"/>
+        <SolidColorBrush x:Key="ModeTrackHoverBrush" Color="#17000000"/>
+        <SolidColorBrush x:Key="ModeTrackPressedBrush" Color="#1F000000"/>
+        <Style x:Key="ModeSwitchStyle" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Track" Background="{StaticResource ModeTrackBrush}" BorderBrush="{StaticResource ButtonStrokeBrush}"
+                                BorderThickness="1" CornerRadius="20" Padding="3">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="{StaticResource ModeTrackHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="{StaticResource ModeTrackPressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ModeSwitchLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource SegoeUI}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="OpPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="OpSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
         <!-- Khung ảnh CAM bo góc (Tuấn 2026-10-07): viền màu viền card thay cho viền xám vuông của VmRenderControl. Control
              đặt Margin="-3" tràn ra ngoài, nội dung cắt theo góc bo ở HolderContent_SizeChanged nên viền của nó bị cắt mất. -->
         <Style x:Key="RenderHolderStyle" TargetType="Border">
@@ -232,10 +280,9 @@
         </Grid.ColumnDefinitions>
 
         <!-- ═══ Cột trái: nút vận hành + bộ đếm ═══
-             Cuộn được: ở màn 1280×1024 ba card cao hơn cột, khung Tay hút bị cắt mất hẳn (Tuấn báo
-             2026-09-25) — mà khung đó là chỗ duy nhất so sổ phần mềm với cảm biến trước khi START
-             lúc Paused. Nút đã thu thấp lại nên ở 1280×976 (1024 trừ taskbar) bật cả chạy rà vẫn vừa
-             khít; thanh cuộn là chỗ dự phòng khi hiện thêm banner chờ người vận hành. -->
+             Cuộn được: ở màn 1280×1024 (976 trừ taskbar) card cuối từng bị cắt mất hẳn (Tuấn báo 2026-09-25);
+             thanh cuộn là chỗ dự phòng khi hiện thêm banner chờ người vận hành. Card Tay hút đã bỏ (Tuấn
+             2026-10-13) — lệch giữa sổ phần mềm và cảm biến nay tự khớp khi bấm START (McControl). -->
         <ScrollViewer Grid.Column="0" Margin="0,0,8,0" VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
@@ -244,42 +291,122 @@
                         <TextBlock Text="{l:T Main.Operation}" Style="{StaticResource SectionHeaderStyle}"/>
                     </Border>
 
-                    <!-- Máy không có công tắc chìa AUTO/MANUAL vật lý — chọn chế độ bằng 2 nút
-                         này (McControl.RequestSetMode). Nút đang chọn tô theo màu đèn tháp
-                         tương ứng (AUTO=xanh lá, MANUAL=cam) để khớp trực giác với đèn tháp
-                         vật lý, thay vì màu accent trung tính. Style phẳng: nút đang chọn tô
-                         đặc + chữ trắng, nút còn lại chữ đen, viền xám, nền trong suốt — cùng kiểu SVO
-                         on/off bên ManualView (Tuấn yêu cầu, 2026-09-11). -->
-                    <Grid Margin="0,0,0,6">
+                    <!-- Bố cục (Tuấn 2026-10-13): chế độ và RUN/STOP chia đôi, vạch mờ, hai hàng nút phụ chia 2:1 — mọi
+                         hàng thẳng cột với nhau. Quầng sáng (glow) chỉ còn ở trạng thái cần người để ý: đang chạy, cần Init,
+                         còn alarm. Trạng thái nghỉ (chế độ đang chọn, STOP lúc máy đứng, đã về gốc) chỉ tô màu, không glow. -->
+
+                    <!-- Máy không có công tắc chìa AUTO/MANUAL vật lý — chọn chế độ bằng công tắc gạt này
+                         (McControl.RequestSetMode, Tuấn 2026-10-13): bấm vào đâu trên công tắc cũng gạt sang chế độ kia.
+                         Con trượt tô theo màu đèn tháp tương ứng (AUTO=xanh lá, MANUAL=cam) để khớp trực giác với đèn
+                         tháp vật lý, và chỉ chạy theo chế độ THẬT (Status.Mode) — AUTO bị từ chối thì nó đứng yên. -->
+                    <Button Style="{StaticResource ModeSwitchStyle}" Command="{Binding ToggleModeCommand}" Margin="0,0,0,8">
+                        <Grid x:Name="ModeSwitchTrack">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="ModeThumb" Grid.Column="0" CornerRadius="16" Tag="{Binding Status.Mode}">
+                                <Border.RenderTransform>
+                                    <TranslateTransform/>
+                                </Border.RenderTransform>
+                                <Border.Effect>
+                                    <DropShadowEffect ShadowDepth="1" BlurRadius="4" Opacity="0.25"/>
+                                </Border.Effect>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status.Mode}" Value="Auto">
+                                                <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                            </Border>
+                            <TextBlock Grid.Column="0" Text="AUTO">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ModeSwitchLabelStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status.Mode}" Value="Auto">
+                                                <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Grid.Column="1" Text="MANUAL">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource ModeSwitchLabelStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status.Mode}" Value="Manual">
+                                                <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Button>
+
+                    <!-- RUN cạnh STOP như cặp nút trên bảng điều khiển. RUN là đèn báo kiêm nút bấm — CỐ Ý bấm vào chỉ vào
+                         Armed (Cặp A), KHÔNG chạy máy trực tiếp: máy chạy thật bắt buộc phải bấm đủ Cặp B (2 tay) ngoài
+                         jig, không có đường nào từ màn hình cảm ứng bỏ qua được yêu cầu an toàn 2 tay (2026-08-20). Chữ
+                         LUÔN là RUN, MÀU mới là cái báo trạng thái: xám khi máy đứng, xanh lá khi đang chạy (Tuấn đổi
+                         2026-09-24) — đúng quy ước đèn RUN trên bảng điều khiển. Effect chỉ đặt trong Trigger, KHÔNG đặt ở
+                         base: Trigger chỉ THÊM Effect chứ không gỡ được, đặt ở base rồi xoá bằng {x:Null} trong Trigger làm
+                         WPF ném XamlParseException (xem nút RESET bên dưới). -->
+                    <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="AUTO" Command="{Binding SetAutoModeCommand}"
-                                Height="40" Margin="0,0,3,0" FontSize="14" FontWeight="Bold">
+                        <Button Grid.Column="0" Command="{Binding ArmCommand}" Margin="0,0,3,0" ToolTip="{l:T Main.RunTip}">
                             <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                <Style TargetType="Button" BasedOn="{StaticResource OpPrimaryButtonStyle}">
+                                    <Setter Property="Content" Value="RUN"/>
+                                    <Setter Property="BorderBrush" Value="{StaticResource StatusOffBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                    <Setter Property="Background" Value="{StaticResource StatusOffBrush}"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Status.Mode}" Value="Auto">
+                                        <DataTrigger Binding="{Binding Status.State}" Value="Running">
                                             <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
                                             <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
-                                            <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
                                             <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                                        </DataTrigger>
+                                        <!-- Armed (đã bấm RUN, chờ bấm Cặp B): xanh NHẤP NHÁY 1 Hz, cùng lúc đèn nút Start
+                                             Cụm B ngoài máy nháy (McControl.UpdateOutputs) — Tuấn yêu cầu 2026-09-26. Nháy
+                                             bằng Opacity rời rạc (sáng 0.5 s / mờ 0.5 s), không đổi màu Brush: Brush trong
+                                             Setter của Style bị đóng băng, không animate được. -->
+                                        <DataTrigger Binding="{Binding Status.State}" Value="Armed">
+                                            <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard x:Name="ArmedBlink">
+                                                    <Storyboard RepeatBehavior="Forever">
+                                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:1">
+                                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
+                                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.5" Value="0.3"/>
+                                                        </DoubleAnimationUsingKeyFrames>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
+                                            <DataTrigger.ExitActions>
+                                                <StopStoryboard BeginStoryboardName="ArmedBlink"/>
+                                            </DataTrigger.ExitActions>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Grid.Column="1" Content="MANUAL" Command="{Binding SetManualModeCommand}"
-                                Height="40" Margin="3,0,0,0" FontSize="14" FontWeight="Bold">
+                        <!-- STOP đỏ khi máy không chạy, giống đèn nút STOP cứng (Tuấn 2026-09-28). -->
+                        <Button Grid.Column="1" Content="STOP" Command="{Binding StopCommand}" Margin="3,0,0,0">
                             <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
+                                <Style TargetType="Button" BasedOn="{StaticResource OpPrimaryButtonStyle}">
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Status.Mode}" Value="Manual">
-                                            <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
-                                            <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                                        <DataTrigger Binding="{Binding IsStopped}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
                                             <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
-                                            <Setter Property="Effect" Value="{StaticResource CautionGlowEffect}"/>
+                                            <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -287,148 +414,78 @@
                         </Button>
                     </Grid>
 
-                    <!-- Đèn báo RUN kiêm nút bấm — CỐ Ý bấm vào chỉ vào Armed (Cặp
-                         A), KHÔNG chạy máy trực tiếp: máy chạy thật bắt buộc phải bấm đủ Cặp B
-                         (2 tay) ngoài jig, không có đường nào từ màn hình cảm ứng bỏ qua được yêu
-                         cầu an toàn 2 tay (2026-08-20). Chữ LUÔN là RUN, MÀU mới là cái báo trạng
-                         thái: xám khi máy đứng, xanh lá khi đang chạy (Tuấn đổi 2026-09-24) — đúng
-                         quy ước đèn RUN trên bảng điều khiển, và vẫn chỉ phân biệt 2 mức chứ không
-                         hiện đủ StateText. Effect chỉ đặt trong Trigger, KHÔNG đặt ở base: Trigger
-                         chỉ THÊM Effect chứ không gỡ được, đặt ở base rồi xoá bằng {x:Null} trong
-                         Trigger làm WPF ném XamlParseException (xem nút RESET bên dưới). -->
-                    <Button Command="{Binding ArmCommand}" Height="44" Margin="0,0,0,6"
-                            FontSize="16" FontWeight="Bold"
-                            ToolTip="{l:T Main.RunTip}">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
-                                <Setter Property="Content" Value="RUN"/>
-                                <Setter Property="BorderBrush" Value="{StaticResource StatusOffBrush}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
-                                <Setter Property="Background" Value="{StaticResource StatusOffBrush}"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Status.State}" Value="Running">
-                                        <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
-                                        <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
-                                        <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
-                                    </DataTrigger>
-                                    <!-- Armed (đã bấm RUN, chờ bấm Cặp B): xanh NHẤP NHÁY 1 Hz, cùng lúc đèn nút Start
-                                         Cụm B ngoài máy nháy (McControl.UpdateOutputs) — Tuấn yêu cầu 2026-09-26. Nháy
-                                         bằng Opacity rời rạc (sáng 0.5 s / mờ 0.5 s), không đổi màu Brush: Brush trong
-                                         Setter của Style bị đóng băng, không animate được. -->
-                                    <DataTrigger Binding="{Binding Status.State}" Value="Armed">
-                                        <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
-                                        <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
-                                        <DataTrigger.EnterActions>
-                                            <BeginStoryboard x:Name="ArmedBlink">
-                                                <Storyboard RepeatBehavior="Forever">
-                                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:1">
-                                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
-                                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0.5" Value="0.3"/>
-                                                    </DoubleAnimationUsingKeyFrames>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </DataTrigger.EnterActions>
-                                        <DataTrigger.ExitActions>
-                                            <StopStoryboard BeginStoryboardName="ArmedBlink"/>
-                                        </DataTrigger.ExitActions>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <!-- STOP đỏ khi máy không chạy (giống đèn nút STOP cứng), Origin xanh dương khi cả 7 trục đã về
-                         gốc (Tuấn 2026-09-28). Effect chỉ thêm trong Trigger — xem ghi chú nút RESET. -->
-                    <Button Content="STOP" Command="{Binding StopCommand}" Height="44" Margin="0,0,0,6"
-                            FontSize="16" FontWeight="SemiBold">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsStopped}" Value="True">
-                                        <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
-                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
-                                        <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
-                                        <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <!-- Init cạnh Về gốc (Tuấn 2026-09-29): nâng Z rồi đưa mọi trục về vị trí chờ, không về gốc lại — sau khi
-                         tạm dừng, chuyển MANUAL và thao tác tay. Cam khi bắt buộc Init trước khi chạy tiếp (RunData.UnsafePause). -->
-                    <Grid Margin="0,0,0,6">
+                    <Separator/>
+
+                    <!-- Nút phụ chia 2:1 — Về gốc và RESET rộng (chữ "Về gốc (Origin)" cần ~120 px, nửa cột chỉ ~100 px),
+                         Init và Tắt còi hẹp. Init phải nằm cạnh Về gốc: thông báo của App chỉ chỗ bằng câu "bấm Init (cạnh
+                         nút Về gốc)". RESET và Tắt còi chung một hàng — cả hai là việc xử lý alarm. -->
+                    <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="72"/>
-                        </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Content="{l:T Main.Origin}" Command="{Binding OriginCommand}" Height="44" Margin="0,0,3,0"
-                            FontSize="16" FontWeight="SemiBold">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Status.OrgOk}" Value="True">
-                                        <Setter Property="BorderBrush" Value="{StaticResource BlueOnBrush}"/>
-                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
-                                        <Setter Property="Background" Value="{StaticResource BlueOnBrush}"/>
-                                        <Setter Property="Effect" Value="{StaticResource BlueGlowEffect}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Grid.Column="1" Content="Init" Command="{Binding InitCommand}" Height="44" Margin="3,0,0,0"
-                            FontSize="16" FontWeight="SemiBold"
-                            PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
-                            ToolTip="{l:T Main.InitTip}">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding NeedInit}" Value="True">
-                                        <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
-                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
-                                        <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
-                                        <Setter Property="Effect" Value="{StaticResource CautionGlowEffect}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    </Grid>
-                    <!-- RESET và Tắt còi chung một hàng — cả hai là việc xử lý alarm, và bớt một hàng nút
-                         để cột trái vừa màn 1280×1024. -->
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Content="RESET" Command="{Binding ResetCommand}" Height="44" Margin="0,0,3,0"
-                            FontSize="16" FontWeight="SemiBold">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource OutlineButtonStyle}">
-                                <!-- Đỏ đặc chữ trắng + glow khi còn alarm (style phẳng, 2026-09-11) — nút
-                                     RESET phải tự chỉ ra là đang có việc cần làm, xem ShellViewModel.
-                                     HasActiveAlarms. Mặc định (chưa có alarm) KHÔNG đặt Effect gì —
-                                     Trigger chỉ THÊM Effect, không bao giờ gỡ: dùng Setter
-                                     Property="Effect" Value="{x:Null}" trong Trigger để "xoá" Effect
-                                     đã gán ở base làm WPF ném XamlParseException
-                                     "'{DependencyProperty.UnsetValue}' is not a valid value for
-                                     property 'Effect'" ngay lúc MainWindow.InitializeComponent
-                                     (Tuấn báo lỗi kèm ảnh, 2026-09-10). -->
-                                <Setter Property="BorderBrush" Value="{StaticResource ButtonStrokeBrush}"/>
-                                <Setter Property="BorderThickness" Value="1"/>
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasActiveAlarms}" Value="True">
-                                        <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
-                                        <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
-                                        <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
-                                        <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Grid.Column="1" Content="{l:T Main.Mute}" Command="{Binding MuteCommand}" Height="44" Margin="3,0,0,0"
-                            FontSize="16" FontWeight="SemiBold" Style="{StaticResource OutlineButtonStyle}"/>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <!-- Về gốc xanh dương khi cả 7 trục đã về gốc (Tuấn 2026-09-28). -->
+                        <Button Grid.Row="0" Grid.Column="0" Content="{l:T Main.Origin}" Command="{Binding OriginCommand}"
+                                Margin="0,0,3,6">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource OpSecondaryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status.OrgOk}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource BlueOnBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            <Setter Property="Background" Value="{StaticResource BlueOnBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <!-- Init (Tuấn 2026-09-29): nâng Z rồi đưa mọi trục về vị trí chờ, không về gốc lại — sau khi tạm dừng,
+                             chuyển MANUAL và thao tác tay. Cam khi bắt buộc Init trước khi chạy tiếp (RunData.UnsafePause). -->
+                        <Button Grid.Row="0" Grid.Column="1" Content="Init" Command="{Binding InitCommand}" Margin="3,0,0,6"
+                                PreviewMouseLeftButtonDown="RequireDoubleClick_PreviewMouseLeftButtonDown"
+                                ToolTip="{l:T Main.InitTip}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource OpSecondaryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NeedInit}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource CautionOnBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            <Setter Property="Background" Value="{StaticResource CautionOnBrush}"/>
+                                            <Setter Property="Effect" Value="{StaticResource CautionGlowEffect}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Grid.Row="1" Grid.Column="0" Content="RESET" Command="{Binding ResetCommand}" Margin="0,0,3,0">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource OpSecondaryButtonStyle}">
+                                    <!-- Đỏ đặc chữ trắng + glow khi còn alarm (style phẳng, 2026-09-11) — nút
+                                         RESET phải tự chỉ ra là đang có việc cần làm, xem ShellViewModel.
+                                         HasActiveAlarms. Mặc định (chưa có alarm) KHÔNG đặt Effect gì —
+                                         Trigger chỉ THÊM Effect, không bao giờ gỡ: dùng Setter
+                                         Property="Effect" Value="{x:Null}" trong Trigger để "xoá" Effect
+                                         đã gán ở base làm WPF ném XamlParseException
+                                         "'{DependencyProperty.UnsetValue}' is not a valid value for
+                                         property 'Effect'" ngay lúc MainWindow.InitializeComponent
+                                         (Tuấn báo lỗi kèm ảnh, 2026-09-10). -->
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasActiveAlarms}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource RedOnBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                            <Setter Property="Background" Value="{StaticResource RedOnBrush}"/>
+                                            <Setter Property="Effect" Value="{StaticResource RedGlowEffect}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Grid.Row="1" Grid.Column="1" Content="{l:T Main.Mute}" Command="{Binding MuteCommand}"
+                                Margin="3,0,0,0" Style="{StaticResource OpSecondaryButtonStyle}"/>
                     </Grid>
 
                     <!-- Nút chạy rà và chọn tay hút chạy Auto đã chuyển sang trang Setting (Tuấn 2026-10-08). Ở đây chỉ còn
@@ -598,30 +655,6 @@
                     </TextBlock>
                     <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
                                Text="{Binding LastCompensation}" ToolTip="{l:T Main.LastCompensationTip}"/>
-                </StackPanel>
-            </Border>
-
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <Border Style="{StaticResource CardHeaderStyle}">
-                        <TextBlock Text="{l:T Main.Nozzles}" Style="{StaticResource SectionHeaderStyle}"/>
-                    </Border>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="#1" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Nozzle1Text}" FontSize="12" Margin="0,0,0,6"
-                                   TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        <TextBlock Grid.Row="1" Text="#2" FontWeight="SemiBold" FontSize="12" Margin="0,0,6,0"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Nozzle2Text}" FontSize="12"
-                                   TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    </Grid>
                 </StackPanel>
             </Border>
         </StackPanel>

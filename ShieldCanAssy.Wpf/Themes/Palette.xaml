@@ -123,6 +123,13 @@
     <!-- Nút bấm — xem ghi chú ButtonFillColorDefault ở trên -->
     <SolidColorBrush x:Key="ButtonFillBrush" Color="{StaticResource ButtonFillColorDefault}"/>
     <SolidColorBrush x:Key="ButtonStrokeBrush" Color="{StaticResource ControlStrokeColorSecondary}"/>
+    <!-- Viền nút kiểu Windows 11 (2026-10-13, lấy theo Styles.xaml bản WinUI 3 của ShieldCanSlitAssy): cạnh dưới đậm
+         hơn — nút trắng trông như khối nổi nhẹ trên card. -->
+    <LinearGradientBrush x:Key="ButtonElevationStrokeBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#FFE0E0E0"/>
+        <GradientStop Offset="0.92" Color="#FFE0E0E0"/>
+        <GradientStop Offset="1" Color="#FFC4C4C4"/>
+    </LinearGradientBrush>
 
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SystemFillColorSuccess}"/>
     <SolidColorBrush x:Key="CautionBrush" Color="{StaticResource SystemFillColorCaution}"/>

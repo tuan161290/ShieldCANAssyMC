@@ -102,6 +102,20 @@
             </Style.Triggers>
         </Style>
 
+        <!-- Nút "tất cả" ở thanh lệnh chung kiêm đèn báo (Tuấn 2026-10-13) — SVO ON tất cả, Mở phanh tất cả, Về gốc:
+             cùng màu với nút SVO/Home/Mở phanh từng trục, tô xanh đặc khi trạng thái nút đó bật đã đạt ở MỌI trục liên
+             quan. Tag = cờ trạng thái (ManualViewModel.AllServoOn, AllBrakesReleased, Status.OrgOk). -->
+        <Style x:Key="AllStateButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                    <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- RST — reset alarm của RIÊNG trục này (Axis.ResetAlarmAsync). Tô đỏ đặc + chữ trắng
              đúng lúc Axis.Alarm để không phải nhìn đèn ALM cạnh bên mới biết trục nào cần bấm. -->
         <Style x:Key="RstButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
@@ -330,7 +344,8 @@
                      Về gốc (Tuấn yêu cầu, 2026-09-15) đứng cuối, đúng trình tự RESET → SVO ON → Mở
                      phanh → Về gốc. Cùng McControl.RequestOrigin với nút trang Main nên cùng điều kiện
                      chặn (chu trình đang chạy, mạch an toàn, còn hàng trên tay hút) — lý do từ chối hiện
-                     ở dòng vàng Status.Message ngay trên. WrapPanel thay StackPanel: thêm nút thứ năm
+                     ở dòng vàng Status.Message ngay trên. SVO ON tất cả, Mở phanh tất cả, Về gốc kiêm đèn báo —
+                     xanh khi đã đạt ở mọi trục (AllStateButtonStyle, 2026-10-13). WrapPanel thay StackPanel: thêm nút thứ năm
                      có thể vượt bề rộng cột trái ở màn 1280px, thà xuống dòng còn hơn bị cắt mất nút.
                      Phải: đèn trigger CAM — bật/tắt tay, độc lập với Auto (Tuấn yêu cầu, 2026-09-09).
                      Luôn hiện (không gate theo IsSimulation) vì ghi thẳng DO thật qua McControl.Io.
@@ -350,11 +365,14 @@
                         <Button Content="RESET" Command="{Binding ResetCommand}" Width="130" Margin="0,0,16,4"
                                 ToolTip="{l:T Manual.ResetTip}"/>
                         <Button Content="{l:T Manual.ServoOnAll}" Command="{Binding ServoOnAllCommand}" Width="130" Margin="0,0,6,4"
-                                ToolTip="{l:T Manual.ServoOnAllTip}"/>
+                                ToolTip="{l:T Manual.ServoOnAllTip}"
+                                Style="{StaticResource AllStateButtonStyle}" Tag="{Binding AllServoOn}"/>
                         <Button Content="{l:T Manual.BrakeReleaseAll}" Command="{Binding BrakeReleaseAllCommand}" Width="130" Margin="0,0,16,4"
-                                ToolTip="{l:T Manual.BrakeReleaseAllTip}"/>
+                                ToolTip="{l:T Manual.BrakeReleaseAllTip}"
+                                Style="{StaticResource AllStateButtonStyle}" Tag="{Binding AllBrakesReleased}"/>
                         <Button Content="{l:T Manual.Origin}" Command="{Binding OriginCommand}" Width="130" Margin="0,0,6,4"
-                                ToolTip="{l:T Manual.OriginTip}"/>
+                                ToolTip="{l:T Manual.OriginTip}"
+                                Style="{StaticResource AllStateButtonStyle}" Tag="{Binding Status.OrgOk}"/>
                     </WrapPanel>
                 </DockPanel>
                 </StackPanel>

@@ -21,6 +21,8 @@ sang đây, nên mọi điều cần biết phải có trong file này, trong `P
 - Máy lắp shield can SO1C86 của Actro. C# / .NET Framework 4.8 WPF, VisionMaster 4.4 SDK.
   Có git từ 13/10/2026: hai repo bare trên SeaDrive, `ShieldCANAssyMC.git` và `ServoControl.git`
   (commit đầu "Initial import from ownCloud"). Trước đó không có lịch sử.
+  Từ 14/10/2026 hai repo nằm ở thư viện chia sẻ `Shared with me\Actro\`. Trên máy lắp ráp,
+  `origin` là `C:\Users\Hoyeon\seadrive_root\actro\Shared with me\Actro\<tên>.git`.
 - `ShieldCanAssy.sln` gồm hai project:
   - `ShieldCanAssy.Core` — trục, I/O, routine (Auto, Origin, Calib), liên lạc VisionMaster, alarm, dữ liệu.
   - `ShieldCanAssy.Wpf` — giao diện, `SelfTest.cs` (chạy bằng `--selftest`), `FakeA6sfPort.cs`.
@@ -37,8 +39,9 @@ sang đây, nên mọi điều cần biết phải có trong file này, trong `P
   - Máy lắp ráp (máy có Servo Panasonic COM3–7, Fastech, remote IO; Wi-Fi hiện là `1.2.1.217`):
     `R` = `C:\PGM` từ 13/10/2026. **Đây là bản chính** — Tuấn chốt 26/09 chỉ làm việc trên máy lắp ráp.
     Bản trước đó, bố cục cũ, còn ở `C:\Users\Hoyeon\ownCloud\Actro\ShieldCanAssy\PGM\2026\Actro\SO1C86-SHIELD CAN ASSY MC\ShieldCANAssyMC`
-    (ServoControl ở `...\ownCloud\Actro\ShieldCanAssy\PGM\Tuan\Projects\ServoControl`); shortcut
-    "ShieldCanAssy.Wpf" trên Desktop vẫn chạy exe trong `bin\Debug\net48` của bản ownCloud này.
+    (ServoControl ở `...\ownCloud\Actro\ShieldCanAssy\PGM\Tuan\Projects\ServoControl`) — không dùng nữa. Shortcut
+    "ShieldCanAssy.Wpf" trên Desktop chạy exe trong `C:\PGM\ShieldCANAssyMC\ShieldCanAssy.Wpf\bin\Debug\net48`
+    (đổi 13/10/2026); dữ liệu chạy máy ở `_RunData` cạnh exe đó.
   - Máy dev cũ (`1.2.1.225`): bản ở `C:\Users\Tuan\OneDrive\Tuan`, bố cục cũ. Đứng yên từ 26/09, không dùng
     nữa; đừng chép gì từ đó về đè lên PGM.
 - Trục (PLAN §1.1): X, Y1, Y2, Z1, Z2 là Panasonic A6SF qua Modbus RTU 115200 8E1, **mỗi trục một cổng

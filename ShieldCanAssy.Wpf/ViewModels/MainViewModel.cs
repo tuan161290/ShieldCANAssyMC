@@ -23,8 +23,10 @@ namespace ShieldCanAssy.Wpf.ViewModels
 
         public MainViewModel()
         {
-            SetAutoModeCommand = new RelayCommand(() => McControl.RequestSetMode(EMcMode.Auto));
-            SetManualModeCommand = new RelayCommand(() => McControl.RequestSetMode(EMcMode.Manual));
+            // Công tắc AUTO/MANUAL (Tuấn 2026-10-13): mỗi lần bấm gạt sang chế độ kia của chế độ ĐANG áp dụng
+            // (Status.Mode). McControl vẫn tự từ chối AUTO khi chưa đủ điều kiện — công tắc khi đó đứng yên.
+            ToggleModeCommand = new RelayCommand(() =>
+                McControl.RequestSetMode(McControl.Status.Mode == EMcMode.Auto ? EMcMode.Manual : EMcMode.Auto));
             // Nút mềm trên UI CỐ Ý chỉ làm được đúng việc của Cặp A (vào Armed) — máy chạy
             // thật (Idle/Armed → Running, hay xác nhận đổi tray giữa chừng) chỉ nhận từ Cặp B
             // vật lý (2 tay), không có đường nào từ màn hình cảm ứng bỏ qua được yêu cầu 2 tay
@@ -155,10 +157,6 @@ namespace ShieldCanAssy.Wpf.ViewModels
         /// đếm được.</summary>
         private string _uphText = "";
         public string UphText { get => _uphText; private set => SetProperty(ref _uphText, value); }
-
-        private string _nozzle1, _nozzle2;
-        public string Nozzle1Text { get => _nozzle1; private set => SetProperty(ref _nozzle1, value); }
-        public string Nozzle2Text { get => _nozzle2; private set => SetProperty(ref _nozzle2, value); }
 
         private string _lastCompensation;
         public string LastCompensation { get => _lastCompensation; private set => SetProperty(ref _lastCompensation, value); }
@@ -313,37 +311,12 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 : string.Format(CultureInfo.InvariantCulture, Loc.T("Main.DryRunProgress"),
                                 dry.Strokes, dry.Sweeps, dry.Laps, dry.Elapsed.TotalMinutes);
 
-            Nozzle1Text = DescribeNozzle(1, run.Nozzle1);
-            Nozzle2Text = DescribeNozzle(2, run.Nozzle2);
-
             LastCompensation = Loc.F("Main.LastCompensation", Status.LastDeltaTheta, Status.LastPlaceError);
 
             WaitingOperator = Status.State == EMcState.WaitOperator;
         }
 
-        /// <summary>
-        /// Hiện đồng thời trạng thái phần mềm GHI NHẬN và cảm biến ĐANG BÁO. Lệch nhau là điều
-        /// kiện chặn khi bấm START ở trạng thái Paused (PLAN.md §3.7) nên operator cần nhìn thấy
-        /// cả hai, không phải chỉ một con số đã diễn giải sẵn.
-        /// </summary>
-        private static string DescribeNozzle(int index, NozzleState state)
-        {
-            bool sensor = McControl.Func != null && McControl.Func.HasProduct(index);
-            string sw = Loc.T(state.HasProduct ? "Main.Yes" : "Main.No");
-            string sn = Loc.T(sensor ? "Main.Yes" : "Main.No");
-            string flag = state.HasProduct == sensor ? "" : Loc.T("Main.NozzleMismatch");
-            string line1 = Loc.F("Main.NozzleState", sw, sn, flag);
-
-            // Góc đo + trạng thái căn chỉnh chỉ có ý nghĩa khi tay đang giữ sản phẩm — trống thì
-            // đó là số liệu của lần hút trước, dễ gây hiểu lầm là "đang" chứ không phải "đã từng".
-            if (!state.HasProduct) return line1;
-
-            string aligned = Loc.T(state.Aligned ? "Main.Aligned" : "Main.NotAligned");
-            return line1 + "\n" + Loc.F("Main.NozzleAngle", state.MeasuredAngle, aligned);
-        }
-
-        public ICommand SetAutoModeCommand { get; }
-        public ICommand SetManualModeCommand { get; }
+        public ICommand ToggleModeCommand { get; }
         public ICommand ArmCommand { get; }
         public ICommand StopCommand { get; }
         public ICommand ResetCommand { get; }

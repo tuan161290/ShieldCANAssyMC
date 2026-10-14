@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -8,6 +9,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using ShieldCanAssy.Core.Controller;
 using ShieldCanAssy.Core.Data;
+using ShieldCanAssy.Core.Infor;
 using ShieldCanAssy.Utility.Log;
 using VM.Core;
 using VMControls.Interface;
@@ -24,6 +26,23 @@ namespace ShieldCanAssy.Wpf.Views
         private void RequireDoubleClick_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ClickCount != 2) e.Handled = true;
+        }
+
+        /// <summary>Con trượt công tắc AUTO/MANUAL sang nửa ứng với chế độ ĐANG áp dụng (Tag bind Status.Mode, Tuấn
+        /// 2026-10-13) — không theo cú bấm, nên McControl từ chối AUTO thì nó đứng yên. Trượt khi chế độ đổi, đặt thẳng khi
+        /// đổi cỡ.</summary>
+        private void PlaceModeThumb(bool animate)
+        {
+            var t = (TranslateTransform)ModeThumb.RenderTransform;
+            double x = Equals(ModeThumb.Tag, EMcMode.Manual) ? ModeSwitchTrack.ActualWidth / 2 : 0;
+            if (!animate)
+            {
+                t.BeginAnimation(TranslateTransform.XProperty, null);
+                t.X = x;
+                return;
+            }
+            t.BeginAnimation(TranslateTransform.XProperty,
+                new DoubleAnimation(x, TimeSpan.FromMilliseconds(150)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
         }
 
         private bool _logShown = true;
@@ -66,6 +85,11 @@ namespace ShieldCanAssy.Wpf.Views
 
             Loaded += MainView_Loaded;
             Unloaded += MainView_Unloaded;
+
+            // Trang Main sống suốt đời App nên giữ handler này không rò rỉ.
+            DependencyPropertyDescriptor.FromProperty(TagProperty, typeof(Border))
+                .AddValueChanged(ModeThumb, (_, __) => PlaceModeThumb(true));
+            ModeSwitchTrack.SizeChanged += (_, __) => PlaceModeThumb(false);
 
             foreach (var r in new[] { Tool1Render, Tool2Render, TopDownRender })
                 r.Loaded += (s, __) => ApplyRenderLook((VmRenderControl)s);
