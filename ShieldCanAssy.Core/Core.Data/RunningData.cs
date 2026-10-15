@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ShieldCanAssy.Core.Data.Model;
 using ShieldCanAssy.Core.Infor;
 
 namespace ShieldCanAssy.Core.Data
@@ -20,6 +21,15 @@ namespace ShieldCanAssy.Core.Data
         public EScanOrder ScanOrder { get; set; } = EScanOrder.RowMajor;
 
         public int CellCount => Rows * Cols;
+
+        /// <summary>
+        /// Số tray nối nhau theo hàng trong sổ này: sổ tray đầu vào là 2 khi Tray 2 đã teach (bàn đặt hai tray từ
+        /// 2026-10-15), còn lại 1. Mỗi tray chiếm <see cref="RowsPerTray"/> hàng liền nhau — Tray 1 trước — nên máy ghé hết
+        /// Tray 1 rồi mới sang Tray 2. <c>McDataManager.SyncRunTrays</c> đặt số này theo model.
+        /// </summary>
+        public int Trays { get; set; } = 1;
+        public int RowsPerTray => Trays > 1 ? Rows / Trays : Rows;
+        public int CellsPerTray => RowsPerTray * Cols;
 
         public void Resize(int rows, int cols)
         {
@@ -155,8 +165,37 @@ namespace ShieldCanAssy.Core.Data
         /// <summary>Lý do của <see cref="NozzleClearRequired"/>, hiện cho người vận hành.</summary>
         public string NozzleClearReason { get; set; }
 
+        /// <summary>Sổ tray đầu vào — Tray 1, nối thêm Tray 2 khi đã teach (<see cref="TrayState.Trays"/>). Kích thước do
+        /// <c>McDataManager.SyncRunTrays</c> đặt theo model; ô → tray nào, hàng/cột nào: <see cref="ModelData.InputCell"/>.</summary>
         public TrayState InputTray { get; set; } = TrayState.Create("InputTray", 4, 5);
         public TrayState AssyTray { get; set; } = TrayState.Create("AssyTray", 5, 6);
+
+        /// <summary>
+        /// Operator vừa đặt tray đầu vào mới: ô của tray có mặt (<paramref name="mask"/> — bit 0 Tray 1, bit 1 Tray 2) thành
+        /// có hàng, ô của tray vắng thành trống để máy không ghé (Tuấn 2026-10-15: tray nào có thì chạy).
+        /// </summary>
+        public void LoadInputTrays(int mask)
+        {
+            int n = InputTray.CellsPerTray;
+            var cells = InputTray.Cells;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                int tray = n > 0 ? i / n : 0;
+                cells[i] = (mask & (1 << tray)) != 0 ? ECellState.Loaded : ECellState.Empty;
+            }
+            InputTray.CurrentIndex = cells.IndexOf(ECellState.Loaded);
+        }
+
+        /// <summary>Tray đầu vào thứ <paramref name="tray"/> còn ô máy sẽ ghé (có hàng) hoặc ô nguồn của hàng đang trên tay —
+        /// vắng tray này thì máy không làm tiếp được. Tray đã xong hết hoặc không nạp thì vắng cũng không sao.</summary>
+        public bool InputTrayNeeded(int tray)
+        {
+            int n = InputTray.CellsPerTray;
+            var cells = InputTray.Cells;
+            for (int i = tray * n; i < (tray + 1) * n && i < cells.Count; i++)
+                if (cells[i] == ECellState.Loaded || cells[i] == ECellState.Processing) return true;
+            return false;
+        }
 
         public NozzleState Nozzle1 { get; set; } = new NozzleState { Index = 1 };
         public NozzleState Nozzle2 { get; set; } = new NozzleState { Index = 2 };
@@ -262,7 +301,9 @@ namespace ShieldCanAssy.Core.Data
             UnsafePause = false;
             // Rows/Cols/ScanOrder đúng của model chỉ có sau LoadModel/LoadRecentModel (chạy
             // ngay sau lệnh gọi này ở App.xaml.cs) — Resize ở đó tự khớp lại kích thước lưới.
-            InputTray = TrayState.Create(InputTray.Name, InputTray.Rows, InputTray.Cols);
+            var inputTray = TrayState.Create(InputTray.Name, InputTray.Rows, InputTray.Cols);
+            inputTray.Trays = InputTray.Trays;
+            InputTray = inputTray;
             AssyTray = TrayState.Create(AssyTray.Name, AssyTray.Rows, AssyTray.Cols);
             Nozzle1 = new NozzleState { Index = 1 };
             Nozzle2 = new NozzleState { Index = 2 };

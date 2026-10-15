@@ -217,11 +217,13 @@ namespace ShieldCanAssy.Core.Controller
         private async Task<bool> PickAsync(int nozzle, CancellationToken ct)
         {
             var model = McDataManager.Model;
-            var tray = model.InputTray;
+            var run = McDataManager.RunData.InputTray;
             string zName = nozzle == 1 ? AxisId.Z1 : AxisId.Z2;
 
-            int row, col;
-            CellOf(McDataManager.RunData.InputTray, _inIdx + nozzle - 1, out row, out col);
+            // Sổ chỉ gồm tray đã teach (Tray 2 khi có) — mỗi ô theo lưới và cao độ của tray chứa nó.
+            int index = PickCellFor(model, run, _inIdx, nozzle);
+            int trayNo, row, col;
+            var tray = model.InputCell(run, index, out trayNo, out row, out col);
             var cell = tray.CellPos(zName, row, col);
 
             if (!await _func.MoveToCellForPickAsync(nozzle, model.PickAngle(nozzle), tray.AxisRow, cell.Y, cell.X, ct).ConfigureAwait(false))
@@ -253,7 +255,8 @@ namespace ShieldCanAssy.Core.Controller
             string aName = nozzle == 1 ? AxisId.A1 : AxisId.A2;
 
             int row, col;
-            CellOf(McDataManager.RunData.AssyTray, _assyIdx + nozzle - 1, out row, out col);
+            var run = McDataManager.RunData.AssyTray;
+            run.RowCol(PlaceCellFor(model, run, _assyIdx, nozzle), out row, out col);
             var cell = tray.CellPos(zName, row, col);
 
             if (!await _func.EnsureZSafeAsync(ct).ConfigureAwait(false))
@@ -312,6 +315,52 @@ namespace ShieldCanAssy.Core.Controller
             // quẩn góc hút — Tuấn phát hiện 2026-09-24: "hút thì đúng góc, thả mới bị quay về 15 độ".
             return AxisAngle.Wrap(McDataManager.Model.PickAngle(nozzle) + bu);
         }
+
+        /// <summary>
+        /// Ô tray đầu vào của tay <paramref name="nozzle"/> trong cặp bắt đầu ở <paramref name="first"/> (cặp = ô đó và ô
+        /// ghé kế tiếp). Chia theo HÌNH HỌC, đúng luật của chu trình thật (<see cref="Routine_Auto.Nozzle1TakesFirstPickCell"/>)
+        /// — máy này ra Tool 1 lấy ô X nhỏ hơn; cặp cùng cột (vắt hàng khi quét zigzag) thì giữ thứ tự ghé.
+        ///
+        /// <para>Trước 2026-10-15 chạy rà cứ giao ô ghé trước cho tay #1. Tray đầu vào quét tuần tự thì ô ghé trước
+        /// cũng là ô X nhỏ hơn nên không ai thấy; Tuấn đổi tray đầu vào sang zigzag là ở hàng chạy ngược tay #1 lấy ô X lớn
+        /// hơn, khác hẳn Auto ("trước thấy ưu tiên X theo hình học, hôm nay không thấy"). Chạy rà phải rà đúng đường
+        /// Auto đi.</para>
+        /// </summary>
+        public static int PickCellFor(ModelData model, TrayState run, int first, int nozzle)
+        {
+            int n = run.CellCount;
+            if (n <= 0) return 0;
+            int a = Wrap(first, n), b = Wrap(first + 1, n);
+            if (a == b) return a;
+            int ta, ra, ca, tb, rb, cb;
+            var ga = model.InputCell(run, a, out ta, out ra, out ca);
+            var gb = model.InputCell(run, b, out tb, out rb, out cb);
+            bool n1First = Routine_Auto.Nozzle1TakesFirstPickCell(
+                ga.CellPos(AxisId.Z1, ra, ca).X, ga.CellPos(AxisId.Z2, ra, ca).X,
+                gb.CellPos(AxisId.Z1, rb, cb).X, gb.CellPos(AxisId.Z2, rb, cb).X,
+                model.InputTray.HalfColPitch);
+            return (nozzle == 1) == n1First ? a : b;
+        }
+
+        /// <summary>Ô tray lắp ráp của tay <paramref name="nozzle"/> trong cặp bắt đầu ở <paramref name="first"/> — đúng
+        /// luật của chu trình thật (<see cref="Routine_Auto.Nozzle1TakesFirstCell"/>): tay #1 lấy ô X nhỏ hơn. Xem
+        /// <see cref="PickCellFor"/>.</summary>
+        public static int PlaceCellFor(ModelData model, TrayState run, int first, int nozzle)
+        {
+            int n = run.CellCount;
+            if (n <= 0) return 0;
+            int a = Wrap(first, n), b = Wrap(first + 1, n);
+            if (a == b) return a;
+            int ra, ca, rb, cb;
+            run.RowCol(a, out ra, out ca);
+            run.RowCol(b, out rb, out cb);
+            bool n1First = Routine_Auto.Nozzle1TakesFirstCell(
+                model.AssyTray.CellPos(AxisId.Z1, ra, ca).X, model.AssyTray.CellPos(AxisId.Z1, rb, cb).X,
+                model.AssyTray.HalfColPitch);
+            return (nozzle == 1) == n1First ? a : b;
+        }
+
+        private static int Wrap(int index, int n) { return ((index % n) + n) % n; }
 
         /// <summary>Hàng/cột của ô thứ <paramref name="index"/> theo đúng thứ tự đi ô của chu trình thật (rắn bò).</summary>
         private static void CellOf(TrayState tray, int index, out int row, out int col)

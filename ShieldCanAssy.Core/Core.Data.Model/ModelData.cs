@@ -191,8 +191,74 @@ namespace ShieldCanAssy.Core.Data.Model
         public string Description { get; set; }
         public DateTime ModifiedAt { get; set; } = DateTime.Now;
 
+        /// <summary>Tray đầu vào 1 — chỗ đặt PHÍA TRONG của bàn Y1. Xem <see cref="InputTray2"/>.</summary>
         public TrayLayout InputTray { get; set; } = TrayLayout.CreateInputDefault();
         public TrayLayout AssyTray { get; set; } = TrayLayout.CreateAssyDefault();
+
+        /// <summary>
+        /// Tray đầu vào 2 — chỗ đặt PHÍA NGOÀI của bàn Y1, từ 2026-10-15 bàn đặt hai tray (Tuấn chốt). Lưới và cao độ Z
+        /// teach RIÊNG như Tray 1; số hàng/cột, thứ tự quét và trục luôn theo Tray 1 vì cùng một loại tray
+        /// (<see cref="NormalizeInputTrays"/>). Chưa teach thì máy chạy một tray như trước.
+        /// </summary>
+        public TrayLayout InputTray2 { get; set; } = TrayLayout.CreateInputDefault("InputTray2");
+
+        /// <summary>Số chỗ đặt tray đầu vào trên bàn Y1 — Tray 1 phía trong, Tray 2 phía ngoài.</summary>
+        public const int InputTraySlots = 2;
+
+        /// <summary>
+        /// Số tray đầu vào máy dùng: 2 khi Tray 2 đã teach, không thì 1 — y như trước khi có Tray 2. Sổ tiến độ
+        /// <c>RunningData.InputTray</c> nối các tray này liền nhau theo hàng — hàng 0..R-1 là Tray 1, hàng R..2R-1 là Tray 2
+        /// — nên máy ghé hết Tray 1 rồi mới sang Tray 2, và mọi phép tính trên chỉ số ô (giao ô hút, ô nguồn của sản phẩm,
+        /// trả NG, đếm) không phải biết có mấy tray. Xem <see cref="InputCell"/>.
+        /// </summary>
+        public int InputTraysInUse => InputTray2 != null && InputTray2.IsTaught ? 2 : 1;
+
+        /// <summary>Lưới của tray đầu vào thứ <paramref name="tray"/> (0 = Tray 1, 1 = Tray 2).</summary>
+        public TrayLayout InputLayout(int tray) { return tray == 1 ? InputTray2 : InputTray; }
+
+        /// <summary>Các tray đầu vào dùng được — bit 0 Tray 1, bit 1 Tray 2 (khi đã teach). Dùng khi nạp tray mà không đọc
+        /// được cảm biến: Tray 1 luôn có như trước khi có Tray 2, Tray 2 chỉ khi đã teach.</summary>
+        public int UsableInputTrays => InputTraysInUse == 2 ? 3 : 1;
+
+        /// <summary>
+        /// Ô thứ <paramref name="index"/> của sổ tray đầu vào nằm ở tray nào, hàng/cột nào TRONG tray đó — trả về lưới của
+        /// tray ấy. Chỗ DUY NHẤT đổi chỉ số sổ ra tray: mọi chỗ cần toạ độ hay cao độ Z của một ô tray đầu vào đều qua đây.
+        /// </summary>
+        public TrayLayout InputCell(TrayState run, int index, out int tray, out int row, out int col)
+        {
+            run.RowCol(index, out row, out col);
+            int rows = InputTray.Rows;
+            tray = row >= rows ? 1 : 0;
+            if (tray == 1) row -= rows;
+            return InputLayout(tray);
+        }
+
+        /// <summary>
+        /// Tray 2 cùng loại với Tray 1: số hàng/cột, thứ tự quét và trục chép theo Tray 1. Model lưu trước khi có Tray 2
+        /// (lưới chưa teach, Z hút = 0) thì lấy sẵn các cao độ Z của Tray 1 — cùng loại tray nên gần đúng, vẫn phải teach
+        /// lại. Gọi mỗi lần nạp/dùng model và mỗi lần trang Teaching đổi kích thước hay thứ tự quét.
+        /// </summary>
+        public void NormalizeInputTrays()
+        {
+            if (InputTray2 == null) InputTray2 = TrayLayout.CreateInputDefault("InputTray2");
+            var t1 = InputTray;
+            var t2 = InputTray2;
+            if (t2.Rows != t1.Rows || t2.Cols != t1.Cols) t2.Resize(t1.Rows, t1.Cols);
+            t2.ScanOrder = t1.ScanOrder;
+            t2.AxisRow = t1.AxisRow;
+            t2.AxisCol = t1.AxisCol;
+
+            bool fresh = !t2.GeoZ1.P00.Taught && !t2.GeoZ2.P00.Taught && t2.Z_PickZ1 == 0 && t2.Z_PickZ2 == 0;
+            if (fresh)
+            {
+                t2.Z_PickZ1 = t1.Z_PickZ1;
+                t2.Z_PickZ2 = t1.Z_PickZ2;
+                t2.Z_SlowZ1 = t1.Z_SlowZ1;
+                t2.Z_SlowZ2 = t1.Z_SlowZ2;
+                t2.Z_Safe = t1.Z_Safe;
+                t2.VerifyThreshold = t1.VerifyThreshold;
+            }
+        }
 
         public VisionCalib Calib { get; set; } = new VisionCalib();
 

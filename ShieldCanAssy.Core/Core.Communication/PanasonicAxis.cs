@@ -183,7 +183,10 @@ namespace ShieldCanAssy.Core.Communication
                     // để chỉ còn MỘT chỗ cấu hình dung sai, không phải nhớ sửa 2 nơi.
                     // (Ban đầu tưởng đây cũng là nguyên nhân "đổi tốc độ không có tác dụng" —
                     // KHÔNG PHẢI, cái đó là do ô tốc độ sai, xem AbsoluteVelocityIndex bên dưới.)
-                    PositionTolerance = _cfg.PositionTolerancePulse
+                    PositionTolerance = _cfg.PositionTolerancePulse,
+                    // Từ 2026-10-15 ngưỡng BỎ QUA lệnh tách riêng, nhỏ hơn nhiều (5 xung = 0.005 mm): system.json đặt
+                    // PositionTolerancePulse 50 thì lệnh 0.05 mm Y1 giữa hai lần hút cùng hàng không tới driver → 2302.
+                    SkipMoveTolerance = LibrarySkipTolerance(_cfg)
                 };
                 _axisCfg = new ServoAxisConfig
                 {
@@ -476,25 +479,40 @@ namespace ShieldCanAssy.Core.Communication
                 _axisCfg.AbsoluteRampRpm = gentle ? Math.Min(rpm, highRpm) : highRpm;
             }
 
-            if (!await SendMoveAsync(target, rpm, ct).ConfigureAwait(false)) return false;
-            return await WaitMotionAsync(pos, target, rpm, ct).ConfigureAwait(false);
+            var send = await SendMoveAsync(target, rpm, ct).ConfigureAwait(false);
+            if (send == ESend.Failed) return false;
+            return await WaitMotionAsync(pos, target, rpm, send == ESend.Sent, ct).ConfigureAwait(false);
         }
 
-        private async Task<bool> SendMoveAsync(int target, ushort rpm, CancellationToken ct)
+        /// <summary>Lệnh chạy: lỗi phát lệnh / thư viện không gửi (đã ở đích, driver chưa sẵn sàng) / đã xuống driver.</summary>
+        private enum ESend { Failed, Skipped, Sent }
+
+        private async Task<ESend> SendMoveAsync(int target, ushort rpm, CancellationToken ct)
         {
             try
             {
                 await _cmdLock.WaitAsync(ct).ConfigureAwait(false);
-                try { await _servo.MoveAbsolute(_unitId, target, rpm).ConfigureAwait(false); }
+                bool sent;
+                try { sent = await _servo.MoveAbsolute(_unitId, target, rpm).ConfigureAwait(false); }
                 finally { _cmdLock.Release(); }
-                return true;
+                return sent ? ESend.Sent : ESend.Skipped;
             }
             catch (OperationCanceledException) { throw; }   // STOP/huỷ lúc chờ khoá — không phải lỗi phát lệnh
             catch (Exception ex)
             {
                 AlarmManager.RaiseAxisEvent(Name, AxisFault.MoveTimeout, Loc.F("Axis.SendFail", ex.Message));
-                return false;
+                return ESend.Failed;
             }
+        }
+
+        /// <summary>
+        /// Dung sai mà thư viện dùng để BỎ QUA lệnh chạy (<c>ServoConfig.SkipMoveTolerance</c>) — tách khỏi dung sai "đã
+        /// tới" (Tuấn 2026-10-15: "nhận lệnh chính xác 0.01"). Kẹp không quá <see cref="AxisConfig.PositionTolerancePulse"/>:
+        /// thư viện bỏ một lệnh mà App vẫn thấy chưa tới thì App gửi lại vô ích rồi báo 2302 — đúng lỗi Y1 hôm 15/10.
+        /// </summary>
+        public static int LibrarySkipTolerance(AxisConfig cfg)
+        {
+            return Math.Max(0, Math.Min(cfg.SkipMoveTolerancePulse, cfg.PositionTolerancePulse));
         }
 
         /// <summary>Số lượt đọc trạng thái thành công của driver tới lúc này — xem <c>ServoAxisState.PollCount</c>.</summary>
@@ -521,13 +539,28 @@ namespace ShieldCanAssy.Core.Communication
         /// Z1 đứng yên rồi quá 30 s). Phải đủ hai lượt đọc mới sau lúc gửi: số đọc trước đó là của trước lệnh, gửi lại lúc
         /// trục đang chạy là chồng lệnh. Phải chưa nhúc nhích: BUSY tắt khi driver phát xong lệnh, trục chạy nhanh có thể còn
         /// đang về đích ngoài dung sai — đó là đang tới, không phải mất lệnh.</item>
+        /// <item><b>Lệnh đã xuống driver</b> (<paramref name="sent"/>) thì chưa đủ hai lượt đọc sau lúc gửi chưa được coi là
+        /// xong, kể cả khi đang trong dung sai (Tuấn 2026-10-15): thư viện nay gửi cả lệnh 0.01 mm, nằm gọn trong dung sai
+        /// "đã tới" 0.05 mm — coi là xong ngay thì App đi tiếp (ghi toạ độ cho vision…) trong lúc trục còn đang nhích. Thư
+        /// viện KHÔNG gửi (đã ở đích) thì xong ngay, không tốn thêm lượt đọc nào.</item>
         /// </list>
         /// </summary>
-        public static EMoveWait JudgeMove(bool there, bool busy, int pollsSinceSend, bool movedSinceSend, int resends)
+        public static EMoveWait JudgeMove(bool there, bool busy, int pollsSinceSend, bool movedSinceSend, int resends, bool sent)
         {
-            if (there && !busy) return EMoveWait.Done;
+            if (there && !busy && (!sent || pollsSinceSend >= 2)) return EMoveWait.Done;
             if (busy || pollsSinceSend < 2 || movedSinceSend) return EMoveWait.Wait;
             return resends < MaxMoveResends ? EMoveWait.Resend : EMoveWait.Lost;
+        }
+
+        /// <summary>
+        /// "Đã tới" — so bằng XUNG (Tuấn 2026-10-15). Trước đây so bằng mm số thực: lệch đúng 50 xung thì thư viện cho là đã
+        /// tới, không gửi gì xuống driver, còn App tính 46.520 − 46.470 = 0.0500000004 &gt; 0.05 là chưa tới → gửi lại 3 lần,
+        /// lần nào thư viện cũng bỏ qua → 2302. Gặp ở Y1 khi hai tay hút cùng hàng mà lưới hai tay lệch nhau ~0.05 mm. Nay
+        /// thư viện chỉ bỏ qua trong <see cref="LibrarySkipTolerance"/> (≤ dung sai này) nên thư viện bỏ ⇒ App thấy đã tới.
+        /// </summary>
+        public static bool WithinPulses(int actualPulse, int targetPulse, int tolPulse)
+        {
+            return Math.Abs((long)actualPulse - targetPulse) <= Math.Max(1, tolPulse);
         }
 
         /// <summary>
@@ -556,13 +589,13 @@ namespace ShieldCanAssy.Core.Communication
         }
 
         /// <summary>Chờ lệnh chạy tới nơi — luật ở <see cref="JudgeMove"/>.</summary>
-        private async Task<bool> WaitMotionAsync(double target, int targetPulse, ushort rpm, CancellationToken ct)
+        private async Task<bool> WaitMotionAsync(double target, int targetPulse, ushort rpm, bool sent, CancellationToken ct)
         {
             var sw = Stopwatch.StartNew();
-            double tol = _scale.ToUnit(Math.Max(1, _cfg.PositionTolerancePulse));
+            int tol = _cfg.PositionTolerancePulse;
             int sentPoll = PollNow();
             var st0 = _servo.GetAxisState(_unitId);
-            double sentFrom = st0 != null ? _scale.ToUnit(st0.ActualPosition) : CurrentPos;   // chỗ đứng lúc gửi
+            int sentFrom = st0 != null ? st0.ActualPosition : _scale.ToPulse(CurrentPos);   // chỗ đứng lúc gửi
             int resends = 0;
 
             while (sw.ElapsedMilliseconds < _cfg.MoveTimeoutMs)
@@ -588,9 +621,9 @@ namespace ShieldCanAssy.Core.Communication
                     return false;
                 }
 
-                bool there = Math.Abs(now - target) <= Math.Max(tol, 1e-6);
-                bool moved = Math.Abs(now - sentFrom) > Math.Max(tol, 1e-6);
-                var verdict = JudgeMove(there, busy, polls, moved, resends);
+                bool there = WithinPulses(st.ActualPosition, targetPulse, tol);
+                bool moved = !WithinPulses(st.ActualPosition, sentFrom, tol);
+                var verdict = JudgeMove(there, busy, polls, moved, resends, sent);
 
                 if (verdict == EMoveWait.Resend)
                 {
@@ -598,9 +631,11 @@ namespace ShieldCanAssy.Core.Communication
                     LogWorker.Instance.RecordLog(string.Format(
                         "{0}: driver chưa nhận lệnh chạy tới {1:0.000}{2} (không BUSY, đang ở {3:0.000}{2}) — gửi lại lần {4}",
                         Name, target, _cfg.Unit, now, resends), Utility.Log.LogLevel.Warning, Name);
-                    if (!await SendMoveAsync(targetPulse, rpm, ct).ConfigureAwait(false)) return false;
+                    var send = await SendMoveAsync(targetPulse, rpm, ct).ConfigureAwait(false);
+                    if (send == ESend.Failed) return false;
+                    sent = send == ESend.Sent;
                     sentPoll = PollNow();
-                    sentFrom = now;
+                    sentFrom = st.ActualPosition;
                     continue;
                 }
                 if (verdict == EMoveWait.Lost)

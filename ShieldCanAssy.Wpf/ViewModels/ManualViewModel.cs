@@ -85,11 +85,14 @@ namespace ShieldCanAssy.Wpf.ViewModels
             // 2026-09-08), RESET chỉ bấm được bằng nút mềm ở trang Main (ResetCommand đó gọi
             // thẳng McControl.RequestReset, không qua DI nào nên vẫn dùng được y hệt lúc mô
             // phỏng lẫn máy thật — không cần nút giả lập riêng ở đây nữa).
-            SimPressBuzzerCommand = new RelayCommand(() => SimIo?.SimPress(IoMap.BtnBuzzerStop));
+            // Không còn nút Tắt còi cứng (Tuấn 2026-10-15) — bit đó thành cảm biến Tray đầu vào 1.
 
             SimToggleEmgCommand = new RelayCommand(() => SimIo?.SimToggle(IoMap.EmgOk));
             SimToggleLightCurtainCommand = new RelayCommand(() => SimIo?.SimToggle(IoMap.LightCurtainOk));
             SimToggleAirCommand = new RelayCommand(() => SimIo?.SimToggle(IoMap.AirOk));
+            // Hai cảm biến tray đầu vào — đặt/lấy tray giả lập. Mặc định chỉ Tray 1 có (FakeIo).
+            SimToggleTray1Command = new RelayCommand(() => SimIo?.SimToggle(IoMap.TrayIn1Present));
+            SimToggleTray2Command = new RelayCommand(() => SimIo?.SimToggle(IoMap.TrayIn2Present));
 
             // Đèn trigger CAM Bottom-up (DoLampCam1, 0x0B) / CAM Top-down (DoLampCam2, 0x0C) —
             // Routine_Auto tự bật/tắt quanh lúc trigger Vision trong chu trình Auto, nhưng lúc
@@ -238,7 +241,8 @@ namespace ShieldCanAssy.Wpf.ViewModels
         public ICommand SimPressStart1Command { get; }
         public ICommand SimPressStart2Command { get; }
         public ICommand SimPressStopCommand { get; }
-        public ICommand SimPressBuzzerCommand { get; }
+        public ICommand SimToggleTray1Command { get; }
+        public ICommand SimToggleTray2Command { get; }
         public ICommand SimToggleEmgCommand { get; }
         public ICommand SimToggleLightCurtainCommand { get; }
         public ICommand ToggleCamBtmLampCommand { get; }

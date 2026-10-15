@@ -63,7 +63,7 @@ namespace ShieldCanAssy.Wpf
                 TestSinglePointAlignMath, TestModelManagement, TestAxisScale, TestServoModbusWrites, TestMoveCompletionRule, TestMoveIncrement,
                 TestRotaryWrap, TestPlanarHomeRequiresZHomed, TestZDecelPoint, TestSettleBeforeCapture, TestTrayGridZigzag,
                 TestRoutineCalib, TestGlobalVarCreate, TestVmFlowOutputCheck,
-                TestAutoCycle, TestAssyPreScan, TestResumeIntegrity, TestTrayChangeover, TestAssyTrayFull, TestDryRun,
+                TestAutoCycle, TestAssyPreScan, TestResumeIntegrity, TestTrayChangeover, TestTwoInputTrays, TestAssyTrayFull, TestDryRun,
                 TestVmContract, TestVmTwinMath, TestVmCalib, TestVmAutoCycle, TestVmStepCheck, TestVmFaults, TestVmHalts, TestVmGate,
                 TestTwoHandGate, TestBrakeInterlock, TestEmergencyBrakeRelease, TestLanguageTables
             };
@@ -964,21 +964,26 @@ namespace ShieldCanAssy.Wpf
         {
             Section("Lệnh chạy servo: xong khi vào dung sai + hết BUSY, gửi lại khi driver không nhận lệnh");
 
-            Func<bool, bool, int, bool, int, Core.Communication.PanasonicAxis.EMoveWait> j = Core.Communication.PanasonicAxis.JudgeMove;
+            Func<bool, bool, int, bool, int, bool, Core.Communication.PanasonicAxis.EMoveWait> j = Core.Communication.PanasonicAxis.JudgeMove;
             var Done = Core.Communication.PanasonicAxis.EMoveWait.Done;
             var Wait = Core.Communication.PanasonicAxis.EMoveWait.Wait;
             var Resend = Core.Communication.PanasonicAxis.EMoveWait.Resend;
             var Lost = Core.Communication.PanasonicAxis.EMoveWait.Lost;
             int max = Core.Communication.PanasonicAxis.MaxMoveResends;
 
-            Check("Vào dung sai, hết BUSY là xong — không chờ INP", j(true, false, 0, true, 0) == Done);
-            Check("Vào dung sai mà còn BUSY thì chờ", j(true, true, 5, true, 0) == Wait);
-            Check("Đang BUSY thì chờ, không gửi lại", j(false, true, 10, false, 0) == Wait);
-            Check("Chưa đủ hai lượt đọc sau lúc gửi thì chờ — số cũ là của trước lệnh", j(false, false, 1, false, 0) == Wait);
-            Check("Hết BUSY, chưa tới mà trục đã nhúc nhích (đang về đích) thì chờ, không gửi lại", j(false, false, 5, true, 0) == Wait);
-            Check("Hai lượt đọc mới: không BUSY, chưa tới, chưa nhúc nhích → gửi lại", j(false, false, 2, false, 0) == Resend);
+            Check("Vào dung sai, hết BUSY là xong — không chờ INP", j(true, false, 5, true, 0, true) == Done);
+            Check("Vào dung sai mà còn BUSY thì chờ", j(true, true, 5, true, 0, true) == Wait);
+            Check("Đang BUSY thì chờ, không gửi lại", j(false, true, 10, false, 0, true) == Wait);
+            Check("Chưa đủ hai lượt đọc sau lúc gửi thì chờ — số cũ là của trước lệnh", j(false, false, 1, false, 0, true) == Wait);
+            Check("Hết BUSY, chưa tới mà trục đã nhúc nhích (đang về đích) thì chờ, không gửi lại", j(false, false, 5, true, 0, true) == Wait);
+            Check("Hai lượt đọc mới: không BUSY, chưa tới, chưa nhúc nhích → gửi lại", j(false, false, 2, false, 0, true) == Resend);
             Check("Gửi lại tối đa " + max + " lần rồi báo lỗi ngay, không đợi hết 30 s",
-                j(false, false, 2, false, max - 1) == Resend && j(false, false, 2, false, max) == Lost);
+                j(false, false, 2, false, max - 1, true) == Resend && j(false, false, 2, false, max, true) == Lost);
+            // 15/10: thư viện nay gửi cả lệnh 0.01 mm — nằm gọn trong dung sai "đã tới" 0.05 mm.
+            Check("Lệnh nhỏ trong dung sai đã xuống driver: chưa đủ hai lượt đọc thì CHỜ, không coi là xong lúc trục chưa nhích",
+                j(true, false, 0, false, 0, true) == Wait && j(true, false, 1, false, 0, true) == Wait);
+            Check("…đủ hai lượt đọc, hết BUSY thì xong", j(true, false, 2, false, 0, true) == Done);
+            Check("Thư viện không gửi (đã ở đích): xong ngay, không tốn thêm lượt đọc", j(true, false, 0, false, 0, false) == Done);
         }
 
         private static void TestServoModbusWrites()
@@ -1093,6 +1098,48 @@ namespace ShieldCanAssy.Wpf
                 at(last(), Acc0) == 10000 && at(last(), Dec0) == 10000, show(tx));
             tx = run(() => servo.MoveAbsolute(1, 12000, 36));
             Check("Chế độ cũ cũng bớt ghi: cùng tốc độ lệnh trước chỉ còn vị trí", tx.Count == 1, show(tx));
+
+            // 15/10: Y1 đứng 46.470 (tay #2 vừa hút), tay #1 cần 46.520 — lệch ĐÚNG 50 xung = PositionTolerance. Thư viện bỏ
+            // qua lệnh vì "đã tới", App so bằng mm thì 0.0500000004 > 0.05 là chưa tới → gửi lại 3 lần → 2302. Nay thư viện chỉ
+            // bỏ qua trong SkipMoveTolerance (App đặt 5 xung) — Tuấn: "nhận lệnh chính xác 0.01".
+            st.ActualPosition = 46470;
+            Func<int, bool> sends = p => System.Threading.Tasks.Task.Run(() => servo.MoveAbsolute(1, p, 36)).GetAwaiter().GetResult();
+            Check("SkipMoveTolerance chưa đặt: vẫn bỏ qua trong " + cfg.PositionTolerance + " xung như cũ — dự án khác dùng chung thư viện không đổi",
+                !sends(46520) && sends(46521), lastLog);
+
+            var axCfg = new Core.Communication.AxisConfig { PulsePerUnit = 1000.0, UnitPerRev = 10.0, PositionTolerancePulse = 50 };
+            var scale = new Core.Communication.AxisScale(axCfg);
+            cfg.SkipMoveTolerance = Core.Communication.PanasonicAxis.LibrarySkipTolerance(axCfg);
+            Check("App đặt ngưỡng bỏ qua 5 xung (0.005 mm) dù dung sai \"đã tới\" là 50", cfg.SkipMoveTolerance == 5,
+                cfg.SkipMoveTolerance.ToString());
+
+            int startsBefore = port.Starts.Count;
+            bool sentY1 = sends(scale.ToPulse(46.520));
+            Check("Ca máy thật: Y1 ở 46.470 → 46.520 (0.05 mm): lệnh xuống driver, chạy tới 46520",
+                sentY1 && port.Starts.Count == startsBefore + 1 && posOf(last()) == 46520, lastLog);
+            Check("Lệnh 0.01 mm (10 xung) xuống driver, cả hai chiều",
+                sends(scale.ToPulse(46.480)) && posOf(last()) == 46480 && sends(scale.ToPulse(46.460)) && posOf(last()) == 46460);
+            Check("Lệnh 0.006 mm (6 xung) vẫn xuống driver", sends(46476));
+            Check("Trong 5 xung (0.005 mm) là đã ở đích — không gửi gì", !sends(46475) && !sends(46465) && !sends(46470));
+
+            // Thư viện bỏ lệnh ⇒ App phải thấy đã tới; ngược lại App sẽ gửi lại lệnh mà thư viện cứ bỏ → 2302 như 15/10.
+            bool agree = true;
+            string why = "";
+            foreach (int d in new[] { 0, 1, 4, 5, 6, 10, 49, 50, 51, -5, -6, -50, -51 })
+            {
+                bool skipped = !sends(46470 + d);
+                bool there = Core.Communication.PanasonicAxis.WithinPulses(46470, 46470 + d, axCfg.PositionTolerancePulse);
+                if (skipped && !there) { agree = false; why += " Δ" + d; }
+            }
+            Check("Thư viện bỏ qua lệnh nào thì App cũng coi lệnh đó là đã tới", agree, why);
+            var wide = new Core.Communication.AxisConfig { PositionTolerancePulse = 50, SkipMoveTolerancePulse = 80 };
+            var tight = new Core.Communication.AxisConfig { PositionTolerancePulse = 3, SkipMoveTolerancePulse = 5 };
+            Check("Ngưỡng bỏ qua không bao giờ vượt dung sai \"đã tới\" (đặt 80/50 → 50, 5/3 → 3)",
+                Core.Communication.PanasonicAxis.LibrarySkipTolerance(wide) == 50
+                && Core.Communication.PanasonicAxis.LibrarySkipTolerance(tight) == 3);
+            Check("App so \"đã tới\" bằng xung: 46.470 so với 46.520 là trong 50 xung (phép so mm cũ ra 0.0500000004 > 0.05)",
+                Core.Communication.PanasonicAxis.WithinPulses(scale.ToPulse(46.470), scale.ToPulse(46.520), 50)
+                && Math.Abs(46.470 - 46.520) > scale.ToUnit(50), Math.Abs(46.470 - 46.520).ToString("R"));
 
             servo.Dispose();
         }
@@ -2208,7 +2255,7 @@ namespace ShieldCanAssy.Wpf
             double sbIn = cfgIn.StandbyPos, sbAssy = cfgAssy.StandbyPos;
             cfgIn.StandbyPos = McControl.Motion[rowIn].CurrentPos + 50;
             cfgAssy.StandbyPos = McControl.Motion[rowAssy].CurrentPos + 50;
-            io.SimSet(IoMap.TrayInPresent, false);
+            io.SimSet(IoMap.TrayIn1Present, false);
             io.SimSet(IoMap.TrayAssyPresent, false);
 
             int okBefore = run.CountOk;
@@ -2224,7 +2271,7 @@ namespace ShieldCanAssy.Wpf
 
             cfgIn.StandbyPos = sbIn;
             cfgAssy.StandbyPos = sbAssy;
-            io.SimSet(IoMap.TrayInPresent, true);
+            io.SimSet(IoMap.TrayIn1Present, true);
             io.SimSet(IoMap.TrayAssyPresent, true);
 
             McControl.RequestPause();
@@ -2664,12 +2711,12 @@ namespace ShieldCanAssy.Wpf
                     waitingOp() && msg().Contains("Đã có tray lắp ráp") && msg().Contains("Start 1"), VmState());
 
                 // Cảm biến không thấy tray ở vị trí chờ thì không nhận nút.
-                io.SimSet(IoMap.TrayInPresent, false);
+                io.SimSet(IoMap.TrayIn1Present, false);
                 io.SimPress(IoMap.BtnGoB1);
                 Thread.Sleep(300);
                 Check("Không thấy tray đầu vào ở vị trí chờ thì Start 1 không nhận",
                     waitingOp() && msg().Contains("Chưa thấy tray đầu vào"), VmState());
-                io.SimSet(IoMap.TrayInPresent, true);
+                io.SimSet(IoMap.TrayIn1Present, true);
 
                 io.SimPress(IoMap.BtnGoB1);                     // nút cứng DI 0x10
                 Check("Start 1 nạp tray đầu vào — hai tay hút lại",
@@ -2810,7 +2857,201 @@ namespace ShieldCanAssy.Wpf
             finally
             {
                 io.AfterSetDo = null;
-                io.SimSet(IoMap.TrayInPresent, true);
+                io.SimSet(IoMap.TrayIn1Present, true);
+                McControl.RequestSetMode(EMcMode.Manual);
+            }
+        }
+
+        /// <summary>
+        /// Hai tray đầu vào (Tuấn chốt 2026-10-15): Tray 1 phía trong (DI 0x0C), Tray 2 phía ngoài (DI 0x0A), lưới và cao độ
+        /// teach riêng, cùng kích thước với Tray 1. Tray 2 chưa teach thì máy như một tray. Start 1 nạp tray nào cảm biến
+        /// thấy; Tray 1 trước; hết cả hai mới ra vị trí chờ.
+        /// </summary>
+        private static void TestTwoInputTrays()
+        {
+            Section("Hai tray đầu vào");
+
+            var run = Core.Data.McDataManager.RunData;
+            var io = (FakeIo)McControl.Io;
+            var model = Core.Data.McDataManager.Model;
+            var sys = Core.Data.McDataManager.SysData;
+            var t1 = model.InputTray;
+            string rowIn = t1.AxisRow;
+            Func<string> msg = () => McControl.Status.Message ?? "";
+            Func<bool> waitingOp = () => McControl.Status.State == EMcState.WaitOperator;
+            Func<int, int, int> countIn = (from, to) =>
+            {
+                var cells = run.InputTray.Cells.ToArray();
+                int k = 0;
+                for (int i = from; i < to && i < cells.Length; i++) if (cells[i] == ECellState.Loaded) k++;
+                return k;
+            };
+
+            // ── Phần tính, không chạy máy ──
+            Check("Tray 2 chưa teach: sổ tray đầu vào chỉ có Tray 1 — máy như trước khi có Tray 2",
+                model.InputTraysInUse == 1 && run.InputTray.Trays == 1 && run.InputTray.Rows == t1.Rows,
+                $"{model.InputTraysInUse} tray, sổ {run.InputTray.Rows}×{run.InputTray.Cols}, {run.InputTray.Trays} tray");
+            var t2 = model.InputTray2;
+            Check("Tray 2 theo Tray 1 về kích thước, thứ tự quét và trục; model cũ lấy sẵn cao độ Z của Tray 1",
+                t2.Rows == t1.Rows && t2.Cols == t1.Cols && t2.ScanOrder == t1.ScanOrder && t2.AxisRow == t1.AxisRow &&
+                t2.Z_PickZ1 == t1.Z_PickZ1 && t2.Z_PickZ2 == t1.Z_PickZ2 && t2.Z_SlowZ1 == t1.Z_SlowZ1,
+                $"Tray 2 {t2.Rows}×{t2.Cols} {t2.ScanOrder} {t2.AxisRow}, Z hút {t2.Z_PickZ1}/{t2.Z_PickZ2}");
+
+            const double shiftY = 60;    // Tray 2 nằm ngoài Tray 1 theo Y1 — số giả
+            Func<Core.Data.Model.TeachPoint, Core.Data.Model.TeachPoint> shifted =
+                p => new Core.Data.Model.TeachPoint(p.X, p.Y + shiftY);
+            double tray2FromY = t1.GeoZ1.PR0.Y + shiftY / 2;     // Y1 quá mốc này là đang ở Tray 2
+
+            // Y1 và Z của đúng tay đó LÚC MỞ VAN HÚT — biết lần hút ở tray nào, hạ tới đâu, không phải canh giờ.
+            var pickY = new List<double>();
+            var zBad = new List<string>();
+            bool tray2PickBeforeTray1Done = false;
+            int n = 0;
+            io.AfterSetDo = (bit, on) =>
+            {
+                if (!on || (bit != IoMap.DoVacuum1 && bit != IoMap.DoVacuum2)) return;
+                string zAxis = bit == IoMap.DoVacuum1 ? AxisId.Z1 : AxisId.Z2;
+                double y = McControl.Motion[rowIn].CurrentPos;
+                double z = McControl.Motion[zAxis].CurrentPos;
+                bool onTray2 = y > tray2FromY;
+                var layout = onTray2 ? model.InputTray2 : t1;
+                lock (pickY)
+                {
+                    pickY.Add(y);
+                    if (Math.Abs(z - layout.ZPickFor(zAxis)) > 0.05)
+                        zBad.Add($"{zAxis} {z:0.00} ở Tray {(onTray2 ? 2 : 1)} (Z hút {layout.ZPickFor(zAxis)})");
+                }
+                if (onTray2 && countIn(0, n) > 0) tray2PickBeforeTray1Done = true;
+            };
+
+            Action resetAndArm = () =>
+            {
+                McControl.RequestReset();
+                WaitUntil(() => AlarmManager.PendingReset == null, 2000);
+                McControl.RequestArm();
+                WaitUntil(() => McControl.Status.State == EMcState.Armed, 3000);
+            };
+            // Máy chờ Start 1 với tray lắp ráp trống trong máy, sổ tray đầu vào đã dùng hết.
+            Action waitForStart1 = () =>
+            {
+                McControl.RequestOrigin();
+                WaitUntil(() => McControl.Status.State == EMcState.Homing, 2000);
+                WaitUntil(() => McControl.Status.State != EMcState.Homing, 40000);
+                run.InputTray.ResetAll(ECellState.Ng);
+                run.AssyTray.ResetAll(ECellState.Empty);
+                McControl.InvalidateAssyScan();
+                run.Nozzle1.HasProduct = run.Nozzle2.HasProduct = false;
+                McControl.Func.SetVacuum(1, false);
+                McControl.Func.SetVacuum(2, false);
+                run.AutoState = EAutoState.S00_Ready;
+                Thread.Sleep(50);
+                resetAndArm();
+                io.SimPress(IoMap.BtnGoB2);
+                WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 60000);
+            };
+
+            try
+            {
+                WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
+                McControl.RequestSetMode(EMcMode.Auto);
+                WaitUntil(() => McControl.Status.Mode == EMcMode.Auto, 2000);
+
+                // ── Tray 2 chưa teach mà cảm biến Tray 2 thấy tray: không nhận Start 1 ──
+                waitForStart1();
+                io.SimSet(IoMap.TrayIn2Present, true);
+                io.SimPress(IoMap.BtnGoB1);
+                Thread.Sleep(300);
+                Check("Cảm biến Tray 2 thấy tray mà Tray 2 chưa teach: Start 1 không nhận, nói rõ lý do",
+                    waitingOp() && msg().Contains("Tray đầu vào 2 chưa teach"), VmState());
+
+                // ── Teach Tray 2: lưới Tray 1 dời Y1, cao độ hút riêng ──
+                t2.GeoZ1.P00 = shifted(t1.GeoZ1.P00); t2.GeoZ1.P0C = shifted(t1.GeoZ1.P0C); t2.GeoZ1.PR0 = shifted(t1.GeoZ1.PR0);
+                t2.GeoZ2.P00 = shifted(t1.GeoZ2.P00); t2.GeoZ2.P0C = shifted(t1.GeoZ2.P0C); t2.GeoZ2.PR0 = shifted(t1.GeoZ2.PR0);
+                t2.Z_PickZ1 = t1.Z_PickZ1 + 0.5;
+                t2.Z_PickZ2 = t1.Z_PickZ2 + 0.5;
+                Core.Data.McDataManager.SyncRunTrays();
+                n = run.InputTray.CellsPerTray;
+                Check("Teach xong Tray 2: sổ nối thêm Tray 2 — gấp đôi số hàng, Tray 1 ở nửa đầu",
+                    model.InputTraysInUse == 2 && run.InputTray.Trays == 2 && run.InputTray.Rows == 2 * t1.Rows && n == t1.CellCount,
+                    $"sổ {run.InputTray.Rows}×{run.InputTray.Cols}, {run.InputTray.Trays} tray, {n} ô/tray");
+
+                int ta, ra, ca, tb, rb, cb;
+                var ga = model.InputCell(run.InputTray, n - 1, out ta, out ra, out ca);
+                var gb = model.InputCell(run.InputTray, n, out tb, out rb, out cb);
+                Check("Ô cuối của Tray 1 theo lưới Tray 1; ô kế tiếp là hàng đầu Tray 2, theo lưới Tray 2",
+                    ta == 0 && ga == t1 && ra == t1.Rows - 1 && tb == 1 && gb == t2 && rb == 0 &&
+                    Math.Abs(gb.CellPos(AxisId.Z1, rb, cb).Y - t1.CellPos(AxisId.Z1, 0, cb).Y - shiftY) < 1e-9,
+                    $"ô {n - 1} → Tray {ta + 1} ({ra},{ca}), ô {n} → Tray {tb + 1} ({rb},{cb})");
+
+                // ── Chỉ Tray 2 có: Start 1 nạp mỗi Tray 2, hút theo lưới Tray 2 ──
+                io.SimSet(IoMap.TrayIn1Present, false);
+                lock (pickY) pickY.Clear();
+                int okB = run.CountOk;
+                io.SimPress(IoMap.BtnGoB1);
+                Check("Chỉ Tray 2 có: Start 1 nạp mỗi Tray 2 — ô Tray 1 trống, ô Tray 2 có hàng",
+                    WaitUntil(() => run.CountOk > okB, 60000) && countIn(0, n) == 0 &&
+                    run.InputTray.Cells.Take(n).All(c => c == ECellState.Empty),
+                    $"Tray 1 còn {countIn(0, n)} ô có hàng — {VmState()}");
+                bool doneB = WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 120000);
+                double minY2 = double.MaxValue, maxY2 = double.MinValue;
+                for (int r = 0; r < t2.Rows; r++)
+                    for (int c = 0; c < t2.Cols; c++)
+                        foreach (var z in new[] { AxisId.Z1, AxisId.Z2 })
+                        {
+                            double y = t2.CellPos(z, r, c).Y;
+                            minY2 = Math.Min(minY2, y);
+                            maxY2 = Math.Max(maxY2, y);
+                        }
+                double[] ysB;
+                lock (pickY) ysB = pickY.ToArray();
+                Check("Hút hết Tray 2 rồi chờ Start 1; mọi lần hút đều nằm trên lưới Tray 2",
+                    doneB && ysB.Length >= n && ysB.All(y => y >= minY2 - 0.01 && y <= maxY2 + 0.01) &&
+                    run.InputTray.Cells.Skip(n).All(c => c == ECellState.Ok || c == ECellState.Ng),
+                    $"{ysB.Length} lần hút, Y {(ysB.Length > 0 ? ysB.Min() : 0):0.0}..{(ysB.Length > 0 ? ysB.Max() : 0):0.0}, " +
+                    $"lưới Tray 2 {minY2:0.0}..{maxY2:0.0} — {VmState()}");
+                McControl.RequestPause();
+                WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
+
+                // ── Cả hai tray: Tray 1 trước, hết Tray 1 sang Tray 2 mà không ra vị trí chờ ──
+                io.SimSet(IoMap.TrayIn1Present, true);
+                waitForStart1();
+                lock (pickY) { pickY.Clear(); zBad.Clear(); }
+                tray2PickBeforeTray1Done = false;
+                io.SimPress(IoMap.BtnGoB1);
+                // Tray 2 đầy hàng suốt lúc máy làm Tray 1 — thấy đủ n ô là đã nạp cả hai (Tray 1 đang vơi dần).
+                Check("Cả hai tray có: Start 1 nạp cả hai",
+                    WaitUntil(() => countIn(n, 2 * n) == n, 5000),
+                    $"Tray 1 {countIn(0, n)}, Tray 2 {countIn(n, 2 * n)} ô có hàng");
+                bool sawWait = false;
+                bool reachedTray2 = WaitUntil(() =>
+                {
+                    if (waitingOp()) sawWait = true;
+                    double[] ys;
+                    lock (pickY) ys = pickY.ToArray();
+                    return ys.Any(y => y >= minY2 - 0.01);
+                }, 180000);
+                Check("Hút hết Tray 1 rồi mới sang Tray 2, không đưa bàn ra vị trí chờ giữa hai tray",
+                    reachedTray2 && !tray2PickBeforeTray1Done && !sawWait && countIn(0, n) == 0,
+                    $"tới Tray 2: {reachedTray2}, hút Tray 2 khi Tray 1 còn hàng: {tray2PickBeforeTray1Done}, " +
+                    $"chờ thao tác giữa chừng: {sawWait} — {VmState()}");
+
+                McControl.RequestPause();
+                WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
+
+                // Tray 2 teach Z hút lệch Tray 1 0.5 mm: mỗi lần hút phải hạ đúng cao độ của tray chứa ô đó.
+                string[] bad;
+                lock (pickY) bad = zBad.ToArray();
+                Check("Mỗi lần hút hạ Z tới đúng cao độ hút của tray chứa ô đó (Tray 2 có Z riêng)",
+                    bad.Length == 0, string.Join("; ", bad.Take(3)));
+            }
+            finally
+            {
+                io.AfterSetDo = null;
+                io.SimSet(IoMap.TrayIn1Present, true);
+                io.SimSet(IoMap.TrayIn2Present, false);
+                // Trả model về như chưa có Tray 2 — các bài sau chạy một tray (Normalize lại chép Z của Tray 1 sang).
+                model.InputTray2 = Core.Data.Model.TrayLayout.CreateInputDefault("InputTray2");
+                Core.Data.McDataManager.SyncRunTrays();
                 McControl.RequestSetMode(EMcMode.Manual);
             }
         }
@@ -3276,6 +3517,55 @@ namespace ShieldCanAssy.Wpf
         private static void TestDryRun()
         {
             Section("Chạy rà (không sản phẩm, chỉ chạy trục)");
+
+            // ── Chia ô cho hai tay đúng luật của Auto, thuần tính toán (Tuấn 2026-10-15: đổi tray đầu vào sang zigzag thì
+            //    chạy rà hết "ưu tiên X") — ở hàng chạy NGƯỢC, ô ghé trước có X lớn hơn mà tay #1 vẫn phải lấy ô X nhỏ ──
+            {
+                var sim = Core.Data.Model.ModelData.CreateSimulation();
+                var inRun = Core.Data.TrayState.Create("in", sim.InputTray.Rows, sim.InputTray.Cols);
+                inRun.ScanOrder = EScanOrder.Serpentine;
+                var asRun = Core.Data.TrayState.Create("assy", sim.AssyTray.Rows, sim.AssyTray.Cols);
+                asRun.ScanOrder = EScanOrder.Serpentine;
+                Func<Core.Data.TrayState, Core.Data.Model.TrayLayout, int, double> xOf = (t, l, i) =>
+                {
+                    int r, c;
+                    t.RowCol(i, out r, out c);
+                    return l.CellPos(AxisId.Z1, r, c).X;
+                };
+
+                // Tray đầu vào 2×5: hàng 2 ghé 5..9 từ phải sang — cặp (6, 7) là cột 4 rồi cột 3.
+                int pi1 = Routine_DryCycle.PickCellFor(sim, inRun, 6, 1), pi2 = Routine_DryCycle.PickCellFor(sim, inRun, 6, 2);
+                Check("Chạy rà, tray đầu vào zigzag, hàng chạy ngược: Tool 1 hút ô X nhỏ hơn, như Auto",
+                    pi1 != pi2 && xOf(inRun, sim.InputTray, pi1) < xOf(inRun, sim.InputTray, pi2),
+                    $"Tool 1 ô {pi1} X {xOf(inRun, sim.InputTray, pi1):0.0}, Tool 2 ô {pi2} X {xOf(inRun, sim.InputTray, pi2):0.0}");
+
+                // Tray lắp ráp 3×4: hàng 2 ghé 4..7 từ phải sang — cặp (4, 5) là cột 4 rồi cột 3.
+                int pa1 = Routine_DryCycle.PlaceCellFor(sim, asRun, 4, 1), pa2 = Routine_DryCycle.PlaceCellFor(sim, asRun, 4, 2);
+                Check("Chạy rà, tray lắp ráp zigzag, hàng chạy ngược: Tool 1 đặt ô X nhỏ hơn, như Auto",
+                    pa1 != pa2 && xOf(asRun, sim.AssyTray, pa1) < xOf(asRun, sim.AssyTray, pa2),
+                    $"Tool 1 ô {pa1} X {xOf(asRun, sim.AssyTray, pa1):0.0}, Tool 2 ô {pa2} X {xOf(asRun, sim.AssyTray, pa2):0.0}");
+
+                // Cặp vắt hàng CÙNG CỘT của zigzag (ô cuối hàng 1, ô đầu hàng 2): tray nghiêng chút khi teach làm X hai ô lệch
+                // vài phần trăm mm. Không có ngưỡng thì phần lệch đó giao ô hàng SAU cho Tool 1 — Tool 1 hút trước nên Y1 chạy
+                // xuống, lùi lên cho Tool 2, rồi lại xuống (Tuấn 2026-10-15, ô 5 và 6 trên máy thật: lợi 0.027 mm X).
+                var skew = Core.Data.Model.ModelData.CreateSimulation();
+                var p1 = skew.InputTray.GeoZ1.PR0; var p2 = skew.InputTray.GeoZ2.PR0;
+                skew.InputTray.GeoZ1.PR0 = new Core.Data.Model.TeachPoint(p1.X - 0.36, p1.Y);
+                skew.InputTray.GeoZ2.PR0 = new Core.Data.Model.TeachPoint(p2.X - 0.08, p2.Y);
+                bool noTie = Routine_Auto.Nozzle1TakesFirstPickCell(
+                    skew.InputTray.CellPos(AxisId.Z1, 0, 4).X, skew.InputTray.CellPos(AxisId.Z2, 0, 4).X,
+                    skew.InputTray.CellPos(AxisId.Z1, 1, 4).X, skew.InputTray.CellPos(AxisId.Z2, 1, 4).X);
+                int ps1 = Routine_DryCycle.PickCellFor(skew, inRun, 4, 1), ps2 = Routine_DryCycle.PickCellFor(skew, inRun, 4, 2);
+                Check("Cặp cùng cột vắt hàng (zigzag, tray hơi nghiêng): Tool 1 lấy ô ghé trước — Y chỉ đi tới, không chạy lùi",
+                    !noTie && ps1 == 4 && ps2 == 5,
+                    $"so tuyệt đối thì Tool 1 lấy ô {(noTie ? 4 : 5)}; ngưỡng nửa bước cột {skew.InputTray.HalfColPitch:0.0} mm: " +
+                    $"Tool 1 ô {ps1}, Tool 2 ô {ps2}");
+                Check("Tray lắp ráp: cặp cùng cột cũng giữ thứ tự ghé, khác cột vẫn theo X",
+                    Routine_Auto.Nozzle1TakesFirstCell(400.03, 400.0, skew.AssyTray.HalfColPitch) &&
+                    !Routine_Auto.Nozzle1TakesFirstCell(400.03, 400.0) &&
+                    !Routine_Auto.Nozzle1TakesFirstCell(422.0, 400.0, skew.AssyTray.HalfColPitch),
+                    $"nửa bước cột {skew.AssyTray.HalfColPitch:0.0} mm");
+            }
 
             var io = (FakeIo)McControl.Io;
             var run = Core.Data.McDataManager.RunData;

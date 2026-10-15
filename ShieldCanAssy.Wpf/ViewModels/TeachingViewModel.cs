@@ -106,8 +106,9 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 io.SetDo(IoMap.DoLampCam2, !io.GetDo(IoMap.DoLampCam2));
             });
 
-            SelectInputCommand = new RelayCommand(() => { UseInputTray = true; OnTraySwitched(); });
-            SelectAssyCommand = new RelayCommand(() => { UseInputTray = false; OnTraySwitched(); });
+            SelectInputCommand = new RelayCommand(() => SelectTray(0));
+            SelectInput2Command = new RelayCommand(() => SelectTray(1));
+            SelectAssyCommand = new RelayCommand(() => SelectTray(AssyTraySel));
 
             SelectNozzle1Command = new RelayCommand(() => { UseNozzle1 = true; OnToolSwitched(); });
             SelectNozzle2Command = new RelayCommand(() => { UseNozzle1 = false; OnToolSwitched(); });
@@ -147,8 +148,12 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 await MoveZAsync(axis, McControl.Motion[axis].Config.HomeOffset, Layout.ZSlowFor(axis)));
             // Tới Pick/Tới Place chạy THỬ đúng đường mà chu trình Auto chạy — kể cả chặng giảm tốc,
             // để cái nhìn thấy lúc teach là cái máy làm lúc chạy thật.
-            MoveZPickCommand = new RelayCommand<string>(async axis => await MoveZAsync(axis,
-                McDataManager.Model.InputTray.ZPickFor(axis), McDataManager.Model.InputTray.ZSlowFor(axis)));
+            // Tray đầu vào nào đang chọn thì cao độ của tray đó (Tray 2 teach Z riêng); đang ở tray lắp ráp thì Tray 1.
+            MoveZPickCommand = new RelayCommand<string>(async axis =>
+            {
+                var input = UseInputTray ? Layout : McDataManager.Model.InputTray;
+                await MoveZAsync(axis, input.ZPickFor(axis), input.ZSlowFor(axis));
+            });
             MoveZPlaceCommand = new RelayCommand<string>(async axis => await MoveZAsync(axis,
                 McDataManager.Model.AssyTray.ZPickFor(axis), McDataManager.Model.AssyTray.ZSlowFor(axis)));
             MoveXTrigger1Command = new RelayCommand(async () => await MoveToTriggerAsync(1));
@@ -247,32 +252,41 @@ namespace ShieldCanAssy.Wpf.ViewModels
 
         // ───────────────────────── chọn tray ─────────────────────────
 
-        private bool _useInputTray = true;
-        public bool UseInputTray
+        private const int AssyTraySel = 2;
+
+        /// <summary>Tray đang teach: 0 = Tray đầu vào 1 (trong), 1 = Tray đầu vào 2 (ngoài — bàn đầu vào đặt hai tray từ
+        /// 2026-10-15), 2 = Tray lắp ráp.</summary>
+        private int _selectedTray;
+        public int SelectedTray => _selectedTray;
+
+        private void SelectTray(int tray)
         {
-            get => _useInputTray;
-            set
+            if (_selectedTray != tray)
             {
-                if (SetProperty(ref _useInputTray, value))
-                {
-                    OnPropertyChanged(nameof(Layout));
-                    OnPropertyChanged(nameof(IsAssyTray));
-                    OnPropertyChanged(nameof(TrayTitle));
-                    OnPropertyChanged(nameof(ZPickSectionTitle));
-                    OnPropertyChanged(nameof(ZPickSectionHint));
-                    OnPropertyChanged(nameof(ZSlowSectionTitle));
-                    OnPropertyChanged(nameof(ZSlowSectionHint));
-                    OnPropertyChanged(nameof(ZSlowText));
-                }
+                _selectedTray = tray;
+                OnPropertyChanged(nameof(SelectedTray));
+                OnPropertyChanged(nameof(UseInputTray));
+                OnPropertyChanged(nameof(Layout));
+                OnPropertyChanged(nameof(IsAssyTray));
+                OnPropertyChanged(nameof(TrayTitle));
+                OnPropertyChanged(nameof(ZPickSectionTitle));
+                OnPropertyChanged(nameof(ZPickSectionHint));
+                OnPropertyChanged(nameof(ZSlowSectionTitle));
+                OnPropertyChanged(nameof(ZSlowSectionHint));
+                OnPropertyChanged(nameof(ZSlowText));
             }
+            OnTraySwitched();
         }
 
-        public TrayLayout Layout => UseInputTray ? McDataManager.Model.InputTray : McDataManager.Model.AssyTray;
+        /// <summary>Đang teach một trong hai tray đầu vào.</summary>
+        public bool UseInputTray => _selectedTray != AssyTraySel;
+
+        public TrayLayout Layout => UseInputTray ? McDataManager.Model.InputLayout(_selectedTray) : McDataManager.Model.AssyTray;
 
         /// <summary>Chỉ Tray lắp ráp mới có bù đặt — hút ở Tray đầu vào không qua camera, lệch ở đó
         /// sửa bằng offset teach chứ không có đích nào để bù.</summary>
         public bool IsAssyTray => !UseInputTray;
-        public string TrayTitle => Loc.T(UseInputTray ? "Teach.TrayInput" : "Teach.TrayAssy");
+        public string TrayTitle => Loc.T(_selectedTray == 0 ? "Teach.TrayInput1" : _selectedTray == 1 ? "Teach.TrayInput2" : "Teach.TrayAssy");
 
         /// <summary>
         /// Tray đầu vào = nơi tay hút SẢN PHẨM lên (cao độ HÚT); Tray lắp ráp = nơi tay ĐẶT
@@ -310,8 +324,6 @@ namespace ShieldCanAssy.Wpf.ViewModels
         }
 
         public ModelData Model => McDataManager.Model;
-
-        private TrayState RunTray => UseInputTray ? McDataManager.RunData.InputTray : McDataManager.RunData.AssyTray;
 
         private void OnTraySwitched()
         {
@@ -390,11 +402,11 @@ namespace ShieldCanAssy.Wpf.ViewModels
         {
             McControl.InvalidateVisionCache();   // số quét ô / tư thế trên tay đã cất không còn khớp lưới, mốc hay model
             if (Layout.ScanOrder == order) return;
-            Layout.ScanOrder = order;
+            // Tray 2 dùng chung thứ tự quét với Tray 1 — đổi ở tray đầu vào nào cũng là đổi của Tray 1.
+            (UseInputTray ? Model.InputTray : Layout).ScanOrder = order;
             // TrayState (RunningData, đọc bởi Routine_Auto lúc chạy thật) là bản sao riêng của
-            // TrayLayout.ScanOrder (Model) — không tự đồng bộ, phải gán tay ở mọi nơi ScanOrder
-            // có thể đổi (xem McDataManager.LoadModel/UseModel cho 2 chỗ còn lại).
-            RunTray.ScanOrder = order;
+            // TrayLayout.ScanOrder (Model) — không tự đồng bộ, SyncRunTrays chép lại (và đưa Tray 2 theo Tray 1).
+            McDataManager.SyncRunTrays();
             OnPropertyChanged(nameof(Layout));
             OnPropertyChanged(nameof(IsZigZagMode));
             OnPropertyChanged(nameof(IsRowMajorMode));
@@ -424,9 +436,10 @@ namespace ShieldCanAssy.Wpf.ViewModels
         private void ApplySize()
         {
             McControl.InvalidateVisionCache();   // số quét ô / tư thế trên tay đã cất không còn khớp lưới, mốc hay model
-            Layout.Resize(RowsInput, ColsInput);
-            RunTray.Resize(Layout.Rows, Layout.Cols);
-            RunTray.ScanOrder = Layout.ScanOrder;
+            // Tray 2 dùng chung số hàng/cột với Tray 1 — đổi ở tray đầu vào nào cũng là đổi của Tray 1, SyncRunTrays đưa
+            // Tray 2 theo và dựng lại sổ tiến độ.
+            (UseInputTray ? Model.InputTray : Layout).Resize(RowsInput, ColsInput);
+            McDataManager.SyncRunTrays();
             RowsInput = Layout.Rows;
             ColsInput = Layout.Cols;
             Compute();
@@ -474,7 +487,7 @@ namespace ShieldCanAssy.Wpf.ViewModels
 
         private static string MmText(double v) => v.ToString("0.000", CultureInfo.InvariantCulture) + " mm";
 
-        private string TrayText => Loc.T(UseInputTray ? "Teach.TrayInputLower" : "Teach.TrayAssyLower");
+        private string TrayText => Loc.T(_selectedTray == 0 ? "Teach.TrayInput1Lower" : _selectedTray == 1 ? "Teach.TrayInput2Lower" : "Teach.TrayAssyLower");
 
         /// <summary>
         /// Đọc vị trí THỰC của trục X và trục hàng (Y1/Y2 tuỳ tray), hỏi lại, rồi giao cho
@@ -491,6 +504,8 @@ namespace ShieldCanAssy.Wpf.ViewModels
             McControl.InvalidateVisionCache();   // số quét ô / tư thế trên tay đã cất không còn khớp lưới, mốc hay model
             NoteTeachWithoutOrigin("điểm teach của lưới");
             assign(new TeachPoint(x, y));
+            // Teach xong Tray 2 là sổ tray đầu vào nối thêm Tray 2 (ModelData.InputTraysInUse).
+            if (UseInputTray) McDataManager.SyncRunTrays();
             Compute();
         }
 
@@ -724,6 +739,9 @@ namespace ShieldCanAssy.Wpf.ViewModels
 
             var layout = Layout;
             string zAxis = CurrentZAxis;
+            // Tray 2 nằm sau Tray 1 trong sổ: quét zigzag thì hàng đầu Tray 2 nối tiếp chiều của hàng cuối Tray 1 —
+            // đánh số theo hàng trong sổ để số trên bảng đúng đường máy đi.
+            int rowBase = _selectedTray == 1 ? Model.InputTray.Rows : 0;
             // Cells bị dựng lại (instance mới) mỗi lần Compute — giữ SelectedCell qua (Row,Col)
             // thay vì instance cũ, không thì lưới nút vẫn hiện chọn một ô đã không còn tồn tại.
             int selRow = SelectedCell?.Row ?? -1, selCol = SelectedCell?.Col ?? -1;
@@ -740,7 +758,7 @@ namespace ShieldCanAssy.Wpf.ViewModels
                         Row = r, Col = c, X = p.X, Y = p.Y,
                         Dx = off?.Dx ?? 0, Dy = off?.Dy ?? 0,
                         PlaceDx = off?.PlaceDx ?? 0, PlaceDy = off?.PlaceDy ?? 0, PlaceDa = off?.PlaceDa ?? 0,
-                        VisitOrder = VisitIndex(r, c, layout.Cols, layout.ScanOrder) + 1
+                        VisitOrder = VisitIndex(rowBase + r, c, layout.Cols, layout.ScanOrder) - rowBase * layout.Cols + 1
                     });
                 }
             }
@@ -1202,6 +1220,7 @@ namespace ShieldCanAssy.Wpf.ViewModels
         public ICommand ToggleCam2LampCommand { get; }
 
         public ICommand SelectInputCommand { get; }
+        public ICommand SelectInput2Command { get; }
         public ICommand SelectAssyCommand { get; }
         public ICommand SelectNozzle1Command { get; }
         public ICommand SelectNozzle2Command { get; }

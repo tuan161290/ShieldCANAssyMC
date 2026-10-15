@@ -246,8 +246,14 @@
   <data name="Auto.NoAssyTray" xml:space="preserve">
     <value>không có tray lắp ráp</value>
   </data>
-  <data name="Auto.NoInputTray" xml:space="preserve">
-    <value>không có tray đầu vào</value>
+  <data name="Auto.NoInputTrayN" xml:space="preserve">
+    <value>không có Tray đầu vào {0} ở vị trí chờ</value>
+  </data>
+  <data name="Auto.InputTray2NotTaught" xml:space="preserve">
+    <value>Tray đầu vào 2 chưa teach — teach ở trang Teaching, hoặc lấy Tray 2 ra rồi bấm lại Start 1</value>
+  </data>
+  <data name="Auto.InputCellLabel" xml:space="preserve">
+    <value>Tray {0} ({1},{2})</value>
   </data>
   <data name="Auto.NoModel" xml:space="preserve">
     <value>chưa nạp model</value>
@@ -268,10 +274,10 @@
     <value>Đã dừng ở bước {0} — bấm START để chạy tiếp</value>
   </data>
   <data name="Auto.PickMoveFail" xml:space="preserve">
-    <value>không tới được ô hút ({0},{1})</value>
+    <value>không tới được ô hút {0}</value>
   </data>
   <data name="Auto.PickRetry" xml:space="preserve">
-    <value>tay #{0}, ô ({1},{2}), lần thử {3}/{4}</value>
+    <value>tay #{0}, ô {1}, lần thử {2}/{3}</value>
   </data>
   <data name="Auto.PlaceMoveFail" xml:space="preserve">
     <value>không tới được điểm đặt của tay #{0}</value>
@@ -829,8 +835,8 @@
   <data name="Io.DiBtnArmA2" xml:space="preserve">
     <value>Cặp A — nút Arm #2 (OR)</value>
   </data>
-  <data name="Io.DiBtnBuzzerStop" xml:space="preserve">
-    <value>Nút tắt còi</value>
+  <data name="Io.DiTrayIn1Present" xml:space="preserve">
+    <value>Có Tray đầu vào 1 (trong)</value>
   </data>
   <data name="Io.DiBtnGoB1" xml:space="preserve">
     <value>Cụm B — Start 1 (tray đầu vào)</value>
@@ -850,8 +856,8 @@
   <data name="Io.DiTrayAssyPresent" xml:space="preserve">
     <value>Có tray lắp ráp</value>
   </data>
-  <data name="Io.DiTrayInPresent" xml:space="preserve">
-    <value>Có tray đầu vào</value>
+  <data name="Io.DiTrayIn2Present" xml:space="preserve">
+    <value>Có Tray đầu vào 2 (ngoài)</value>
   </data>
   <data name="Io.DiVacuum1" xml:space="preserve">
     <value>Chân không #1</value>
@@ -1166,8 +1172,11 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
   <data name="Manual.SimArmTip" xml:space="preserve">
     <value>Mô phỏng bấm 1 trong 2 nút Cặp A (OR) — vào Armed</value>
   </data>
-  <data name="Manual.SimBuzzer" xml:space="preserve">
-    <value>Tắt còi</value>
+  <data name="Manual.SimTray1" xml:space="preserve">
+    <value>Tray vào 1</value>
+  </data>
+  <data name="Manual.SimTray2" xml:space="preserve">
+    <value>Tray vào 2</value>
   </data>
   <data name="Manual.SimDisconnect" xml:space="preserve">
     <value>Ngắt</value>
@@ -2441,6 +2450,21 @@ Mới: {2}</value>
   <data name="Teach.TrayInputLower" xml:space="preserve">
     <value>tray đầu vào</value>
   </data>
+  <data name="Teach.TrayInput1" xml:space="preserve">
+    <value>Tray đầu vào 1</value>
+  </data>
+  <data name="Teach.TrayInput2" xml:space="preserve">
+    <value>Tray đầu vào 2</value>
+  </data>
+  <data name="Teach.TrayInput1Lower" xml:space="preserve">
+    <value>tray đầu vào 1</value>
+  </data>
+  <data name="Teach.TrayInput2Lower" xml:space="preserve">
+    <value>tray đầu vào 2</value>
+  </data>
+  <data name="Teach.InputSizeShared" xml:space="preserve">
+    <value>Số hàng/cột và thứ tự quét dùng chung cho Tray 1 và Tray 2 — đổi ở tray nào cũng áp cho cả hai.</value>
+  </data>
   <data name="Teach.TrimAllLabel" xml:space="preserve">
     <value>Bù chung mọi ô:</value>
   </data>
@@ -2572,6 +2596,15 @@ Mới: {2}</value>
   </data>
   <data name="Tray.SummaryDone" xml:space="preserve">
     <value>{0} × {1} — đã hết tray</value>
+  </data>
+  <data name="Tray.SummaryOfTray" xml:space="preserve">
+    <value>Tray {0} · {1}</value>
+  </data>
+  <data name="Tray.SelectN" xml:space="preserve">
+    <value>Tray {0}</value>
+  </data>
+  <data name="Tray.NotTaught" xml:space="preserve">
+    <value>chưa teach</value>
   </data>
   <data name="Vision.AcceptHeader" xml:space="preserve">
     <value>Nghiệm thu sau hiệu chuẩn</value>

@@ -109,6 +109,28 @@ Bản đầy đủ nằm trong `BanGiao/memory/`. Tóm tắt những điều hay
 
 ## 4. Việc đã làm gần nhất
 
+### 4.0 Hai tray đầu vào (15/10)
+
+Tuấn: bàn tray đầu vào đặt hai tray. Tray 1 phía trong dùng cảm biến **DI 0x0C**, mới đấu vào bit của nút Tắt
+còi cứng; nút đó đã bỏ, tắt còi bằng nút trang Main. Tray 2 phía ngoài dùng cảm biến cũ **DI 0x0A**. Chi tiết ở
+PLAN §5 đoạn "Hai tray đầu vào".
+
+- Tray 2 có lưới và Z riêng: `ModelData.InputTray2`, trang Teaching có thêm nút "Tray đầu vào 2".
+- Sổ `RunData.InputTray` nối Tray 2 sau Tray 1 (`TrayState.Trays`) **chỉ khi Tray 2 đã teach**. Chưa teach thì
+  máy chạy như một tray.
+- Ô sổ được đổi ra tray và hàng/cột ở một chỗ duy nhất: `ModelData.InputCell`.
+- Trang Main: card tray đầu vào hiện một tray mỗi lúc. Nút Select luôn có; Tray 2 chưa teach thì hiện lưới trống.
+- Chạy rà chia ô cho hai tay theo hình học như Auto (`Routine_DryCycle.PickCellFor` / `PlaceCellFor`), Tool 1 lấy ô X
+  nhỏ hơn. Trước đây nó giao ô ghé trước cho Tool 1, nên khi tray đầu vào đổi sang zigzag thì ở hàng chạy ngược Tool 1
+  lấy ô X lớn hơn (Tuấn phát hiện 15/10).
+- **Cặp cùng cột thì giữ thứ tự ghé**, cho cả Auto lẫn chạy rà và cả hai tray: hai ô lệch X dưới nửa bước cột
+  (`TrayLayout.HalfColPitch`). Đây là cặp vắt hàng của zigzag (ô 5 và 6 tray 4×5). Trước đây phần lệch 0.027 mm do tray
+  nghiêng giao ô hàng sau cho Tool 1, nên Y1 phải chạy lùi rồi lại tới.
+- Self-test mới `TestTwoInputTrays` đạt 10/10. Toàn bộ self-test **773 đạt / 0 không đạt, 63 s** (15/10, trên máy
+  lắp ráp, bằng bản sao tạm — xem §7).
+- Chưa chạy trên máy thật. Dữ liệu teach cũ thành **Tray 1 (trong)**. Nếu chỗ tray cũ thật ra là chỗ ngoài thì phải
+  teach lại Tray 1.
+
 ### 4.1 Bớt ghi Modbus trước mỗi lệnh chạy (25/09)
 
 Tuấn: *"Việc ghi đi ghi lại các thanh ghi Modbus này làm tăng độ trễ phản hồi"*. PLAN §2 đoạn
@@ -197,7 +219,14 @@ Mọi thứ ở §4 phải chờ Tuấn build Remote mới lên máy. Chưa rõ 
 
 - Build cục bộ (§2), đóng App sản xuất (nhờ Tuấn), rồi `python BanGiao/tools/run_selftest.py`. Script tự
   tìm exe và thư mục dữ liệu theo đúng luật của `AppPaths`; kết quả ghi ra `<thư mục dữ liệu>\selftest.txt`.
-  Mốc trên máy dev: **646 đạt / 0 không đạt, ~316 s**; đặt timeout 600 s. Máy lắp ráp chưa chạy lượt nào.
+  Mốc trên máy dev: **646 đạt / 0 không đạt, ~316 s**; đặt timeout 600 s.
+- **Trên máy lắp ráp (không có ổ D:)** thư mục dữ liệu là `_RunData` cạnh exe, tức chính dữ liệu sản xuất. Vì vậy
+  **không** chạy `run_selftest.py` trên bin thật. Cách làm:
+  1. Robocopy mã nguồn sang một thư mục tạm, xoá `ShieldCanAssy.Wpf\obj`, rồi build.
+  2. Chạy exe của bản tạm với `--selftest`. `_RunData` của bản tạm chưa có system.json nên mặc định là mô phỏng.
+  3. Script `.ps1` có chữ Việt phải lưu UTF-8 **có BOM**, không thì PowerShell 5.1 đọc sai.
+
+  Mốc 15/10: **773 đạt / 0, ~63 s**.
 - Exe là WPF nên tách khỏi console; script chờ tiến trình `ShieldCanAssy.Wpf` thoát.
 - `TestResumeIntegrity` → "Sau khi đồng bộ thì chạy lại được" thỉnh thoảng lỗi theo thời điểm; chạy lại là hết.
 - Mỗi `Check` mất ~10 s (chậm ×25) là có chương trình giữ kênh debug output mà không đọc (21/09 là

@@ -595,7 +595,8 @@ namespace ShieldCanAssy.Core.Controller
         public bool HasProduct(int nozzle)
             => Io != null && Io.GetDi(nozzle == 1 ? IoMap.Vacuum1 : IoMap.Vacuum2);
 
-        public bool HasTrayIn() => Io != null && Io.GetDi(IoMap.TrayInPresent);
+        /// <summary>Cảm biến có tray đầu vào thứ <paramref name="tray"/> (0 = Tray 1 phía trong, 1 = Tray 2 phía ngoài).</summary>
+        public bool HasTrayIn(int tray) => Io != null && Io.GetDi(tray == 1 ? IoMap.TrayIn2Present : IoMap.TrayIn1Present);
         public bool HasTrayAssy() => Io != null && Io.GetDi(IoMap.TrayAssyPresent);
     }
 }

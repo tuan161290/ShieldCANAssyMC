@@ -112,11 +112,20 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Highlight nút tray đang chọn — so trực tiếp UseInputTray (True/False) thay vì converter
-             chung, vì mỗi nút cần tô sáng ở giá trị đối lập nhau. -->
+        <!-- Highlight nút tray đang chọn — mỗi nút so SelectedTray với số của nó (0 = Tray đầu vào 1,
+             1 = Tray đầu vào 2, 2 = Tray lắp ráp). -->
         <Style x:Key="SelectInputTrayButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding UseInputTray}" Value="True">
+                <DataTrigger Binding="{Binding SelectedTray}" Value="0">
+                    <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="SelectInput2TrayButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedTray}" Value="1">
                     <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
                     <Setter Property="Foreground" Value="White"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
@@ -125,7 +134,7 @@
         </Style>
         <Style x:Key="SelectAssyTrayButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding UseInputTray}" Value="False">
+                <DataTrigger Binding="{Binding SelectedTray}" Value="2">
                     <Setter Property="Background" Value="{StaticResource AccentFillBrush}"/>
                     <Setter Property="Foreground" Value="White"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
@@ -231,13 +240,19 @@
                         <TextBlock Text="{l:T Teach.SelectTrayHeader}" Style="{StaticResource SectionHeaderStyle}"/>
                     </Border>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button Content="{l:T Teach.TrayInput}" Command="{Binding SelectInputCommand}" Width="130" Height="34" Margin="0,0,6,0"
+                        <Button Content="{l:T Teach.TrayInput1}" Command="{Binding SelectInputCommand}" Width="120" Height="34" Margin="0,0,6,0"
                                 Style="{StaticResource SelectInputTrayButtonStyle}"/>
-                        <Button Content="{l:T Teach.TrayAssy}" Command="{Binding SelectAssyCommand}" Width="130" Height="34"
+                        <Button Content="{l:T Teach.TrayInput2}" Command="{Binding SelectInput2Command}" Width="120" Height="34" Margin="0,0,6,0"
+                                Style="{StaticResource SelectInput2TrayButtonStyle}"/>
+                        <Button Content="{l:T Teach.TrayAssy}" Command="{Binding SelectAssyCommand}" Width="120" Height="34"
                                 Style="{StaticResource SelectAssyTrayButtonStyle}"/>
                     </StackPanel>
 
                     <TextBlock Text="{Binding TrayTitle}" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <!-- Hai tray đầu vào cùng loại (2026-10-15): kích thước và thứ tự quét là CỦA CHUNG, lưới và cao độ thì riêng. -->
+                    <TextBlock Text="{l:T Teach.InputSizeShared}" FontSize="11" TextWrapping="Wrap" Margin="0,-6,0,8"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Visibility="{Binding UseInputTray, Converter={StaticResource BoolToVis}}"/>
 
                     <Separator/>
                     <!-- Mỗi Tool teach lưới toạ độ RIÊNG cho tray đang chọn ở trên (2 trục chọn:

@@ -198,16 +198,11 @@ namespace ShieldCanAssy.Core.Data
                 ModelLoaded = true;
                 RunData.RecentModelName = name;
 
-                // Lưới ô của tray là thuộc tính của MODEL; tiến độ phải khớp kích thước đó.
-                RunData.InputTray.Resize(Model.InputTray.Rows, Model.InputTray.Cols);
-                RunData.AssyTray.Resize(Model.AssyTray.Rows, Model.AssyTray.Cols);
-                // ScanOrder tương tự — TrayState (RunData) là bản sao riêng của TrayLayout
-                // (Model), không tự đồng bộ, phải copy tay mỗi lần nạp model.
-                RunData.InputTray.ScanOrder = Model.InputTray.ScanOrder;
-                RunData.AssyTray.ScanOrder = Model.AssyTray.ScanOrder;
+                SyncRunTrays();
 
                 LogWorker.Instance.RecordLog(
-                    $"Nạp model '{name}': tray in {Model.InputTray.Rows}×{Model.InputTray.Cols}, " +
+                    $"Nạp model '{name}': tray in {Model.InputTray.Rows}×{Model.InputTray.Cols} " +
+                    $"(Tray 2 {(Model.InputTray2.IsTaught ? "đã teach" : "chưa teach")}), " +
                     $"tray assy {Model.AssyTray.Rows}×{Model.AssyTray.Cols}",
                     Utility.Log.LogLevel.Info, "Data");
                 return true;
@@ -231,10 +226,34 @@ namespace ShieldCanAssy.Core.Data
 
             Model = model;
             ModelLoaded = countsAsLoaded;
-            RunData.InputTray.Resize(model.InputTray.Rows, model.InputTray.Cols);
-            RunData.AssyTray.Resize(model.AssyTray.Rows, model.AssyTray.Cols);
-            RunData.InputTray.ScanOrder = model.InputTray.ScanOrder;
-            RunData.AssyTray.ScanOrder = model.AssyTray.ScanOrder;
+            SyncRunTrays();
+        }
+
+        /// <summary>
+        /// Đồng bộ sổ tiến độ theo model đang dùng: kích thước lưới và thứ tự quét. Lưới ô của tray là thuộc tính của
+        /// MODEL, còn TrayState (RunData) là bản sao riêng, không tự đồng bộ — nạp/dùng model và trang Teaching đổi kích
+        /// thước, thứ tự quét hay vừa teach lưới tray đầu vào đều phải gọi hàm này. Sổ tray đầu vào nối các tray đang dùng
+        /// theo hàng (<see cref="ModelData.InputTraysInUse"/> — Tray 2 chỉ khi đã teach, xem <see cref="ModelData.InputCell"/>);
+        /// Tray 2 theo Tray 1 về kích thước (<see cref="ModelData.NormalizeInputTrays"/>).
+        /// </summary>
+        public static void SyncRunTrays()
+        {
+            var m = Model;
+            if (m == null) return;
+            m.NormalizeInputTrays();
+            int trays = m.InputTraysInUse;
+            Fit(RunData.InputTray, m.InputTray.Rows * trays, m.InputTray.Cols);
+            RunData.InputTray.Trays = trays;
+            Fit(RunData.AssyTray, m.AssyTray.Rows, m.AssyTray.Cols);
+            RunData.InputTray.ScanOrder = m.InputTray.ScanOrder;
+            RunData.AssyTray.ScanOrder = m.AssyTray.ScanOrder;
+        }
+
+        /// <summary>Chỉ dựng lại danh sách ô khi kích thước thật sự đổi — trang Teaching đổi thứ tự quét lúc máy đang chạy
+        /// thì luồng chu trình vẫn ghi vào đúng danh sách đang dùng.</summary>
+        private static void Fit(TrayState tray, int rows, int cols)
+        {
+            if (tray.Rows != rows || tray.Cols != cols || tray.Cells.Count != rows * cols) tray.Resize(rows, cols);
         }
 
         public static bool SaveModel(string name = null)

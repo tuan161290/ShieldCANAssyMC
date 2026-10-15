@@ -321,9 +321,9 @@ bit DI06 dành cho công tắc chìa cũ nay bỏ trống, không tái dùng. B�
 | DI07 | Công tắc áp suất khí | NC | thiếu khí → không cho hút, alarm |
 | DI08 | Cảm biến chân không tay hút #1 | NO | |
 | DI09 | Cảm biến chân không tay hút #2 | NO | |
-| DI10 | Có tray đầu vào | NO | |
+| DI10 | Có Tray đầu vào 2 (phía ngoài) | NO | cảm biến tray đầu vào cũ; từ 2026-10-15 bàn Y1 đặt hai tray — `IoMap.TrayIn2Present` |
 | DI11 | Có tray lắp ráp | NO | |
-| DI12 | Nút tắt còi | NO | |
+| DI12 | Có Tray đầu vào 1 (phía trong) | NO | cảm biến thêm 2026-10-15 — `IoMap.TrayIn1Present`. Trước là nút Tắt còi cứng, đã bỏ: tắt còi chỉ bằng nút mềm trang Main |
 | DI13 | Rèm sáng thông suốt | NC | bản sao tín hiệu để hiển thị/dừng chu trình; OSSD vẫn đi thẳng vào relay an toàn |
 | DI14 | Cặp A — nút Arm #1 (OR) | NO | bắt sườn lên; xem `IoMap.BtnArmA1` |
 | DI15 | Cặp A — nút Arm #2 (OR) | NO | bấm 1 trong 2 nút Cặp A là đủ |
@@ -399,9 +399,15 @@ Ezi-IO, `ALM` của 7 trục, và **watchdog**: nếu vòng `McControl` không t
 | **Start 2** (DI17, bắt sườn lên) | state = `ARMED` | nạp tray lắp ráp rồi → `RUNNING`, như Start 1 |
 | **Start 1 / Start 2** | chu trình đang chạy hoặc `WAIT_OPERATOR` | chỉ nạp tray của nút đó; tray đã ở trong máy thì báo và bỏ qua |
 
-**Nạp tray (Tuấn chốt 2026-09-26).** Tray đặt ở vị trí chờ của trục hàng (Y1/Y2); cảm biến DI10/DI11 phải
+**Nạp tray (Tuấn chốt 2026-09-26).** Tray đặt ở vị trí chờ của trục hàng (Y1/Y2); cảm biến phải
 thấy tray ở đó mới nhận nút. Tray hết theo sổ (đầu vào không còn ô có hàng, lắp ráp không còn ô trống) thì
 là tray mới, làm lại sổ; tray còn dở thì giữ sổ. Mỗi tray chỉ cho phép phần việc của nó:
+
+**Hai tray đầu vào (Tuấn chốt 2026-10-15).** Bàn Y1 đặt Tray 1 phía trong (DI12) và Tray 2 phía ngoài (DI10). Tray 2
+teach riêng lưới và cao độ ở trang Teaching, cùng số hàng/cột và thứ tự quét với Tray 1; chưa teach thì máy chạy một
+tray như trước. Start 1 nạp tray nào cảm biến thấy (thấy Tray 2 mà Tray 2 chưa teach thì không nhận). Sổ hai tray nối
+nhau theo hàng: máy hút hết Tray 1 rồi sang Tray 2, hết **cả hai** mới đưa bàn ra vị trí chờ — sổ chỉ làm lại khi đã
+hết cả hai. Trang Main hiện một tray mỗi lúc, tự theo tray đang chạy, nút Select xem tray kia.
 
 - **Chưa có tray lắp ráp:** không soi. Tray đầu vào đã nạp thì Y1 đưa tray vào tới hàng hút kế tiếp rồi
   chờ Start 2 (TH1).
@@ -417,7 +423,7 @@ là tray mới, làm lại sổ; tray còn dở thì giữ sổ. Mỗi tray ch�
 | **STOP** | state = HOMING | huỷ origin, tất cả trục decel stop → NOT_HOMED |
 | **RESET** | luôn nhận | tắt còi; `AlarmClear` cho các trục đang ALM; xoá các alarm đã hết nguyên nhân; nếu sạch alarm → NOT_HOMED hoặc IDLE tuỳ `OrgOk` |
 | **EMG** | luôn | phần cứng đã cắt động lực. Phần mềm: huỷ token, dừng mọi routine, ghi log alarm 1100, đèn đỏ nháy + còi, lưu `RunningData` |
-| **Tắt còi** | luôn | tắt DO07, **không** xoá alarm |
+| **Tắt còi** (nút mềm trang Main — nút cứng đã bỏ 2026-10-15) | luôn | tắt DO07, **không** xoá alarm |
 | **Chọn mode Auto/Manual** (nút mềm trang Main — không có công tắc chìa vật lý) | | đổi mode. Nếu đang RUNNING mà chuyển về Manual → xử lý như STOP lần 1. Nếu đang ARMED mà chuyển về Manual → về lại IDLE. |
 
 **Nút mềm "START" trên UI chỉ gọi được `RequestArm()` (Cặp A) — không có đường nào từ màn hình
@@ -672,7 +678,7 @@ X/Y trong khi một trục Z vừa mất `OrgOk` thoáng qua.
 
 - `OrgOk = true`, mode = Auto, không alarm mức Error/Fatal.
 - Mạch an toàn đóng, áp suất khí đủ.
-- Có tray đầu vào (DI10) và tray lắp ráp (DI11) — **chỉ kết luận được khi trục hàng của tray đó đang
+- Có tray đầu vào (DI12 Tray 1, DI10 Tray 2 — chỉ xét tray còn ô máy sẽ ghé) và tray lắp ráp (DI11) — **chỉ kết luận được khi trục hàng của tray đó đang
   đứng ở vị trí chờ** (`AxisConfig.StandbyPos`, cửa sổ 1 mm). Cảm biến gắn cố định ở vị trí chờ, không
   chạy theo tray: tray vào vùng làm việc là mất tín hiệu, mà mất tín hiệu ở đó chỉ có nghĩa *không đo
   được*, không phải *thiếu tray* (Tuấn nêu 2026-09-24). Trước ngày đó App đọc thẳng hai DI ở đầu mỗi

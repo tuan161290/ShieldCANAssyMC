@@ -38,11 +38,14 @@ namespace ShieldCanAssy.Wpf.ViewModels
             OriginCommand = new RelayCommand(McControl.RequestOrigin);
             InitCommand = new RelayCommand(McControl.RequestInit);
             ResetCountersCommand = new RelayCommand(() => { McDataManager.RunData.ResetCounters(); Refresh(); });
-            ResetInputTrayCommand = new RelayCommand(() => { McDataManager.RunData.InputTray.ResetAll(ECellState.Loaded); Refresh(); });
+            // Tray 1, và Tray 2 nếu đã teach, thành có hàng — xem McControl.ReloadInputTray.
+            ResetInputTrayCommand = new RelayCommand(() => { McControl.ReloadInputTray(); Refresh(); });
             // Mọi ô thành trống, bỏ số đo quét trước của tray cũ, và nếu tay hút còn hàng thì bắt lấy
             // ra trước khi chạy tiếp — xem McControl.ResetAssyTray.
             ResetAssyTrayCommand = new RelayCommand(() => { McControl.ResetAssyTray(); Refresh(); });
-            InputTray = new TrayGridViewModel("Main.InputTray", "Main.ReloadInputTray", ResetInputTrayCommand);
+            // Hai tray đầu vào (2026-10-15): card hiện một tray mỗi lúc, nút Select chọn tray — khung giữ nguyên.
+            InputTray = new TrayGridViewModel("Main.InputTray", "Main.ReloadInputTray", ResetInputTrayCommand,
+                                              Core.Data.Model.ModelData.InputTraySlots);
             AssyTray = new TrayGridViewModel("Main.AssyTray", "Main.ReloadAssyTray", ResetAssyTrayCommand);
             // Nút chạy rà và chọn tay hút chạy Auto đã chuyển sang trang Setting (Tuấn 2026-10-08) — SettingViewModel.
 

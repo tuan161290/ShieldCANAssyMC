@@ -24,7 +24,9 @@ namespace ShieldCanAssy.Core.Communication.Sim
             _di[IoMap.EmgOk] = true;
             _di[IoMap.LightCurtainOk] = true;
             _di[IoMap.AirOk] = true;
-            _di[IoMap.TrayInPresent] = true;
+            // Tray 2 đầu vào mặc định VẮNG: model SIM không teach Tray 2, máy mô phỏng chạy một tray như trước nên thời gian
+            // self-test không đổi — bài kiểm hai tray tự bật cảm biến này.
+            _di[IoMap.TrayIn1Present] = true;
             _di[IoMap.TrayAssyPresent] = true;
         }
 
@@ -98,7 +100,7 @@ namespace ShieldCanAssy.Core.Communication.Sim
 
                 for (int i = 0; i < IoMap.DiCount; i++)
                 {
-                    if (i == IoMap.BtnStop || i == IoMap.BtnBuzzerStop ||
+                    if (i == IoMap.BtnStop ||
                         i == IoMap.BtnArmA1 || i == IoMap.BtnArmA2 ||
                         i == IoMap.BtnGoB1 || i == IoMap.BtnGoB2)
                     {

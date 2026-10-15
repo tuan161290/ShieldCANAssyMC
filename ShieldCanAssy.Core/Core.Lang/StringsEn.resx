@@ -246,8 +246,14 @@
   <data name="Auto.NoAssyTray" xml:space="preserve">
     <value>no assy tray</value>
   </data>
-  <data name="Auto.NoInputTray" xml:space="preserve">
-    <value>no input tray</value>
+  <data name="Auto.NoInputTrayN" xml:space="preserve">
+    <value>no input tray {0} at standby</value>
+  </data>
+  <data name="Auto.InputTray2NotTaught" xml:space="preserve">
+    <value>Input tray 2 not taught — teach it on the Teaching page, or remove tray 2 and press Start 1 again</value>
+  </data>
+  <data name="Auto.InputCellLabel" xml:space="preserve">
+    <value>tray {0} ({1},{2})</value>
   </data>
   <data name="Auto.NoModel" xml:space="preserve">
     <value>no model</value>
@@ -268,10 +274,10 @@
     <value>Stopped at step {0} — START to resume</value>
   </data>
   <data name="Auto.PickMoveFail" xml:space="preserve">
-    <value>can't reach pick cell ({0},{1})</value>
+    <value>can't reach pick cell {0}</value>
   </data>
   <data name="Auto.PickRetry" xml:space="preserve">
-    <value>nozzle #{0}, cell ({1},{2}), try {3}/{4}</value>
+    <value>nozzle #{0}, cell {1}, try {2}/{3}</value>
   </data>
   <data name="Auto.PlaceMoveFail" xml:space="preserve">
     <value>can't reach nozzle #{0} place pt</value>
@@ -829,8 +835,8 @@
   <data name="Io.DiBtnArmA2" xml:space="preserve">
     <value>Pair A Arm #2 (OR)</value>
   </data>
-  <data name="Io.DiBtnBuzzerStop" xml:space="preserve">
-    <value>Buzzer off btn</value>
+  <data name="Io.DiTrayIn1Present" xml:space="preserve">
+    <value>Input tray 1 present (inner)</value>
   </data>
   <data name="Io.DiBtnGoB1" xml:space="preserve">
     <value>B Start 1 (input)</value>
@@ -850,8 +856,8 @@
   <data name="Io.DiTrayAssyPresent" xml:space="preserve">
     <value>Assy tray present</value>
   </data>
-  <data name="Io.DiTrayInPresent" xml:space="preserve">
-    <value>Input tray present</value>
+  <data name="Io.DiTrayIn2Present" xml:space="preserve">
+    <value>Input tray 2 present (outer)</value>
   </data>
   <data name="Io.DiVacuum1" xml:space="preserve">
     <value>Vac sensor #1</value>
@@ -1166,8 +1172,11 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
   <data name="Manual.SimArmTip" xml:space="preserve">
     <value>Sim: press a Pair A button (OR) → Armed</value>
   </data>
-  <data name="Manual.SimBuzzer" xml:space="preserve">
-    <value>Buzzer off</value>
+  <data name="Manual.SimTray1" xml:space="preserve">
+    <value>In-tray 1</value>
+  </data>
+  <data name="Manual.SimTray2" xml:space="preserve">
+    <value>In-tray 2</value>
   </data>
   <data name="Manual.SimDisconnect" xml:space="preserve">
     <value>Offline</value>
@@ -2441,6 +2450,21 @@ New: {2}</value>
   <data name="Teach.TrayInputLower" xml:space="preserve">
     <value>input tray</value>
   </data>
+  <data name="Teach.TrayInput1" xml:space="preserve">
+    <value>Input tray 1</value>
+  </data>
+  <data name="Teach.TrayInput2" xml:space="preserve">
+    <value>Input tray 2</value>
+  </data>
+  <data name="Teach.TrayInput1Lower" xml:space="preserve">
+    <value>input tray 1</value>
+  </data>
+  <data name="Teach.TrayInput2Lower" xml:space="preserve">
+    <value>input tray 2</value>
+  </data>
+  <data name="Teach.InputSizeShared" xml:space="preserve">
+    <value>Rows/cols and scan order are shared by tray 1 and tray 2 — changing either applies to both.</value>
+  </data>
   <data name="Teach.TrimAllLabel" xml:space="preserve">
     <value>Common ofs:</value>
   </data>
@@ -2572,6 +2596,15 @@ New: {2}</value>
   </data>
   <data name="Tray.SummaryDone" xml:space="preserve">
     <value>{0} × {1} — done</value>
+  </data>
+  <data name="Tray.SummaryOfTray" xml:space="preserve">
+    <value>Tray {0} · {1}</value>
+  </data>
+  <data name="Tray.SelectN" xml:space="preserve">
+    <value>Tray {0}</value>
+  </data>
+  <data name="Tray.NotTaught" xml:space="preserve">
+    <value>not taught</value>
   </data>
   <data name="Vision.AcceptHeader" xml:space="preserve">
     <value>Post-calib acceptance</value>

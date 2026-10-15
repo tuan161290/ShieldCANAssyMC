@@ -109,6 +109,16 @@ namespace ShieldCanAssy.Core.Controller
         public static void InvalidateAssyScan() { _auto?.InvalidateAssyScan(); }
 
         /// <summary>
+        /// Nút "Nạp lại tray đầu vào" ở trang Main: operator xác nhận tray đầy hàng — mọi ô của Tray 1, và của Tray 2 nếu
+        /// đã teach, thành có hàng. Không đọc cảm biến: nút này để sửa sổ bằng tay, bàn có thể đang không ở vị trí chờ.
+        /// </summary>
+        public static void ReloadInputTray()
+        {
+            McDataManager.RunData.LoadInputTrays(McDataManager.Model.UsableInputTrays);
+            McDataManager.SaveRunningData();
+        }
+
+        /// <summary>
         /// Nút "Nạp lại tray lắp ráp" ở trang Main: mọi ô thành trống, bỏ kết quả quét trước của tray
         /// cũ, và cho chu trình chạy lại từ S00 ở ranh giới bước kế tiếp — quét tray mới; sản phẩm
         /// đang cầm (nếu có) được soi lại ở CAM bottom-up rồi mới đặt (Tuấn chốt 2026-09-13).
@@ -346,7 +356,7 @@ namespace ShieldCanAssy.Core.Controller
             if (usable) return;
 
             McDataManager.UseModel(Data.Model.ModelData.CreateSimulation());
-            McDataManager.RunData.InputTray.ResetAll(ECellState.Loaded);
+            McDataManager.RunData.LoadInputTrays(McDataManager.Model.UsableInputTrays);
             McDataManager.RunData.AssyTray.ResetAll(ECellState.Empty);
             InvalidateAssyScan();
             Status.ModelName = McDataManager.Model.Name;
@@ -530,7 +540,7 @@ namespace ShieldCanAssy.Core.Controller
             // Nút cứng bắt SƯỜN LÊN, không bắt mức — nút kẹt hoặc dính tiếp điểm mà bắt theo
             // mức sẽ khiến máy tự khởi động lại liên tục (PLAN.md §3.2).
             if (Io.RisingEdge(IoMap.BtnStop)) RequestStop();
-            if (Io.RisingEdge(IoMap.BtnBuzzerStop)) RequestMuteBuzzer();
+            // Không còn nút Tắt còi cứng (Tuấn 2026-10-15) — bit đó thành cảm biến Tray 1, tắt còi bằng nút trang Main.
 
             // Cặp A — OR: bấm 1 trong 2 nút là đủ (xem IoMap.BtnArmA1). RESET không còn nút vật
             // lý — chỉ bấm được bằng nút mềm trang Main (MainViewModel.ResetCommand gọi thẳng

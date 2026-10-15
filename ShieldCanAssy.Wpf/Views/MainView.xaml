@@ -187,6 +187,11 @@
                     <Border Style="{StaticResource CardHeaderStyle}">
                         <DockPanel>
                             <TextBlock Text="{Binding Title}" Style="{StaticResource SectionHeaderStyle}"/>
+                            <!-- Chọn tray đang xem — chỉ card tray đầu vào (hai tray từ 2026-10-15). Lề âm theo chiều dọc để
+                                 nút không làm cao thêm thanh tiêu đề: khung card giữ nguyên như card tray lắp ráp. -->
+                            <Button DockPanel.Dock="Right" Content="{Binding SelectText}" Command="{Binding SelectTrayCommand}"
+                                    Height="24" Padding="10,0" Margin="8,-4,0,-4" FontSize="12" VerticalAlignment="Center"
+                                    Visibility="{Binding HasTraySelect, Converter={StaticResource BoolToVis}}"/>
                             <TextBlock Text="{Binding Summary}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
                         </DockPanel>

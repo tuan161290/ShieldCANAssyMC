@@ -208,7 +208,8 @@ namespace ShieldCanAssy.Core.Controller
         private volatile bool _inputIn, _assyIn;
 
         /// <summary>Nút vừa nạp tray, chờ luồng chu trình nhận (<see cref="TakeTrayLoads"/>) — sổ tray chỉ đổi trên
-        /// luồng chu trình.</summary>
+        /// luồng chu trình. <see cref="_loadInput"/> là MASK các tray đầu vào vừa nạp (bit 0 Tray 1, bit 1 Tray 2 — Tuấn
+        /// 2026-10-15), 0 = chưa nạp; <see cref="_loadAssy"/> là 0/1.</summary>
         private int _loadInput, _loadAssy;
 
         /// <summary>Thông báo của lần chờ tray đang diễn ra, null khi không chờ.</summary>
@@ -511,9 +512,12 @@ namespace ShieldCanAssy.Core.Controller
             if (vision == null || !vision.IsConnected) { why = Loc.T("Auto.VisionNotConnected"); return false; }
             if (!vision.IsSolutionLoaded) { why = Loc.T("Auto.SolutionNotLoaded"); return false; }
 
-            // Chỉ tray đã vào máy: tray chưa nạp thì vắng ở vị trí chờ là chuyện bình thường, bước cần nó tự chờ.
-            if (_inputIn && TrayMissing(model.InputTray.AxisRow, _func.HasTrayIn()))
-            { why = Loc.T("Auto.NoInputTray"); return false; }
+            // Chỉ tray đã vào máy: tray chưa nạp thì vắng ở vị trí chờ là chuyện bình thường, bước cần nó tự chờ. Bàn đầu
+            // vào có hai tray: chỉ xét tray còn ô máy sẽ ghé — tray không nạp, hay đã xong hết, vắng cũng không sao.
+            if (_inputIn)
+                for (int t = 0; t < Run.InputTray.Trays; t++)
+                    if (Run.InputTrayNeeded(t) && TrayMissing(model.InputTray.AxisRow, _func.HasTrayIn(t)))
+                    { why = Loc.F("Auto.NoInputTrayN", t + 1); return false; }
             if (_assyIn && TrayMissing(model.AssyTray.AxisRow, _func.HasTrayAssy()))
             { why = Loc.T("Auto.NoAssyTray"); return false; }
 
@@ -642,11 +646,12 @@ namespace ShieldCanAssy.Core.Controller
             }
 
             tray.CurrentIndex = index;
-            int row, col;
-            tray.RowCol(index, out row, out col);
+            int trayNo, row, col;
+            var layout = Model.InputCell(tray, index, out trayNo, out row, out col);
+            string where = Loc.F("Auto.InputCellLabel", trayNo + 1, row, col);
 
             string zName = nozzle == 1 ? AxisId.Z1 : AxisId.Z2;
-            var cell = Model.InputTray.CellPos(zName, row, col);
+            var cell = layout.CellPos(zName, row, col);
 
             tray.Set(index, ECellState.Processing);
 
@@ -659,25 +664,25 @@ namespace ShieldCanAssy.Core.Controller
                 {
                     // A về góc hút đã teach, song song với X/Y: đặt xong A còn nằm ở CmdA, xuống hút bằng góc đó
                     // thì gờ đầu hút không ăn khớp và chân không không đạt — xem McFunction.MoveToCellForPickAsync.
-                    if (!await _func.MoveToCellForPickAsync(nozzle, Model.PickAngle(nozzle), Model.InputTray.AxisRow, cell.Y, cell.X, ct).ConfigureAwait(false))
-                        return Halt(Loc.F("Auto.PickMoveFail", row, col));
+                    if (!await _func.MoveToCellForPickAsync(nozzle, Model.PickAngle(nozzle), layout.AxisRow, cell.Y, cell.X, ct).ConfigureAwait(false))
+                        return Halt(Loc.F("Auto.PickMoveFail", where));
 
                     // Hút hụt thì hạ thêm một ít: nguyên nhân phổ biến nhất là sản phẩm nằm thấp
                     // hơn dự kiến trong hốc tray, không phải hỏng chân không (§5.4). Z dương là
                     // chiều ĐI XUỐNG (Tuấn xác nhận 2026-09-04) nên "hạ thêm" là CỘNG thêm, không
                     // phải trừ.
-                    double zPick = Model.InputTray.ZPickFor(zName) + attempt * _sys().PickRetryDeltaZ;
+                    double zPick = layout.ZPickFor(zName) + attempt * _sys().PickRetryDeltaZ;
 
                     // Tray đầu vào: qua điểm giảm tốc hay không theo Setting (Tuấn 2026-10-07) — mặc định hạ một mạch mức cao
                     // (tay trống, không có gì để va), chỉ NÂNG mới chậm cho sản phẩm không giật rơi (Tuấn 2026-09-30).
-                    if (!await _func.MoveZDownAsync(zName, zPick, Model.InputTray.ZSlowFor(zName, _sys().InputZSlowDown), ct).ConfigureAwait(false))
+                    if (!await _func.MoveZDownAsync(zName, zPick, layout.ZSlowFor(zName, _sys().InputZSlowDown), ct).ConfigureAwait(false))
                         return Halt(Loc.F("Auto.ZDownPickFail", zName));
 
                     _func.SetVacuum(nozzle, true);
                     bool gripped = await WaitVacuumAsync(nozzle, true, ct).ConfigureAwait(false);
                     await SettleVacuumAsync(gripped, ct).ConfigureAwait(false);
 
-                    if (!await _func.MoveZUpAsync(zName, SafeZ(), Model.InputTray.ZSlowFor(zName, _sys().InputZSlowUp), ct).ConfigureAwait(false))
+                    if (!await _func.MoveZUpAsync(zName, SafeZ(), layout.ZSlowFor(zName, _sys().InputZSlowUp), ct).ConfigureAwait(false))
                         return Halt(Loc.F("Auto.ZUpFail", zName));
 
                     if (gripped)
@@ -691,7 +696,7 @@ namespace ShieldCanAssy.Core.Controller
 
                     _func.SetVacuum(nozzle, false);
                     AlarmManager.Raise(AlarmCode.PickFailed, "Auto",
-                        Loc.F("Auto.PickRetry", nozzle, row, col, attempt + 1, retries + 1));
+                        Loc.F("Auto.PickRetry", nozzle, where, attempt + 1, retries + 1));
                 }
             }
             finally
@@ -702,7 +707,7 @@ namespace ShieldCanAssy.Core.Controller
             // Hết số lần thử: đánh dấu ô hỏng và đi tiếp, KHÔNG dừng máy. Một ô lỗi không phải
             // lý do để cả tray đứng lại (§5.4).
             tray.Set(index, ECellState.Ng);
-            CountNg("hút hụt ô (" + row + "," + col + ")");
+            CountNg("hút hụt ô Tray " + (trayNo + 1) + " (" + row + "," + col + ")");
             return CheckConsecutiveNg();
         }
 
@@ -874,7 +879,8 @@ namespace ShieldCanAssy.Core.Controller
             bool sharing = otherHeld == null && Nozzle(other).HasProduct && second >= 0;
             if (!sharing) return first;
 
-            return Nozzle1TakesFirstCell(CellX(first), CellX(second)) == (nozzle == 1) ? first : second;
+            return Nozzle1TakesFirstCell(CellX(first), CellX(second), Model.AssyTray.HalfColPitch) == (nozzle == 1)
+                ? first : second;
         }
 
         /// <summary>
@@ -890,9 +896,13 @@ namespace ShieldCanAssy.Core.Controller
         /// không đổi gì. Quét zigzag thì hàng chạy ngược đảo lại, và luật cũ (cứ ô ghé trước là của tay #1)
         /// bắt gantry với thêm một bước ô ở mọi vòng của những hàng ấy, ăn mất quá nửa phần lợi mà zigzag
         /// kiếm được ở chặng quét tray (Tuấn hỏi 2026-09-24).</para>
+        ///
+        /// <para>Cặp cùng cột (lệch X dưới <paramref name="sameColumnMm"/>) thì giữ thứ tự ghé, để Y2 chỉ đi tới — cùng lý
+        /// do với <see cref="Nozzle1TakesFirstPickCell"/>.</para>
         /// </summary>
-        public static bool Nozzle1TakesFirstCell(double xFirst, double xSecond)
+        public static bool Nozzle1TakesFirstCell(double xFirst, double xSecond, double sameColumnMm = 0)
         {
+            if (Math.Abs(xFirst - xSecond) < sameColumnMm) return true;
             return xFirst <= xSecond;
         }
 
@@ -1111,15 +1121,16 @@ namespace ShieldCanAssy.Core.Controller
                 return Halt(Loc.F("Auto.CannotReturnHalt", nozzle, why));
             }
 
-            int row, col;
-            Run.InputTray.RowCol(index, out row, out col);
+            // Ô nguồn có thể nằm ở Tray 1 hay Tray 2 — toạ độ và cao độ theo đúng tray đó.
+            int trayNo, row, col;
+            var layout = Model.InputCell(Run.InputTray, index, out trayNo, out row, out col);
 
             string zName = nozzle == 1 ? AxisId.Z1 : AxisId.Z2;
-            var cell = Model.InputTray.CellPos(zName, row, col);
+            var cell = layout.CellPos(zName, row, col);
 
-            if (!await _func.MoveToCellAsync(Model.InputTray.AxisRow, cell.Y, cell.X, ct).ConfigureAwait(false))
+            if (!await _func.MoveToCellAsync(layout.AxisRow, cell.Y, cell.X, ct).ConfigureAwait(false))
                 return Halt(Loc.T("Auto.ReturnMoveFail"));
-            if (!await _func.MoveZDownAsync(zName, Model.InputTray.ZPickFor(zName), Model.InputTray.ZSlowFor(zName), ct).ConfigureAwait(false))
+            if (!await _func.MoveZDownAsync(zName, layout.ZPickFor(zName), layout.ZSlowFor(zName), ct).ConfigureAwait(false))
                 return Halt(Loc.T("Auto.ReturnZDownFail"));
 
             _func.SetVacuum(nozzle, false);
@@ -1128,7 +1139,7 @@ namespace ShieldCanAssy.Core.Controller
             await Task.Delay(_sys().BlowTimeMs, ct).ConfigureAwait(false);
             _func.SetBlow(nozzle, false);
 
-            if (!await _func.MoveZUpAsync(zName, SafeZ(), Model.InputTray.ZSlowFor(zName), ct).ConfigureAwait(false))
+            if (!await _func.MoveZUpAsync(zName, SafeZ(), layout.ZSlowFor(zName), ct).ConfigureAwait(false))
                 return Halt(Loc.T("Auto.ReturnZUpFail"));
 
             if (!released)
@@ -1222,12 +1233,13 @@ namespace ShieldCanAssy.Core.Controller
             return true;
         }
 
-        /// <summary>Operator vừa đặt tray mới: tray đầu vào đầy hàng, tray lắp ráp trống hết.</summary>
-        private void ReloadTrays(bool input, bool assy)
+        /// <summary>Operator vừa đặt tray mới: tray đầu vào có mặt (<paramref name="inputMask"/>, 0 = không đổi) đầy hàng,
+        /// tray lắp ráp trống hết.</summary>
+        private void ReloadTrays(int inputMask, bool assy)
         {
-            if (input)
+            if (inputMask != 0)
             {
-                Run.InputTray.ResetAll(ECellState.Loaded);
+                Run.LoadInputTrays(inputMask);
                 // Ô nguồn của sản phẩm đang cầm thuộc tray đầu vào CŨ — giữ số ô đó là lát nữa đánh
                 // dấu nhầm một ô còn hàng của tray mới. Bỏ đi: sản phẩm thành "không rõ ô nguồn".
                 if (Run.Nozzle1.HasProduct) Run.Nozzle1.SourceCellIndex = -1;
@@ -1313,18 +1325,22 @@ namespace ShieldCanAssy.Core.Controller
         /// </summary>
         private void TakeTrayLoads()
         {
-            bool input = Interlocked.Exchange(ref _loadInput, 0) == 1;
+            int inputMask = Interlocked.Exchange(ref _loadInput, 0);
+            bool input = inputMask != 0;
             bool assy = Interlocked.Exchange(ref _loadAssy, 0) == 1;
             if (!input && !assy) return;
 
+            // Hai tray đầu vào là MỘT sổ: chỉ làm lại khi cả sổ đã hết. Còn dở một tray (về gốc giữa chừng) thì giữ nguyên
+            // — tray đã xong nằm lại trên bàn mà tính là tray mới thì máy sẽ đi hút ô rỗng.
             bool newInput = input && NextLoadedCell(Run.InputTray) < 0;
             bool newAssy = assy && NextFreeCell(Run.AssyTray) < 0;
-            ReloadTrays(newInput, newAssy);
+            ReloadTrays(newInput ? inputMask : 0, newAssy);
             if (input) _inputIn = true;
             if (assy) _assyIn = true;
             Save();
 
-            if (input) LogWorker.Instance.RecordLog("Nhận tray đầu vào (Start 1)" + (newInput ? " — tray mới" : " — tray còn dở, giữ sổ"),
+            if (input) LogWorker.Instance.RecordLog("Nhận tray đầu vào (Start 1)" +
+                (newInput ? " — tray mới: " + InputTraysText(inputMask) : " — tray còn dở, giữ sổ"),
                 Utility.Log.LogLevel.Info, "Auto");
             if (assy) LogWorker.Instance.RecordLog("Nhận tray lắp ráp (Start 2)" + (newAssy ? " — tray mới" : " — tray còn dở, giữ sổ"),
                 Utility.Log.LogLevel.Info, "Auto");
@@ -1340,10 +1356,10 @@ namespace ShieldCanAssy.Core.Controller
             int index = NextLoadedCell(Run.InputTray);
             if (index < 0) return true;
 
-            int row, col;
-            Run.InputTray.RowCol(index, out row, out col);
+            int trayNo, row, col;
+            var layout = Model.InputCell(Run.InputTray, index, out trayNo, out row, out col);
             if (!await _func.EnsureZSafeAsync(ct).ConfigureAwait(false)) return false;
-            return await _func.MoveAsync(axis, Model.InputTray.CellPos(AxisId.Z1, row, col).Y, MoveSpeed(axis), ct).ConfigureAwait(false);
+            return await _func.MoveAsync(axis, layout.CellPos(AxisId.Z1, row, col).Y, MoveSpeed(axis), ct).ConfigureAwait(false);
         }
 
         /// <summary>Z lên an toàn, rồi trục hàng của tray cần thay về vị trí chờ (StandbyPos) — hai tray chạy song song.</summary>
@@ -1365,7 +1381,7 @@ namespace ShieldCanAssy.Core.Controller
         /// <summary>Tray đã vào máy, hoặc vừa được nạp và đang chờ luồng chu trình nhận.</summary>
         public bool TrayIn(bool input)
         {
-            return input ? _inputIn || Volatile.Read(ref _loadInput) == 1
+            return input ? _inputIn || Volatile.Read(ref _loadInput) != 0
                          : _assyIn || Volatile.Read(ref _loadAssy) == 1;
         }
 
@@ -1386,13 +1402,48 @@ namespace ShieldCanAssy.Core.Controller
             if (TrayIn(input)) return null;
             if (Model == null) return Loc.T("Auto.NoModelLoaded");
 
-            bool sensor = input ? _func.HasTrayIn() : _func.HasTrayAssy();
-            if (TrayMissing(input ? Model.InputTray.AxisRow : Model.AssyTray.AxisRow, sensor))
-                return Loc.T(input ? "Auto.InputTrayNotSeen" : "Auto.AssyTrayNotSeen");
+            if (!input)
+            {
+                if (TrayMissing(Model.AssyTray.AxisRow, _func.HasTrayAssy())) return Loc.T("Auto.AssyTrayNotSeen");
+                Interlocked.Exchange(ref _loadAssy, 1);
+                return null;
+            }
 
-            if (input) Interlocked.Exchange(ref _loadInput, 1);
-            else Interlocked.Exchange(ref _loadAssy, 1);
+            string why;
+            int mask = InputTraysSeen(out why);
+            if (mask == 0) return why;
+            Interlocked.Exchange(ref _loadInput, mask);
             return null;
+        }
+
+        /// <summary>
+        /// Các tray đầu vào operator vừa đặt — bit 0 Tray 1, bit 1 Tray 2; 0 kèm lý do khi từ chối. Bàn Y1 đang ở vị trí chờ
+        /// thì theo hai cảm biến: tray nào có thì chạy (Tuấn chốt 2026-10-15). Thấy Tray 2 mà Tray 2 chưa teach thì từ chối —
+        /// hút theo lưới chưa teach là đâm đầu hút xuống chỗ không biết. Bàn không ở vị trí chờ thì cảm biến không đo được
+        /// (<see cref="TrayMissingAt"/>): tin lời operator như trước khi có Tray 2 — Tray 1, thêm Tray 2 nếu đã teach.
+        /// </summary>
+        private int InputTraysSeen(out string why)
+        {
+            why = null;
+            if (!AtStandby(Model.InputTray.AxisRow)) return Model.UsableInputTrays;
+
+            bool t1 = _func.HasTrayIn(0), t2 = _func.HasTrayIn(1);
+            if (!t1 && !t2) { why = Loc.T("Auto.InputTrayNotSeen"); return 0; }
+            if (t2 && !Model.InputTray2.IsTaught) { why = Loc.T("Auto.InputTray2NotTaught"); return 0; }
+            return (t1 ? 1 : 0) | (t2 ? 2 : 0);
+        }
+
+        /// <summary>Trục hàng đang đứng ở vị trí chờ — chỗ duy nhất cảm biến tray đọc được, xem <see cref="TrayMissingAt"/>.</summary>
+        private bool AtStandby(string rowAxis)
+        {
+            var axis = _motion[rowAxis];
+            return axis != null && Math.Abs(axis.CurrentPos - _sys().GetAxis(rowAxis).StandbyPos) <= TraySensorWindowMm;
+        }
+
+        /// <summary>"Tray 1 + Tray 2" — cho log.</summary>
+        private static string InputTraysText(int mask)
+        {
+            return mask == 3 ? "Tray 1 + Tray 2" : mask == 2 ? "Tray 2" : "Tray 1";
         }
 
         /// <summary>Về gốc đưa mọi trục về vị trí chờ — cả hai tray coi như ra khỏi máy, phải bấm Start 1/Start 2 lại.</summary>
@@ -1408,7 +1459,7 @@ namespace ShieldCanAssy.Core.Controller
         /// (<c>McControl.DoStart</c>).</summary>
         public void LoadBothTrays()
         {
-            if (!_inputIn) Interlocked.Exchange(ref _loadInput, 1);
+            if (!_inputIn) Interlocked.Exchange(ref _loadInput, Model != null ? Model.UsableInputTrays : 1);
             if (!_assyIn) Interlocked.Exchange(ref _loadAssy, 1);
         }
 
@@ -1622,12 +1673,14 @@ namespace ShieldCanAssy.Core.Controller
 
             if (nozzle != 1 || first < 0 || second < 0 || Run.Nozzle2.HasProduct || !_sys().NozzleEnabled(2)) return first;
 
-            int r1, c1, r2, c2;
-            tray.RowCol(first, out r1, out c1);
-            tray.RowCol(second, out r2, out c2);
+            // Cặp ô có thể vắt từ Tray 1 sang Tray 2 — mỗi ô lấy theo lưới của tray chứa nó.
+            int t1, r1, c1, t2, r2, c2;
+            var g1 = Model.InputCell(tray, first, out t1, out r1, out c1);
+            var g2 = Model.InputCell(tray, second, out t2, out r2, out c2);
             return Nozzle1TakesFirstPickCell(
-                Model.InputTray.CellPos(AxisId.Z1, r1, c1).X, Model.InputTray.CellPos(AxisId.Z2, r1, c1).X,
-                Model.InputTray.CellPos(AxisId.Z1, r2, c2).X, Model.InputTray.CellPos(AxisId.Z2, r2, c2).X)
+                g1.CellPos(AxisId.Z1, r1, c1).X, g1.CellPos(AxisId.Z2, r1, c1).X,
+                g2.CellPos(AxisId.Z1, r2, c2).X, g2.CellPos(AxisId.Z2, r2, c2).X,
+                Model.InputTray.HalfColPitch)
                 ? first : second;
         }
 
@@ -1647,10 +1700,19 @@ namespace ShieldCanAssy.Core.Controller
         /// bên trái ở mọi cặp vắt hàng (Tuấn hỏi 2026-09-24).</para>
         ///
         /// <para>Bằng nhau thì giữ thứ tự ghé — đổi chỗ không được gì mà lại làm vết chạy khó đọc.</para>
+        ///
+        /// <para><b>Cặp CÙNG CỘT thì giữ thứ tự ghé</b> (Tuấn 2026-10-15) — hai ô lệch X dưới
+        /// <paramref name="sameColumnMm"/> (nửa bước cột, <see cref="TrayLayout.HalfColPitch"/>). Quét zigzag thì cặp vắt
+        /// hàng là ô cuối hàng này với ô ĐẦU hàng sau, cùng một cột, X chỉ lệch vài phần trăm mm do tray nghiêng khi teach.
+        /// So "bằng nhau" tuyệt đối thì phần lệch đó quyết, có khi giao ô hàng SAU cho tay #1 — mà tay #1 hút trước, nên
+        /// Y1 đi xuống hàng sau, quay lên hàng trước cho tay #2, rồi lại xuống: hai lần chạy Y để được 0.027 mm X (máy
+        /// thật, ô 5 và 6 tray 4×5). Giữ thứ tự ghé thì Y chỉ đi tới.</para>
         /// </summary>
         public static bool Nozzle1TakesFirstPickCell(double firstAtNozzle1, double firstAtNozzle2,
-                                                     double secondAtNozzle1, double secondAtNozzle2)
+                                                     double secondAtNozzle1, double secondAtNozzle2,
+                                                     double sameColumnMm = 0)
         {
+            if (Math.Abs(firstAtNozzle1 - secondAtNozzle1) < sameColumnMm) return true;
             return Math.Min(firstAtNozzle1, secondAtNozzle2) >= Math.Min(secondAtNozzle1, firstAtNozzle2);
         }
 

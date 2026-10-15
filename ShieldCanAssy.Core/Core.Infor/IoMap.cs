@@ -36,9 +36,17 @@ namespace ShieldCanAssy.Core.Infor
         public const int AirOk = 7;
         public const int Vacuum1 = 8;
         public const int Vacuum2 = 9;
-        public const int TrayInPresent = 10;
+        /// <summary>
+        /// Có Tray đầu vào 2 — chỗ đặt PHÍA NGOÀI của bàn Y1. Đây là cảm biến tray đầu vào cũ, từ 2026-10-15 bàn đặt hai
+        /// tray (Tuấn chốt). Như mọi cảm biến tray, gắn cố định ở vị trí chờ — xem <c>Routine_Auto.TrayMissingAt</c>.
+        /// </summary>
+        public const int TrayIn2Present = 10;
         public const int TrayAssyPresent = 11;
-        public const int BtnBuzzerStop = 12;
+        /// <summary>
+        /// Có Tray đầu vào 1 — chỗ đặt PHÍA TRONG của bàn Y1, cảm biến thêm 2026-10-15. Bit này trước là nút Tắt còi
+        /// cứng; nút đó đã bỏ, tắt còi chỉ còn bằng nút trên trang Main (Tuấn chốt cùng ngày).
+        /// </summary>
+        public const int TrayIn1Present = 12;
 
         /// <summary>
         /// NC — 1 = rèm sáng thông suốt (PLAN.md §11 #13). Đây là bản SAO của tín hiệu để hiển
@@ -136,9 +144,9 @@ namespace ShieldCanAssy.Core.Infor
             n[AirOk] = "Io.DiAirOk";
             n[Vacuum1] = "Io.DiVacuum1";
             n[Vacuum2] = "Io.DiVacuum2";
-            n[TrayInPresent] = "Io.DiTrayInPresent";
+            n[TrayIn2Present] = "Io.DiTrayIn2Present";
             n[TrayAssyPresent] = "Io.DiTrayAssyPresent";
-            n[BtnBuzzerStop] = "Io.DiBtnBuzzerStop";
+            n[TrayIn1Present] = "Io.DiTrayIn1Present";
             n[LightCurtainOk] = "Io.DiLightCurtainOk";
             n[BtnArmA1] = "Io.DiBtnArmA1";
             n[BtnArmA2] = "Io.DiBtnArmA2";

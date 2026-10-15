@@ -355,6 +355,22 @@ namespace ShieldCanAssy.Core.Data.Model
 
         public int CellCount => Rows * Cols;
 
+        /// <summary>
+        /// Nửa bước cột (độ dài vector bước cột của lưới Tool 1, mm). Hai ô lệch X ít hơn chừng này là CÙNG CỘT — phần
+        /// lệch chỉ là độ nghiêng của tray khi teach. Luật chia cặp ô cho hai tay dùng nó để giữ thứ tự ghé cho cặp cùng
+        /// cột (Tuấn 2026-10-15), xem <c>Routine_Auto.Nozzle1TakesFirstPickCell</c>. Một cột thì mọi ô cùng cột.
+        /// </summary>
+        public double HalfColPitch
+        {
+            get
+            {
+                if (Cols < 2) return double.PositiveInfinity;
+                double ux = (GeoZ1.P0C.X - GeoZ1.P00.X) / (Cols - 1);
+                double uy = (GeoZ1.P0C.Y - GeoZ1.P00.Y) / (Cols - 1);
+                return 0.5 * Math.Sqrt(ux * ux + uy * uy);
+            }
+        }
+
         private static int Clamp(int v) => v < MinDim ? MinDim : (v > MaxDim ? MaxDim : v);
 
         public TeachPoint CellPosRaw(string zAxis, int row, int col) => GeometryFor(zAxis).CellPosRaw(row, col, Rows, Cols);
@@ -390,9 +406,9 @@ namespace ShieldCanAssy.Core.Data.Model
 
         public bool IsTaughtFor(string zAxis) => GeometryFor(zAxis).IsTaught(Rows, Cols);
 
-        public static TrayLayout CreateInputDefault() => new TrayLayout
+        public static TrayLayout CreateInputDefault(string name = "InputTray") => new TrayLayout
         {
-            Name = "InputTray", Rows = 4, Cols = 5, AxisRow = AxisId.Y1, AxisCol = AxisId.X
+            Name = name, Rows = 4, Cols = 5, AxisRow = AxisId.Y1, AxisCol = AxisId.X
         };
 
         public static TrayLayout CreateAssyDefault() => new TrayLayout

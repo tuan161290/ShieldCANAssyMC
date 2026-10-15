@@ -435,8 +435,9 @@
                         <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,0,0,8"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    Text="{l:T Manual.SimPanelNote}"/>
-                        <!-- Nút cứng (Cặp A/Cặp B/STOP/Tắt còi) rồi tín hiệu an toàn (EMG/rèm/khí),
-                             cách nhau một khoảng rộng hơn — chung một WrapPanel cho đỡ tốn hàng. -->
+                        <!-- Nút cứng (Cặp A/Cặp B/STOP) rồi tín hiệu bật/tắt (EMG/rèm/khí, hai cảm biến tray đầu vào),
+                             cách nhau một khoảng rộng hơn — chung một WrapPanel cho đỡ tốn hàng. Nút Tắt còi cứng đã bỏ
+                             (2026-10-15). -->
                         <WrapPanel>
                             <Button Content="{l:T Manual.SimArm}" Command="{Binding SimPressArmCommand}" Width="120" Margin="0,0,6,6"
                                     ToolTip="{l:T Manual.SimArmTip}"/>
@@ -444,12 +445,13 @@
                                     ToolTip="{l:T Manual.SimStart1Tip}"/>
                             <Button Content="{l:T Manual.SimStart2}" Command="{Binding SimPressStart2Command}" Width="150" Margin="0,0,6,6"
                                     ToolTip="{l:T Manual.SimStart2Tip}"/>
-                            <Button Content="{l:T Manual.SimStop}" Command="{Binding SimPressStopCommand}" Width="110" Margin="0,0,6,6"/>
-                            <Button Content="{l:T Manual.SimBuzzer}" Command="{Binding SimPressBuzzerCommand}" Width="90" Margin="0,0,16,6"/>
+                            <Button Content="{l:T Manual.SimStop}" Command="{Binding SimPressStopCommand}" Width="110" Margin="0,0,16,6"/>
                             <Button Content="EMG" Command="{Binding SimToggleEmgCommand}" Width="90" Margin="0,0,6,6"/>
                             <Button Content="{l:T Manual.SimLightCurtain}" Command="{Binding SimToggleLightCurtainCommand}" Width="150" Margin="0,0,6,6"
                                     ToolTip="{l:T Manual.SimLightCurtainTip}"/>
                             <Button Content="{l:T Manual.SimAir}" Command="{Binding SimToggleAirCommand}" Width="110" Margin="0,0,6,6"/>
+                            <Button Content="{l:T Manual.SimTray1}" Command="{Binding SimToggleTray1Command}" Width="110" Margin="0,0,6,6"/>
+                            <Button Content="{l:T Manual.SimTray2}" Command="{Binding SimToggleTray2Command}" Width="110" Margin="0,0,6,6"/>
                         </WrapPanel>
 
                         <!-- Lỗi driver giả lập theo trục — trước là một tầng riêng dưới MỖI dòng trục

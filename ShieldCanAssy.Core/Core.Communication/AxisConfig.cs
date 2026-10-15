@@ -93,6 +93,18 @@ namespace ShieldCanAssy.Core.Communication
         /// </summary>
         public int PositionTolerancePulse { get; set; } = 10;
 
+        /// <summary>
+        /// Lệnh chạy tới đích cách vị trí hiện tại ≤ từng này xung thì thư viện ServoControl KHÔNG gửi xuống driver, coi như
+        /// đã ở đó (<c>ServoConfig.SkipMoveTolerance</c>, chỉ trục Panasonic).
+        ///
+        /// <para>Tách khỏi <see cref="PositionTolerancePulse"/> từ 2026-10-15 (Tuấn: "nhận lệnh chính xác 0.01"). Trước đó
+        /// dùng chung: system.json đặt 50 xung thì mọi lệnh ≤ 0.05 mm bị bỏ — Y1 không chạy 0.05 mm giữa hai lần hút cùng
+        /// hàng, App gửi lại rồi báo 2302. 5 xung = 0.005 mm nên lệnh 0.01 mm vẫn chạy; lệnh đã gửi thì App chờ driver chạy
+        /// xong mới đi tiếp (<c>PanasonicAxis.JudgeMove</c>). Không bao giờ lớn hơn <see cref="PositionTolerancePulse"/>
+        /// (<c>PanasonicAxis.LibrarySkipTolerance</c> kẹp lại).</para>
+        /// </summary>
+        public int SkipMoveTolerancePulse { get; set; } = 5;
+
         // ── Fastech (Ethernet) ──
         public string IpAddress { get; set; } = "192.168.0.2";
         public int AxisIndex { get; set; }
