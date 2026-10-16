@@ -92,7 +92,7 @@ Bản đầy đủ nằm trong `BanGiao/memory/`. Tóm tắt những điều hay
 
 - **Chốt Z_SAFE không thương lượng:** X/Y1/Y2 chỉ chạy khi **cả hai** Z ≤ Z_SAFE + 1 mm. 24/09 Tuấn đã bác
   phương án cho Z chạy song song X để rút chu kỳ — đừng đề xuất lại.
-- **Không chạy máy từ màn hình cảm ứng.** Mọi lần chạy qua Cặp B hai tay; nút mềm chỉ để chọn chế độ.
+- **Không chạy máy từ màn hình cảm ứng.** Mọi lần chạy qua nút Start cứng; nút mềm chỉ để chọn chế độ.
 - **Sự cố còn hàng trên tay hút:** chưa nhả thì quét lại tray, soi lại ở CAM bottom-up rồi đặt; đã nhả,
   không trả được, hay không rõ ô nguồn thì bắt người lấy hàng ra. Mở lại App thì phải Origin.
 - **Làm đơn giản, trả lời ngắn.** Không thêm cơ chế phòng xa cần cấu hình. Tuấn chê "overthinking".
@@ -109,6 +109,55 @@ Bản đầy đủ nằm trong `BanGiao/memory/`. Tóm tắt những điều hay
 
 ## 4. Việc đã làm gần nhất
 
+### 4.000 Init/Origin rồi Start: chụp lại hàng đang làm; nhãn Home → Origin (16/10)
+
+- **Chụp lại hàng sau Init/Origin.** `Routine_Auto.TraysOut` (Init và Origin đều gọi) giờ bỏ luôn số đo vision:
+  số quét ô S05 và lệnh đặt đã tính cho hàng trên tay. Lưới tray lắp ráp hết ô xanh nhạt ngay. Lần Start kế tiếp
+  chạy lại từ S00: S05 chụp lại hàng đang làm từ ô trống đầu tiên, hàng trên tay soi lại ở CAM bottom-up rồi mới
+  đặt. Sổ tray còn dở vẫn giữ.
+- Trước đó Init giữ nguyên số quét cũ. Origin có bỏ số đo nhưng chạy tiếp đúng bước dở, nên chỉ soi lại từng ô
+  khi bước soi đòi.
+- **Nhãn Home → Origin.** Mọi chữ Home/homed/homing tiếng Anh trên giao diện đổi sang Origin, kể cả nút gốc từng
+  trục ở trang Manual (ghi cứng trong XAML). Bản tiếng Việt vốn ghi "Về gốc (Origin)", giữ nguyên.
+- **Đèn ba nút Start không nhấp nháy nữa** (Tuấn): sáng im khi đang chạy (RUNNING/PAUSING), mọi trạng thái khác
+  tắt — kể cả ARMED, tạm dừng và chờ nạp tray. Trước đó ARMED/tạm dừng nháy 1 Hz, chờ tray nháy nhanh. Nút RUN trên
+  trang Main vẫn nháy xanh lúc ARMED.
+- **Nút "Bỏ chọn (n)" không làm lưới tray co giãn:** style Button mặc định có `MinHeight=36` làm `Height=24` vô hiệu,
+  thanh tiêu đề card cao thêm khi nút hiện. Đặt `MinHeight="0"`.
+
+### 4.00 Bốn nút Start như nhau (16/10)
+
+Khách hàng muốn bốn nút Start (cụm A DI 0x0E/0x0F, cụm B DI 0x10/0x11) tác dụng như nhau. Chi tiết ở PLAN §3.4.
+
+- Bấm nút nào cũng là `McControl.RequestGo` → `DoGo`. Máy nạp mọi tray chưa vào máy mà cảm biến thấy
+  (`Routine_Auto.LoadTrays`), rồi chạy. Tray không thấy thì chu trình tự chờ tray đó (CHỜ THAO TÁC). Đặt tray xong
+  bấm Start nào cũng được.
+- Chọn AUTO vẫn tự vào ARMED. Sau STOP (PAUSED, vẫn AUTO) **bấm Start một lần là chạy**, không phải vào ARMED trước
+  (Tuấn chốt).
+- **Không kiểm "tray đã thay chưa"** (Tuấn chốt): cảm biến thấy tray là nhận. Operator phải thay đủ mọi tray máy đẩy
+  ra rồi mới bấm Start, nhất là khi hết tray đầu vào và đầy tray lắp ráp cùng lúc.
+- Ba đèn nút Start báo y hệt nhau: sáng khi đang chạy, mọi trạng thái khác tắt (xem §4.000).
+- Trang Manual còn một nút mô phỏng "Start" thay cho ba nút Cặp A / Start 1 / Start 2.
+- Nút START mềm trên trang Main vẫn chỉ vào ARMED, không chạy máy.
+
+### 4.01 Chọn ô ở lưới tray (16/10)
+
+Khách hàng: ở AUTO chọn ô trên tray đầu vào / tray lắp ráp thì máy chỉ làm trên các ô được chọn. Chi tiết ở PLAN §3.4
+đoạn "Chọn ô".
+
+- Bấm ô ở lưới trang Main lúc AUTO để chọn/bỏ chọn; nút "Bỏ chọn (n)" trên tiêu đề card. Lựa chọn nằm ở
+  `TrayState.Selected`, chu trình lọc qua `TrayState.InScope` ở mọi chỗ chọn ô.
+- Làm hết ô đã chọn thì coi như xong tray (Tuấn chốt): tray ra vị trí chờ, ô không chọn thành `Skipped`, lựa chọn xoá.
+- Lựa chọn chỉ cho tray đang làm (Tuấn chốt), nhưng nạp tray mới không xoá — chọn lúc chờ thay tray là chọn cho tray mới.
+- Chỉ chọn được ô còn việc, trừ lúc tray đã hết. Chạy rà không xét lựa chọn.
+
+### 4.02 Bảng Cycle / Tack Time (16/10)
+
+Card Production trang Main tách thành 4 hàng: Cycle Time, Last Cycle Time, Tack Time, Last Tack Time. Cycle Time là giờ
+thực của cả tray lắp ráp (tính cả lúc chờ và lúc STOP), Tack Time là Cycle Time ÷ số sản phẩm OK; "Last" là tray vừa
+xong. Tray xong thì Cycle Time và Tack Time giữ số vừa chốt, tới khi tray mới bắt đầu mới đếm lại
+(`RunningData.AssyTrayHoldLast`). Trước đó hai hàng này về "—" ngay lúc tray xong.
+
 ### 4.0 Hai tray đầu vào (15/10)
 
 Tuấn: bàn tray đầu vào đặt hai tray. Tray 1 phía trong dùng cảm biến **DI 0x0C**, mới đấu vào bit của nút Tắt
@@ -119,7 +168,9 @@ PLAN §5 đoạn "Hai tray đầu vào".
 - Sổ `RunData.InputTray` nối Tray 2 sau Tray 1 (`TrayState.Trays`) **chỉ khi Tray 2 đã teach**. Chưa teach thì
   máy chạy như một tray.
 - Ô sổ được đổi ra tray và hàng/cột ở một chỗ duy nhất: `ModelData.InputCell`.
-- Trang Main: card tray đầu vào hiện một tray mỗi lúc. Nút Select luôn có; Tray 2 chưa teach thì hiện lưới trống.
+- Trang Main: card tray đầu vào xếp lưới Tray 1 trên Tray 2, tên tray đang chạy in đậm. Tray 2 chưa teach thì lưới
+  trống, vẽ mờ, ghi "chưa teach". Card tray lắp ráp giãn cao bằng card tray đầu vào. Ba khung ảnh CAM nằm một hàng
+  bên dưới (16/10; trước đó card tray đầu vào hiện một tray mỗi lúc với nút Select).
 - Chạy rà chia ô cho hai tay theo hình học như Auto (`Routine_DryCycle.PickCellFor` / `PlaceCellFor`), Tool 1 lấy ô X
   nhỏ hơn. Trước đây nó giao ô ghé trước cho Tool 1, nên khi tray đầu vào đổi sang zigzag thì ở hàng chạy ngược Tool 1
   lấy ô X lớn hơn (Tuấn phát hiện 15/10).

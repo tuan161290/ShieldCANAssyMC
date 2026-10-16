@@ -75,11 +75,8 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 McControl.Func.RequestBrakeRelease(AxisId.Z2);
             });
 
-            // Cặp A (OR): mô phỏng bấm 1 trong 2 nút là đủ, bấm nút nào cũng như nhau.
-            SimPressArmCommand = new RelayCommand(() => SimIo?.SimPress(IoMap.BtnArmA1));
-            // Cụm B: Start 1 (tray đầu vào) và Start 2 (tray lắp ráp) là hai nút riêng (2026-09-26).
-            SimPressStart1Command = new RelayCommand(() => SimIo?.SimPress(IoMap.BtnGoB1));
-            SimPressStart2Command = new RelayCommand(() => SimIo?.SimPress(IoMap.BtnGoB2));
+            // Bốn nút Start như nhau (2026-10-16) — một nút mô phỏng, bấm nút cụm B #1.
+            SimPressStartCommand = new RelayCommand(() => SimIo?.SimPress(IoMap.BtnGoB1));
             SimPressStopCommand = new RelayCommand(() => SimIo?.SimPress(IoMap.BtnStop));
             // Không còn SimPressResetCommand — máy KHÔNG có nút RESET vật lý (Tuấn xác nhận,
             // 2026-09-08), RESET chỉ bấm được bằng nút mềm ở trang Main (ResetCommand đó gọi
@@ -237,9 +234,7 @@ namespace ShieldCanAssy.Wpf.ViewModels
         public ICommand ServoOnAllCommand { get; }
         public ICommand BrakeReleaseAllCommand { get; }
 
-        public ICommand SimPressArmCommand { get; }
-        public ICommand SimPressStart1Command { get; }
-        public ICommand SimPressStart2Command { get; }
+        public ICommand SimPressStartCommand { get; }
         public ICommand SimPressStopCommand { get; }
         public ICommand SimToggleTray1Command { get; }
         public ICommand SimToggleTray2Command { get; }

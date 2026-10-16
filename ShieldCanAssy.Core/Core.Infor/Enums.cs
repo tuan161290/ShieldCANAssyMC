@@ -12,8 +12,8 @@ namespace ShieldCanAssy.Core.Infor
         /// <summary>Đã về gốc, đứng yên, sẵn sàng.</summary>
         Idle,
         /// <summary>
-        /// Đã bấm Cặp A (2026-08-20, PLAN.md §3.2) sau khi chọn Mode Auto — máy đứng yên, chờ
-        /// operator đặt tray rồi bấm đủ Cặp B (2 tay) để bắt đầu chạy THẬT LẦN ĐẦU. Khác
+        /// Sẵn sàng ở Mode Auto — chọn AUTO là vào (2026-09-30), hoặc nút START mềm sau STOP. Máy đứng yên, chờ
+        /// operator đặt tray rồi bấm nút Start cứng để bắt đầu chạy (PLAN.md §3.4). Khác
         /// <see cref="WaitOperator"/> ở chỗ đây là bước TRƯỚC KHI chu trình chạy — chưa có
         /// Task nào đang chạy, không phải một chu trình đang dở đợi đổi tray giữa chừng. Đặt tên
         /// khác <c>AutoState</c> (Run.AutoState/EAutoState — bước bên trong Routine_Auto) để
@@ -28,7 +28,7 @@ namespace ShieldCanAssy.Core.Infor
         Paused,
         /// <summary>
         /// Bấm STOP lúc đang chạy (Tuấn 2026-09-29): mọi trục dừng ngay, chu trình đứng nguyên chỗ trong lệnh chạy đang
-        /// dở — Start 1/Start 2 chạy tiếp đúng lệnh đó. Chuyển MANUAL, EMG hay có lỗi thì bỏ chu trình (về Paused).
+        /// dở — nút Start chạy tiếp đúng lệnh đó. Chuyển MANUAL, EMG hay có lỗi thì bỏ chu trình (về Paused).
         /// </summary>
         Held,
         /// <summary>Chờ người thao tác — đổi tray, xác nhận.</summary>

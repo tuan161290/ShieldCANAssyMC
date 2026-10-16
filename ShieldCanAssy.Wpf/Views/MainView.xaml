@@ -102,18 +102,14 @@
             <Setter Property="Margin" Value="8,0,8,0"/>
         </Style>
 
-        <!-- Chỗ đặt bảng của khung CAM bottom-up: 2 hàng (Lệch, Đích) cao 52; bảng Đích tách phần có 3 hàng (X, Y, θ)
-             nên cao 70 — chỉ đổi khi bấm đổi kiểu, không đổi theo từng lần soi. -->
-        <Style x:Key="ToolReadoutHostStyle" TargetType="ContentControl">
+        <!-- Chỗ đặt bảng số của ba khung CAM, cao 70 vừa bảng 3 hàng (Đích tách phần X, Y, θ của CAM bottom-up; Part,
+             Δ #1, Δ #2 của top-down). Bảng 2 hàng (Lệch, Đích) cũng giữ 70: từ 2026-10-16 ba card nằm cùng một hàng, bảng
+             cao bằng nhau thì ba khung ảnh bên dưới thẳng hàng, và không co giãn theo từng lần soi hay khi bấm đổi kiểu. -->
+        <Style x:Key="CamReadoutHostStyle" TargetType="ContentControl">
             <Setter Property="DockPanel.Dock" Value="Top"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
-            <Setter Property="Height" Value="52"/>
+            <Setter Property="Height" Value="70"/>
             <Setter Property="Focusable" Value="False"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding ShowBreakdown}" Value="True">
-                    <Setter Property="Height" Value="70"/>
-                </DataTrigger>
-            </Style.Triggers>
         </Style>
 
         <DataTemplate x:Key="ReadoutTemplate">
@@ -187,17 +183,20 @@
                     <Border Style="{StaticResource CardHeaderStyle}">
                         <DockPanel>
                             <TextBlock Text="{Binding Title}" Style="{StaticResource SectionHeaderStyle}"/>
-                            <!-- Chọn tray đang xem — chỉ card tray đầu vào (hai tray từ 2026-10-15). Lề âm theo chiều dọc để
-                                 nút không làm cao thêm thanh tiêu đề: khung card giữ nguyên như card tray lắp ráp. -->
-                            <Button DockPanel.Dock="Right" Content="{Binding SelectText}" Command="{Binding SelectTrayCommand}"
-                                    Height="24" Padding="10,0" Margin="8,-4,0,-4" FontSize="12" VerticalAlignment="Center"
-                                    Visibility="{Binding HasTraySelect, Converter={StaticResource BoolToVis}}"/>
+                            <!-- Bỏ các ô đã chọn (Tuấn 2026-10-16) — chỉ hiện khi có chọn. Hiện/ẩn không được đổi chiều cao
+                                 thanh tiêu đề, không thì lưới ô co giãn theo (Tuấn báo 2026-10-16): MinHeight 0 gỡ MinHeight 36
+                                 của style Button mặc định (không thì Height 24 vô hiệu), lề âm dọc để chỗ nút chiếm (14) thấp
+                                 hơn dòng tiêu đề (~17). -->
+                            <Button DockPanel.Dock="Right" Content="{Binding ClearSelectionText}" Command="{Binding ClearSelectionCommand}"
+                                    Height="24" MinHeight="0" Padding="10,0" Margin="8,-5,0,-5" FontSize="12" VerticalAlignment="Center"
+                                    ToolTip="{l:T Tray.ClearSelectionTip}"
+                                    Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}"/>
                             <TextBlock Text="{Binding Summary}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                        Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
                         </DockPanel>
                     </Border>
                     <!-- Nút nạp lại và bộ đếm rộng bằng nhau (Tuấn 2026-10-07), ba số chia đều nửa bên phải. -->
-                    <Grid DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                    <Grid DockPanel.Dock="Bottom">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
@@ -224,48 +223,118 @@
                             </UniformGrid>
                         </Border>
                     </Grid>
-                    <ItemsControl ItemsSource="{Binding Cells}">
+                    <!-- Một khối lưới mỗi tray, chia đều chiều cao card (Tuấn 2026-10-16, thay nút Select xem từng tray):
+                         card tray đầu vào xếp Tray 1 trên Tray 2, mỗi khối có dòng tên tray — tray đang chạy in đậm, chưa
+                         teach thì lưới mờ. Card tray lắp ráp một khối, giãn cao bằng card tray đầu vào vì hai card chung
+                         một hàng Grid; ô to ra theo. Lề dưới mỗi khối là khoảng cách tới khối sau / hàng nút nạp lại.
+                         Ở AUTO bấm ô để chọn — máy chỉ làm ô đã chọn (Tuấn 2026-10-16): con trỏ hình bàn tay, ô đã chọn
+                         viền xanh đậm, ô ngoài lựa chọn vẽ mờ. -->
+                    <ItemsControl ItemsSource="{Binding Groups}" Focusable="False">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CanSelect}" Value="True">
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Rows="{Binding Rows}" Columns="{Binding Cols}"/>
+                                <UniformGrid Columns="1"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <!-- Ô kiểu nút Calculator Windows 11 (Tuấn yêu cầu, 2026-09-15): không bóng
-                                     đổ, viền 1px rất nhạt (6% đen) đậm hơn ở mép dưới (16% đen) — viền
-                                     "elevation" của Fluent — bo góc 4, khe hở 2px giữa các ô. Ô hiện tại
-                                     vẫn giữ quầng xanh accent vì viền mảnh không đủ đánh dấu. MinWidth 30, không phải
-                                     42: tray lắp ráp 8 cột chỉ còn ~40 px mỗi ô, ép 42 là ô nào cũng bị cắt mép phải
-                                     (Tuấn báo 2026-09-28). -->
-                                <Border Margin="1" MinWidth="30" MinHeight="34" CornerRadius="4"
-                                        Background="{Binding Look, Converter={StaticResource TrayCellBrush}}" BorderThickness="1"
-                                        SnapsToDevicePixels="True">
-                                    <Border.BorderBrush>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Offset="0" Color="{StaticResource ControlStrokeColorDefault}"/>
-                                            <GradientStop Offset="0.9" Color="{StaticResource ControlStrokeColorDefault}"/>
-                                            <GradientStop Offset="1" Color="{StaticResource ControlStrokeColorSecondary}"/>
-                                        </LinearGradientBrush>
-                                    </Border.BorderBrush>
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                    <Setter Property="Effect">
-                                                        <Setter.Value>
-                                                            <DropShadowEffect Color="#0078D4" ShadowDepth="0"
-                                                                              BlurRadius="9" Opacity="0.9"/>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <TextBlock Text="{Binding Label}" FontSize="12"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
+                                <DockPanel Margin="0,0,0,8">
+                                    <TextBlock DockPanel.Dock="Top" Text="{Binding Caption}" Margin="1,0,0,3"
+                                               Visibility="{Binding HasCaption, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                <Setter Property="FontSize" Value="11"/>
+                                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <ItemsControl ItemsSource="{Binding Cells}" Focusable="False">
+                                        <ItemsControl.Style>
+                                            <Style TargetType="ItemsControl">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsTaught}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.45"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ItemsControl.Style>
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Rows="{Binding Rows}" Columns="{Binding Cols}"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <!-- Ô kiểu nút Calculator Windows 11 (Tuấn yêu cầu, 2026-09-15): không bóng
+                                                     đổ, viền 1px rất nhạt (6% đen) đậm hơn ở mép dưới (16% đen) — viền
+                                                     "elevation" của Fluent — bo góc 4, khe hở 2px giữa các ô. Ô hiện tại
+                                                     vẫn giữ quầng xanh accent vì viền mảnh không đủ đánh dấu. MinWidth 30, không phải
+                                                     42: tray lắp ráp 8 cột chỉ còn ~40 px mỗi ô, ép 42 là ô nào cũng bị cắt mép phải
+                                                     (Tuấn báo 2026-09-28). Bấm ô = ClickCommand (chọn ô lúc AUTO); viền
+                                                     chọn là lớp riêng phủ lên ô, không đụng viền elevation. -->
+                                                <Grid Margin="1" Background="Transparent">
+                                                    <Grid.InputBindings>
+                                                        <MouseBinding Gesture="LeftClick" Command="{Binding ClickCommand}" CommandParameter="{Binding}"/>
+                                                    </Grid.InputBindings>
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsOutOfScope}" Value="True">
+                                                                    <Setter Property="Opacity" Value="0.35"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
+                                                    <Border MinWidth="30" MinHeight="34" CornerRadius="4"
+                                                            Background="{Binding Look, Converter={StaticResource TrayCellBrush}}" BorderThickness="1"
+                                                            SnapsToDevicePixels="True">
+                                                        <Border.BorderBrush>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                                <GradientStop Offset="0" Color="{StaticResource ControlStrokeColorDefault}"/>
+                                                                <GradientStop Offset="0.9" Color="{StaticResource ControlStrokeColorDefault}"/>
+                                                                <GradientStop Offset="1" Color="{StaticResource ControlStrokeColorSecondary}"/>
+                                                            </LinearGradientBrush>
+                                                        </Border.BorderBrush>
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                        <Setter Property="Effect">
+                                                                            <Setter.Value>
+                                                                                <DropShadowEffect Color="#0078D4" ShadowDepth="0"
+                                                                                                  BlurRadius="9" Opacity="0.9"/>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="{Binding Label}" FontSize="12"
+                                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <Border CornerRadius="4" BorderThickness="2" BorderBrush="{StaticResource AccentPressedBrush}"
+                                                            IsHitTestVisible="False" SnapsToDevicePixels="True"
+                                                            Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -354,8 +423,8 @@
                     </Button>
 
                     <!-- RUN cạnh STOP như cặp nút trên bảng điều khiển. RUN là đèn báo kiêm nút bấm — CỐ Ý bấm vào chỉ vào
-                         Armed (Cặp A), KHÔNG chạy máy trực tiếp: máy chạy thật bắt buộc phải bấm đủ Cặp B (2 tay) ngoài
-                         jig, không có đường nào từ màn hình cảm ứng bỏ qua được yêu cầu an toàn 2 tay (2026-08-20). Chữ
+                         Armed, KHÔNG chạy máy trực tiếp: máy chạy thật bắt buộc phải bấm nút Start cứng ngoài jig, không có
+                         đường nào từ màn hình cảm ứng làm máy chạy (2026-08-20). Chữ
                          LUÔN là RUN, MÀU mới là cái báo trạng thái: xám khi máy đứng, xanh lá khi đang chạy (Tuấn đổi
                          2026-09-24) — đúng quy ước đèn RUN trên bảng điều khiển. Effect chỉ đặt trong Trigger, KHÔNG đặt ở
                          base: Trigger chỉ THÊM Effect chứ không gỡ được, đặt ở base rồi xoá bằng {x:Null} trong Trigger làm
@@ -378,8 +447,8 @@
                                             <Setter Property="BorderBrush" Value="{StaticResource GreenOnBrush}"/>
                                             <Setter Property="Effect" Value="{StaticResource GreenGlowEffect}"/>
                                         </DataTrigger>
-                                        <!-- Armed (đã bấm RUN, chờ bấm Cặp B): xanh NHẤP NHÁY 1 Hz, cùng lúc đèn nút Start
-                                             Cụm B ngoài máy nháy (McControl.UpdateOutputs) — Tuấn yêu cầu 2026-09-26. Nháy
+                                        <!-- Armed (chờ bấm Start): xanh NHẤP NHÁY 1 Hz — Tuấn yêu cầu 2026-09-26. Đèn các nút
+                                             Start ngoài máy thì không nháy nữa, chỉ sáng khi đang chạy (2026-10-16). Nháy
                                              bằng Opacity rời rạc (sáng 0.5 s / mờ 0.5 s), không đổi màu Brush: Brush trong
                                              Setter của Style bị đóng băng, không animate được. -->
                                         <DataTrigger Binding="{Binding Status.State}" Value="Armed">
@@ -519,8 +588,8 @@
                                        Foreground="{StaticResource TextOnAccentBrush}"/>
                         </StackPanel>
                     </Border>
-                    <!-- KHÔNG phải nút bấm được (2026-08-20) — nạp tray bằng nút cứng cụm B:
-                         Start 1 cho tray đầu vào, Start 2 cho tray lắp ráp (2026-09-26). Banner chỉ NHẮC. -->
+                    <!-- KHÔNG phải nút bấm được (2026-08-20) — nạp tray bằng nút Start cứng, nút nào cũng nạp mọi
+                         tray cảm biến thấy (2026-10-16). Banner chỉ NHẮC. -->
                     <Border Background="{StaticResource CustomLightYellowBrush}" CornerRadius="4"
                             Padding="8,6" Margin="0,6,0,0"
                             Visibility="{Binding WaitingOperator, Converter={StaticResource BoolToVis}}">
@@ -586,13 +655,13 @@
                     <!-- Cycle time theo tray lắp ráp (Tuấn 2026-10-09, thay hàng CT theo lượt): CT tray = GIỜ THỰC từ lúc máy
                          chạy với tray tới lúc tray hết ô trống, tính cả lúc chờ tray đầu vào và lúc STOP; CT TB = CT tray ÷ số ô
                          đặt OK. Bảng kẻ ô theo hình Tuấn vẽ 12/10. Tuấn định nghĩa: Tack Time = trung bình một sản phẩm (CT TB),
-                         Cycle Time = tổng thời gian tray (CT tray). Dòng 1 Pre-Tack Time (tray vừa xong), dòng 2 Tack Time (tray
-                         đang làm), dòng 3 Cycle Time tray đang làm rồi Pre-Cycle Time tray vừa xong trên cùng một ô. -->
+                         Cycle Time = tổng thời gian tray (CT tray). Bốn hàng (Tuấn 2026-10-16): Cycle Time, Last Cycle Time,
+                         Tack Time, Last Tack Time — "Last" là tray vừa xong. Tray xong thì Cycle/Tack Time giữ số vừa chốt tới
+                         khi tray mới bắt đầu. Trước đó ba hàng, Pre-Cycle Time chung ô với Cycle Time. -->
                     <Border Margin="0,8,0,0" BorderThickness="1" BorderBrush="{StaticResource DividerBrush}">
                         <Grid>
                             <Grid.Resources>
-                                <!-- Cột trái chỉ 250 px: bảng còn ~218 px, ~201 px khi hiện thanh cuộn. Cỡ chữ/đệm dưới đây
-                                     để ô Cycle Time chứa vừa hai số "mm:ss.f" cả khi có thanh cuộn (đo 12/10). -->
+                                <!-- Cột trái chỉ 250 px: bảng còn ~218 px, ~201 px khi hiện thanh cuộn (đo 12/10). -->
                                 <Style x:Key="CtCell" TargetType="Border">
                                     <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
                                     <Setter Property="Padding" Value="6,3"/>
@@ -616,41 +685,39 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
                             <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,1">
-                                <TextBlock Text="{l:T Main.CtAvgPrevious}" Style="{StaticResource CtLabel}"/>
+                                <TextBlock Text="{l:T Main.CtTrayCurrent}" Style="{StaticResource CtLabel}"/>
                             </Border>
                             <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CtCell}" BorderThickness="0,0,0,1"
-                                    ToolTip="{l:T Main.CtAvgPreviousTip}">
-                                <TextBlock Text="{Binding LastAssyTrayAvg}" Style="{StaticResource CtValue}"/>
+                                    ToolTip="{l:T Main.CtTrayCurrentTip}">
+                                <TextBlock Text="{Binding AssyTrayElapsed}" Style="{StaticResource CtValue}"/>
                             </Border>
 
                             <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,1">
-                                <TextBlock Text="{l:T Main.CtAvgCurrent}" Style="{StaticResource CtLabel}"/>
+                                <TextBlock Text="{l:T Main.CtTrayPrevious}" Style="{StaticResource CtLabel}"/>
                             </Border>
                             <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CtCell}" BorderThickness="0,0,0,1"
+                                    ToolTip="{l:T Main.CtTrayPreviousTip}">
+                                <TextBlock Text="{Binding LastAssyTray}" Style="{StaticResource CtValue}"/>
+                            </Border>
+
+                            <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,1">
+                                <TextBlock Text="{l:T Main.CtAvgCurrent}" Style="{StaticResource CtLabel}"/>
+                            </Border>
+                            <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CtCell}" BorderThickness="0,0,0,1"
                                     ToolTip="{l:T Main.CtAvgCurrentTip}">
                                 <TextBlock Text="{Binding AssyTrayAvg}" Style="{StaticResource CtValue}"/>
                             </Border>
 
-                            <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,0">
-                                <TextBlock Text="{l:T Main.CtTrayCurrent}" Style="{StaticResource CtLabel}"/>
+                            <Border Grid.Row="3" Grid.Column="0" Style="{StaticResource CtCell}" BorderThickness="0,0,1,0">
+                                <TextBlock Text="{l:T Main.CtAvgPrevious}" Style="{StaticResource CtLabel}"/>
                             </Border>
-                            <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CtCell}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding AssyTrayElapsed}" Style="{StaticResource CtValue}"
-                                               ToolTip="{l:T Main.CtTrayCurrentTip}"/>
-                                    <!-- Pre-Cycle Time không có nhãn riêng trên bảng — tooltip ghi tên. -->
-                                    <TextBlock Text="{Binding LastAssyTray}" Style="{StaticResource CtValue}" Margin="8,0,0,0">
-                                        <TextBlock.ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{l:T Main.CtTrayPrevious}" FontWeight="SemiBold"/>
-                                                <TextBlock Text="{l:T Main.CtTrayPreviousTip}"/>
-                                            </StackPanel>
-                                        </TextBlock.ToolTip>
-                                    </TextBlock>
-                                </StackPanel>
+                            <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource CtCell}"
+                                    ToolTip="{l:T Main.CtAvgPreviousTip}">
+                                <TextBlock Text="{Binding LastAssyTrayAvg}" Style="{StaticResource CtValue}"/>
                             </Border>
                         </Grid>
                     </Border>
@@ -684,22 +751,20 @@
                 </Grid>
             </ScrollViewer>
 
-            <!-- Ba khung ảnh CAM (2026-09-28): bên trái, dưới tray đầu vào, là CAM bottom-up của TỪNG tay xếp chồng;
-                 bên phải, dưới tray lắp ráp — tray mà LocateTop soi —, là CAM top-down cao hết cột. Ảnh camera gần vuông
-                 nên khung cao-hẹp cho ảnh top-down to hơn khung trải ngang. Giãn lấp hết chiều cao còn lại. Mỗi khung: VmRenderControl
-                 do VisionMaster vẽ (bind trong MainView.xaml.cs) đứng TRÊN ảnh Bitmap chụp gần nhất — control tự vẽ
-                 được thì che mất ảnh dự phòng; nếu không vẽ được gì (nền trong suốt) thì ảnh dự phòng lộ ra. -->
+            <!-- Ba khung ảnh CAM cùng một hàng (Tuấn 2026-10-16; trước đó CAM bottom-up hai tay xếp chồng bên trái, ảnh
+                 dẹt chỉ cao hơn 100 px, top-down cao hết cột bên phải): CAM bottom-up Tool 1, Tool 2, rồi top-down. Ba card
+                 rộng bằng nhau, giãn lấp hết chiều cao còn lại; bảng số cao bằng nhau (CamReadoutHostStyle) nên ba khung
+                 ảnh thẳng hàng. Mỗi khung: VmRenderControl do VisionMaster vẽ (bind trong MainView.xaml.cs) đứng TRÊN ảnh
+                 Bitmap chụp gần nhất — control tự vẽ được thì che mất ảnh dự phòng; nếu không vẽ được gì (nền trong suốt)
+                 thì ảnh dự phòng lộ ra. -->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,4,8" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Column="0" Margin="0,0,4,0" Style="{StaticResource CardBorderStyle}">
                     <DockPanel>
                         <Border Style="{StaticResource CardHeaderStyle}">
                         <DockPanel>
@@ -715,7 +780,7 @@
                         </Border>
                         <!-- Kết quả Trigger mới nhất: ô được gán, độ lệch, điểm đích tuyệt đối (Tuấn 2026-10-01), dạng bảng
                              (ReadoutTemplate, 2026-10-07). Rê chuột xem bản chữ đầy đủ. -->
-                        <ContentControl Style="{StaticResource ToolReadoutHostStyle}"
+                        <ContentControl Style="{StaticResource CamReadoutHostStyle}"
                                         Content="{Binding Tool1Card}" ContentTemplate="{StaticResource ReadoutTemplate}"
                                         ToolTip="{Binding Tool1Readout}"/>
                         <Border Style="{StaticResource RenderHolderStyle}">
@@ -730,7 +795,7 @@
                     </DockPanel>
                 </Border>
 
-                <Border Grid.Row="1" Grid.Column="0" Margin="0,0,4,0" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Column="1" Margin="4,0,4,0" Style="{StaticResource CardBorderStyle}">
                     <DockPanel>
                         <Border Style="{StaticResource CardHeaderStyle}">
                         <DockPanel>
@@ -743,7 +808,7 @@
                                        Visibility="{Binding Tool2Card.HasRows, Converter={StaticResource BoolToVis}}"/>
                         </DockPanel>
                         </Border>
-                        <ContentControl Style="{StaticResource ToolReadoutHostStyle}"
+                        <ContentControl Style="{StaticResource CamReadoutHostStyle}"
                                         Content="{Binding Tool2Card}" ContentTemplate="{StaticResource ReadoutTemplate}"
                                         ToolTip="{Binding Tool2Readout}"/>
                         <Border Style="{StaticResource RenderHolderStyle}">
@@ -758,7 +823,7 @@
                     </DockPanel>
                 </Border>
 
-                <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="4,0,0,0" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Column="2" Margin="4,0,0,0" Style="{StaticResource CardBorderStyle}">
                     <DockPanel>
                         <Border Style="{StaticResource CardHeaderStyle}">
                         <DockPanel>
@@ -772,7 +837,7 @@
                         </DockPanel>
                         </Border>
                         <!-- Kết quả LocateTop mới nhất và Δ so với điểm teach hand-eye (master) của từng tay — bảng 3 hàng -->
-                        <ContentControl DockPanel.Dock="Top" Margin="0,0,0,4" Height="70" Focusable="False"
+                        <ContentControl Style="{StaticResource CamReadoutHostStyle}"
                                         Content="{Binding TopDownCard}" ContentTemplate="{StaticResource ReadoutTemplate}"
                                         ToolTip="{Binding TopDownReadout}"/>
                         <Border Style="{StaticResource RenderHolderStyle}">

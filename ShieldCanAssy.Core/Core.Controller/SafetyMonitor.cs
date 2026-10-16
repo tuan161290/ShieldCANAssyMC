@@ -140,7 +140,7 @@ namespace ShieldCanAssy.Core.Controller
             // ── Rèm sáng ──
             // Rèm bị cắt thì DỪNG NGAY mọi trục dù đang ở chế độ nào, vì người có thể thò tay qua rèm bất cứ lúc nào — kể
             // cả lúc thợ đang jog tay ở Manual — và chặn lệnh mới tới khi rèm thông. Chu trình Auto thì tạm dừng như STOP,
-            // rèm thông rồi bấm Start 1/Start 2 chạy tiếp đúng chỗ dở (Tuấn 2026-10-01) — không alarm, không RESET. Rèm
+            // rèm thông rồi bấm Start chạy tiếp đúng chỗ dở (Tuấn 2026-10-01) — không alarm, không RESET. Rèm
             // thông trở lại cũng không tự chạy: phải có người bấm Start.
             // Chỉ ghi Nhật ký khi có trục đang chạy thật sự bị dừng — máy đứng yên mà đi qua rèm thì không ghi (Tuấn 2026-10-07).
             if (ioOk && !curtainOk)

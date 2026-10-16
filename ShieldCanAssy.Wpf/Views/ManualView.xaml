@@ -239,9 +239,10 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Gốc — đèn báo ORG gộp vào chính nút Home (xanh + glow khi đã về gốc). -->
+                    <!-- Gốc — đèn báo ORG gộp vào chính nút Origin (xanh + glow khi đã về gốc). Nhãn "Origin"
+                         thay "Home" theo yêu cầu Tuấn 2026-10-16: mọi lệnh về gốc trên giao diện đều ghi Origin. -->
                     <Border Width="64" Style="{StaticResource AxisGroupCellStyle}">
-                        <Button Content="Home" Width="58" HorizontalAlignment="Left"
+                        <Button Content="Origin" Width="58" HorizontalAlignment="Left"
                                 Style="{StaticResource HomeButtonStyle}" Command="{Binding HomeCommand}"/>
                     </Border>
 
@@ -435,16 +436,12 @@
                         <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,0,0,8"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    Text="{l:T Manual.SimPanelNote}"/>
-                        <!-- Nút cứng (Cặp A/Cặp B/STOP) rồi tín hiệu bật/tắt (EMG/rèm/khí, hai cảm biến tray đầu vào),
+                        <!-- Nút cứng (Start/STOP) rồi tín hiệu bật/tắt (EMG/rèm/khí, hai cảm biến tray đầu vào),
                              cách nhau một khoảng rộng hơn — chung một WrapPanel cho đỡ tốn hàng. Nút Tắt còi cứng đã bỏ
-                             (2026-10-15). -->
+                             (2026-10-15); bốn nút Start như nhau nên một nút mô phỏng (2026-10-16). -->
                         <WrapPanel>
-                            <Button Content="{l:T Manual.SimArm}" Command="{Binding SimPressArmCommand}" Width="120" Margin="0,0,6,6"
-                                    ToolTip="{l:T Manual.SimArmTip}"/>
-                            <Button Content="{l:T Manual.SimStart1}" Command="{Binding SimPressStart1Command}" Width="150" Margin="0,0,6,6"
-                                    ToolTip="{l:T Manual.SimStart1Tip}"/>
-                            <Button Content="{l:T Manual.SimStart2}" Command="{Binding SimPressStart2Command}" Width="150" Margin="0,0,6,6"
-                                    ToolTip="{l:T Manual.SimStart2Tip}"/>
+                            <Button Content="{l:T Manual.SimStart}" Command="{Binding SimPressStartCommand}" Width="110" Margin="0,0,6,6"
+                                    ToolTip="{l:T Manual.SimStartTip}"/>
                             <Button Content="{l:T Manual.SimStop}" Command="{Binding SimPressStopCommand}" Width="110" Margin="0,0,16,6"/>
                             <Button Content="EMG" Command="{Binding SimToggleEmgCommand}" Width="90" Margin="0,0,6,6"/>
                             <Button Content="{l:T Manual.SimLightCurtain}" Command="{Binding SimToggleLightCurtainCommand}" Width="150" Margin="0,0,6,6"

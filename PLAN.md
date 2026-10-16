@@ -304,7 +304,9 @@ thái `Armed` chờ nạp tray) và **Cặp B** (2 nút, AND kiểu 2 tay thật
 không còn là cặp 2 tay:** hai nút riêng, bắt sườn lên, mỗi nút nạp một tray — **Start 1** (DI16)
 nạp tray đầu vào, **Start 2** (DI17) nạp tray lắp ráp; lúc `ARMED` nút nào cũng nạp tray của nó rồi
 khởi động chu trình. Thiếu tray nào thì bước cần tray đó đứng chờ (§3.4). `TwoHandGate` giữ lại trong
-code nhưng máy không dùng. Máy cũng **không có công tắc
+code nhưng máy không dùng. **Từ 2026-10-16 (khách hàng, Tuấn chốt) bốn nút DI14–DI17 tác dụng như nhau**
+(`IoMap.StartButtons` → `McControl.RequestGo`): bấm nút nào cũng nạp mọi tray cảm biến thấy rồi chạy, máy tự biết
+đang chờ tray nào — cụm A không còn chỉ Arm, Start 1/Start 2 không còn mỗi nút một tray (§3.4). Máy cũng **không có công tắc
 chìa AUTO/MANUAL vật lý** — chọn mode bằng nút mềm trên trang Main (`McControl.RequestSetMode`);
 bit DI06 dành cho công tắc chìa cũ nay bỏ trống, không tái dùng. Bảng dưới đây khớp
 `ShieldCanAssy.Core.Infor.IoMap` hiện tại — đây vẫn là bản dự kiến, chốt lại khi có sơ đồ điện.
@@ -325,10 +327,10 @@ bit DI06 dành cho công tắc chìa cũ nay bỏ trống, không tái dùng. B�
 | DI11 | Có tray lắp ráp | NO | |
 | DI12 | Có Tray đầu vào 1 (phía trong) | NO | cảm biến thêm 2026-10-15 — `IoMap.TrayIn1Present`. Trước là nút Tắt còi cứng, đã bỏ: tắt còi chỉ bằng nút mềm trang Main |
 | DI13 | Rèm sáng thông suốt | NC | bản sao tín hiệu để hiển thị/dừng chu trình; OSSD vẫn đi thẳng vào relay an toàn |
-| DI14 | Cặp A — nút Arm #1 (OR) | NO | bắt sườn lên; xem `IoMap.BtnArmA1` |
-| DI15 | Cặp A — nút Arm #2 (OR) | NO | bấm 1 trong 2 nút Cặp A là đủ |
-| DI16 | Cụm B — Start 1 (tray đầu vào) | NO | bắt sườn lên; nạp tray đầu vào, lúc ARMED thì chạy luôn (26/09 — trước là Cặp B nút #1, 2 tay) |
-| DI17 | Cụm B — Start 2 (tray lắp ráp) | NO | bắt sườn lên; nạp tray lắp ráp, lúc ARMED thì chạy luôn (26/09 — trước là Cặp B nút #2, 2 tay) |
+| DI14 | Nút Start cụm A #1 | NO | bắt sườn lên; bốn nút DI14–DI17 như nhau (16/10), xem `IoMap.BtnArmA1`. Trước là Cặp A — nút Arm (OR) |
+| DI15 | Nút Start cụm A #2 | NO | như DI14. Trước là Cặp A — nút Arm #2 |
+| DI16 | Nút Start cụm B #1 | NO | như DI14. 26/09–15/10: Start 1, chỉ nạp tray đầu vào; trước nữa là Cặp B nút #1, 2 tay |
+| DI17 | Nút Start cụm B #2 | NO | như DI14. 26/09–15/10: Start 2, chỉ nạp tray lắp ráp; trước nữa là Cặp B nút #2, 2 tay |
 
 | DO | Tín hiệu | Ghi chú |
 |---|---|---|
@@ -336,13 +338,14 @@ bit DI06 dành cho công tắc chìa cũ nay bỏ trống, không tái dùng. B�
 | DO02/DO03 | Van thổi tay #1 / #2 | |
 | DO04/DO05/DO06 | Đèn tháp đỏ / vàng / xanh | |
 | DO07 | Còi | |
-| DO08 | Đèn nút Arm (Cặp A) | **y hệt DO10** (Tuấn chốt 26/09): sáng im khi RUNNING/PAUSING, nhấp nháy 1 Hz khi ARMED, tắt khi máy đứng. Trước đó sáng khi state ∈ {IDLE, PAUSED} — lúc bấm Cặp A có tác dụng |
+| DO08 | Đèn nút Start cụm A (chung hai nút) | **y hệt DO10** (Tuấn chốt 26/09). Trước đó sáng khi state ∈ {IDLE, PAUSED} — lúc bấm Cặp A có tác dụng |
 | DO09 | Đèn nút STOP | sáng im mọi lúc **trừ khi đang chạy** (state ∈ {RUNNING, PAUSING}) — Tuấn đổi 26/09; trước đó là đèn "cần RESET", chỉ sáng khi còn alarm (không có nút RESET riêng, xem DI05) |
-| DO10 | Đèn nút Start Cụm B | sáng im khi máy **đang hoạt động** (state ∈ {RUNNING, PAUSING}); **nhấp nháy 1 Hz khi ARMED** — đã bấm RUN, chờ bấm Start 1/Start 2, nút RUN trên trang Main nháy xanh cùng lúc (26/09) — DO08 y hệt |
+| DO10 | Đèn nút Start cụm B #1 | sáng im khi **đang chạy** (state ∈ {RUNNING, PAUSING}); **mọi trạng thái khác tắt, không nhấp nháy** — kể cả ARMED, tạm dừng, chờ nạp tray (Tuấn 16/10). DO08 và DO15 y hệt. Trước 16/10: nháy 1 Hz khi ARMED/tạm dừng (26/09), nháy nhanh 0.1 s khi chờ nạp tray (01/10). Nút RUN trên trang Main vẫn nháy xanh lúc ARMED |
 | DO11 | Đèn chiếu sáng CAM1 (vision) | |
 | DO12 | Đèn chiếu sáng CAM2 (vision) | |
 | DO13 | Nhả phanh Z1 | 1 = nhả (cho phép di chuyển), 0 = khoá; điều khiển thẳng bằng Ezi-IO, không dùng phanh tích hợp của driver Panasonic — xem `McFunction.UpdateBrakeOutputs`/`RequestBrakeRelease` |
 | DO14 | Nhả phanh Z2 | như DO13 |
+| DO15 | Đèn nút Start cụm B #2 | y hệt DO10 |
 
 **Bắt sườn nút bấm** làm trong vòng lặp `IoConnect.RefreshAsync()`: giữ ảnh DI của chu kỳ
 trước, sườn lên = `now && !prev`, kèm bộ lọc chống dội 20 ms. Dùng sườn chứ không dùng
@@ -357,7 +360,7 @@ mức, nếu không thì nút bị kẹt hoặc dính tiếp điểm sẽ khiế
 | `NOT_HOMED` | đã kết nối, chưa về gốc | chỉ jog tay, tốc độ giới hạn |
 | `HOMING` | đang chạy chuỗi Origin | có, chỉ Routine_Origin |
 | `IDLE` | đã về gốc, đứng yên, sẵn sàng | có |
-| `ARMED` | đã bấm Cặp A sau khi chọn mode Auto — đứng yên, chờ nạp tray bằng Start 1/Start 2 (cụm B) mới chạy thật | không |
+| `ARMED` | sẵn sàng ở mode Auto (chọn AUTO là vào, hoặc nút START mềm) — đứng yên, bấm nút Start cứng mới chạy thật | không |
 | `RUNNING` | đang chạy Auto | có |
 | `PAUSING` | đã nhận STOP, đang chạy nốt tới checkpoint | có |
 | `PAUSED` | dừng ở checkpoint, giữ tiến độ và sản phẩm trên tay hút | không |
@@ -369,17 +372,18 @@ Chuyển trạng thái chính:
 
 ```
 INIT ──kết nối OK──► NOT_HOMED ──(nút Về gốc)──► HOMING ──đủ 7 trục OrgOk──► IDLE
-IDLE/PAUSED ──Cặp A (Arm)──► ARMED ──Start 1 hoặc Start 2──► RUNNING ──STOP──► PAUSING
+IDLE/PAUSED ──chọn AUTO / nút START mềm──► ARMED ──Start──► RUNNING ──STOP──► PAUSING
+IDLE/PAUSED (mode Auto) ──Start──► ARMED ──► RUNNING     (một lần bấm, 2026-10-16)
 PAUSING ──tới checkpoint──► PAUSED
-RUNNING ──bước cần tray đầu vào mà tray chưa vào──► WAIT_OPERATOR ──Start 1──► RUNNING
-RUNNING ──bước cần tray lắp ráp mà tray chưa vào──► WAIT_OPERATOR ──Start 2──► RUNNING
+RUNNING ──bước cần tray mà tray chưa vào──► WAIT_OPERATOR ──đặt tray, Start──► RUNNING
+        (Start = một trong bốn nút DI14–DI17, như nhau; nạp mọi tray cảm biến thấy)
         (hết tray đầu vào / đầy tray lắp ráp: S50 đưa tray đó ra vị trí chờ — tray ra khỏi máy)
 * bất kỳ ──EMG hở──► EMG              (ưu tiên tuyệt đối, cắt mọi routine)
 * bất kỳ ──alarm Error/Fatal──► ALARM
 EMG/ALARM ──RESET + hết nguyên nhân──► NOT_HOMED (mặc định) hoặc IDLE nếu còn giữ gốc
 ```
 
-**Về gốc không còn qua Cặp A/B** (chủ ý đơn giản hoá, 2026-08-20) — về gốc là chuyển động thật,
+**Về gốc không qua nút Start** (chủ ý đơn giản hoá, 2026-08-20) — về gốc là chuyển động thật,
 phải bấm nút "Về gốc" riêng trên UI, không mượn đường Arm/Go.
 
 `SafetyMonitor` chạy độc lập với các routine, chu kỳ ≤ 20 ms, và có quyền ép trạng thái
@@ -394,30 +398,55 @@ Ezi-IO, `ALM` của 7 trục, và **watchdog**: nếu vòng `McControl` không t
 
 | Nút | Điều kiện | Hành động |
 |---|---|---|
-| **Cặp A — Arm** (DI14 *hoặc* DI15, bắt sườn lên) | mode = Auto, state ∈ {IDLE, PAUSED} | → `ARMED`: đứng yên, chờ operator đặt tray. Không tự chạy — đây KHÔNG phải nút chạy máy. |
-| **Start 1** (DI16, bắt sườn lên) | state = `ARMED` | nạp tray đầu vào, kiểm an toàn + điều kiện §5.1 rồi → `RUNNING`. Tray đầu vào đã ở trong máy (chạy tiếp sau STOP) thì chỉ khởi động |
-| **Start 2** (DI17, bắt sườn lên) | state = `ARMED` | nạp tray lắp ráp rồi → `RUNNING`, như Start 1 |
-| **Start 1 / Start 2** | chu trình đang chạy hoặc `WAIT_OPERATOR` | chỉ nạp tray của nút đó; tray đã ở trong máy thì báo và bỏ qua |
+**Bốn nút Start như nhau (khách hàng, Tuấn chốt 2026-10-16)** — DI14, DI15 (cụm A), DI16, DI17 (cụm B), bắt
+sườn lên. Trước đó cụm A chỉ Arm, Start 1 chỉ nạp tray đầu vào, Start 2 chỉ nạp tray lắp ráp (26/09).
+
+| Nút | Điều kiện | Hành động |
+|---|---|---|
+| **Start** | state = `HELD` (tạm dừng) | chạy tiếp đúng chỗ dở |
+| **Start** | mode = Auto, state ∈ {IDLE, PAUSED} | vào `ARMED` rồi làm như dòng dưới — **một lần bấm** là chạy (16/10) |
+| **Start** | state = `ARMED` | nạp mọi tray chưa vào máy mà cảm biến thấy, kiểm an toàn + điều kiện §5.1 rồi → `RUNNING`. Không thấy tray nào vẫn chạy: bước cần tray đứng ở `WAIT_OPERATOR`, báo thiếu tray nào. Tray đã ở trong máy (chạy tiếp sau STOP) thì chỉ khởi động |
+| **Start** | chu trình đang chạy hoặc `WAIT_OPERATOR` | chỉ nạp tray: mọi tray còn thiếu mà cảm biến thấy. Không nạp được gì thì báo tray còn thiếu chưa thấy, hoặc hai tray đều đã ở trong máy |
+| **Start** | mode = Manual | không làm gì, báo chọn AUTO |
 
 **Nạp tray (Tuấn chốt 2026-09-26).** Tray đặt ở vị trí chờ của trục hàng (Y1/Y2); cảm biến phải
-thấy tray ở đó mới nhận nút. Tray hết theo sổ (đầu vào không còn ô có hàng, lắp ráp không còn ô trống) thì
-là tray mới, làm lại sổ; tray còn dở thì giữ sổ. Mỗi tray chỉ cho phép phần việc của nó:
+thấy tray ở đó mới nạp. Không có bước kiểm "tray đã thay chưa": cảm biến thấy tray là nhận (Tuấn chốt 16/10) —
+operator phải thay đủ mọi tray máy đẩy ra trước khi bấm Start. Tray hết theo sổ (đầu vào không còn ô có hàng, lắp ráp
+không còn ô trống) thì là tray mới, làm lại sổ; tray còn dở thì giữ sổ. Mỗi tray chỉ cho phép phần việc của nó:
 
 **Hai tray đầu vào (Tuấn chốt 2026-10-15).** Bàn Y1 đặt Tray 1 phía trong (DI12) và Tray 2 phía ngoài (DI10). Tray 2
 teach riêng lưới và cao độ ở trang Teaching, cùng số hàng/cột và thứ tự quét với Tray 1; chưa teach thì máy chạy một
-tray như trước. Start 1 nạp tray nào cảm biến thấy (thấy Tray 2 mà Tray 2 chưa teach thì không nhận). Sổ hai tray nối
+tray như trước. Start nạp tray nào cảm biến thấy (thấy Tray 2 mà Tray 2 chưa teach thì không nhận nút). Sổ hai tray nối
 nhau theo hàng: máy hút hết Tray 1 rồi sang Tray 2, hết **cả hai** mới đưa bàn ra vị trí chờ — sổ chỉ làm lại khi đã
-hết cả hai. Trang Main hiện một tray mỗi lúc, tự theo tray đang chạy, nút Select xem tray kia.
+hết cả hai. Card tray đầu vào ở trang Main xếp lưới Tray 1 trên Tray 2 (2026-10-16, trước đó một tray mỗi lúc với nút
+Select); card tray lắp ráp giãn cao bằng.
+
+**Chọn ô (Tuấn chốt 2026-10-16).** Ở AUTO, bấm ô trên lưới tray trang Main để chọn/bỏ chọn (`McControl.ToggleCellSelection`,
+`TrayState.Selected`). Có ô được chọn thì chu trình chỉ làm trên các ô đó: tray đầu vào chỉ hút ô đã chọn, tray lắp ráp
+chỉ soi và đặt vào ô đã chọn — mọi chỗ chọn ô của `Routine_Auto` qua `TrayState.InScope`. Chưa chọn ô nào = cả tray.
+- **Làm hết ô đã chọn = xong tray:** S50 đưa tray ra vị trí chờ như hết/đầy tray; ô không chọn còn việc thành `Skipped`
+  để tray đặt vào sau là tray mới (`Routine_Auto.CloseSelection`).
+- **Lựa chọn chỉ cho tray đang làm:** xong tray thì xoá, mở lại App cũng mất. Nạp tray mới KHÔNG xoá — lúc chờ thay tray
+  chọn trước được cho tray sắp đặt vào.
+- Chỉ chọn được ô còn việc (đầu vào ô có hàng, lắp ráp ô trống), để bấm nhầm ô đã xong không thành "xong tray"; tray đã
+  hết, đang chờ thay thì ô nào cũng chọn được. Bỏ chọn lúc nào cũng được; nút "Bỏ chọn (n)" trên tiêu đề card xoá hết.
+- Đổi lựa chọn lúc máy đang chạy có hiệu lực từ lần giao ô kế tiếp; ô đang làm dở không đổi. Chạy rà không xét lựa chọn.
+- Ô đã chọn viền xanh đậm, ô ngoài lựa chọn vẽ mờ.
 
 - **Chưa có tray lắp ráp:** không soi. Tray đầu vào đã nạp thì Y1 đưa tray vào tới hàng hút kế tiếp rồi
-  chờ Start 2 (TH1).
+  chờ tray lắp ráp (TH1).
 - **Chưa có tray đầu vào:** không hút. Tray lắp ráp đã nạp thì chỉ soi hàng đầu (hàng của ô trống đầu
-  tiên) rồi chờ Start 1 (TH2); nạp xong mới quét nốt và hút. Hàng đang cầm trên tay thì vẫn soi và đặt nốt.
+  tiên) rồi chờ tray đầu vào (TH2); nạp xong mới quét nốt và hút. Hàng đang cầm trên tay thì vẫn soi và đặt nốt.
   Soi hỏng mà không trả về được tray đầu vào (tray chưa vào máy, hoặc tray mới đầy hàng — không rõ ô nguồn)
   thì báo **5031**, người lấy hàng ra rồi RESET (Tuấn chốt 2026-09-26).
 - **Hết tray đầu vào / đầy tray lắp ráp:** S50 đưa tray đó ra vị trí chờ — tray ra khỏi máy, bước cần nó
-  chờ nút như trên. Về gốc cũng đưa cả hai tray ra.
-| **(nút mềm) Về gốc** | state = `NOT_HOMED` | chạy `Routine_Origin` — nút riêng trên UI, không qua Cặp A/B |
+  chờ như trên tới lần bấm Start sau. Về gốc cũng đưa cả hai tray ra.
+
+Ba đèn nút Start (DO08, DO10, DO15) báo y hệt nhau — xem §3.2.
+
+| Nút | Điều kiện | Hành động |
+|---|---|---|
+| **(nút mềm) Về gốc** | state = `NOT_HOMED` | chạy `Routine_Origin` — nút riêng trên UI, không qua nút Start |
 | **STOP** lần 1 | state = RUNNING | → PAUSING: chạy nốt tới checkpoint an toàn gần nhất rồi → PAUSED. Sản phẩm không bị bỏ giữa chừng. |
 | **STOP** lần 2 (hoặc giữ > 2 s) | state = PAUSING | dừng giảm tốc **tất cả** trục ngay tại chỗ, **giữ servo ON, giữ vacuum** → PAUSED với cờ `UnsafePause = true` |
 | **STOP** | state = HOMING | huỷ origin, tất cả trục decel stop → NOT_HOMED |
@@ -426,10 +455,10 @@ hết cả hai. Trang Main hiện một tray mỗi lúc, tự theo tray đang ch
 | **Tắt còi** (nút mềm trang Main — nút cứng đã bỏ 2026-10-15) | luôn | tắt DO07, **không** xoá alarm |
 | **Chọn mode Auto/Manual** (nút mềm trang Main — không có công tắc chìa vật lý) | | đổi mode. Nếu đang RUNNING mà chuyển về Manual → xử lý như STOP lần 1. Nếu đang ARMED mà chuyển về Manual → về lại IDLE. |
 
-**Nút mềm "START" trên UI chỉ gọi được `RequestArm()` (Cặp A) — không có đường nào từ màn hình
-cảm ứng chạy thẳng máy được nữa** (2026-08-20, chủ ý). Muốn chạy thật (vào `RUNNING` từ `ARMED`,
-hoặc nạp tray lúc `WAIT_OPERATOR`) bắt buộc phải bấm nút cứng Start 1/Start 2 ở cụm B — không có
-nút mềm nào gọi `RequestGoInput()`/`RequestGoAssy()`. (Trước 26/09 là cặp 2 tay AND qua `TwoHandGate`.)
+**Nút mềm "START" trên UI chỉ gọi được `RequestArm()` (vào `ARMED`) — không có đường nào từ màn hình
+cảm ứng chạy thẳng máy được nữa** (2026-08-20, chủ ý). Muốn chạy thật (vào `RUNNING`, hoặc nạp tray lúc
+`WAIT_OPERATOR`) bắt buộc phải bấm một nút Start cứng — không có nút mềm nào gọi `RequestGo()`. (Trước 26/09
+cụm B là cặp 2 tay AND qua `TwoHandGate`.)
 
 **Checkpoint an toàn** là ranh giới giữa các state của chuỗi Auto (S00/S10/S11/…/S50).
 Routine chỉ kiểm tra `PauseRequested` tại các ranh giới này, **không kiểm tra giữa lúc
@@ -460,7 +489,7 @@ Z đang hạ hoặc đang chuyển vacuum** — dừng ở đó để lại máy
 |---|---|---|---|---|
 | RUNNING | | | sáng | |
 | IDLE / đã sẵn sàng | | sáng | | |
-| ARMED (đã bấm Cặp A, chờ Cặp B) | | | nháy 1 Hz | |
+| ARMED (sẵn sàng, chờ bấm Start) | | | nháy 1 Hz | |
 | PAUSED | | sáng | | |
 | WAIT_OPERATOR (đổi tray, xác nhận) | | nháy 1 Hz | | ngắt quãng |
 | Warning (tỉ lệ NG cao, sắp hết tray, calib quá hạn) | | nháy 0.5 Hz | sáng | |
@@ -891,7 +920,7 @@ mặt trên sản phẩm. Bỏ sản phẩm ra thì đầu hút dừng đúng ch
 dày sản phẩm. Chạy rà đi đúng cao độ đã teach và **không có** nhánh "hút hụt thì hạ sâu thêm" của §5.4.
 
 **Khởi động vẫn qua nút cứng.** Nút gạt ở trang Main chỉ *chọn chế độ*; máy chạy thật vẫn bắt buộc
-chìa AUTO → Armed → bấm Start 1 ở cụm B — §3.2 không có ngoại lệ nào, kể cả chu trình
+chọn AUTO → bấm nút Start cứng — §3.2 không có ngoại lệ nào, kể cả chu trình
 không sản phẩm. Cờ chế độ **không lưu xuống đĩa**: mở lại app là tắt.
 
 Chặn: đang chạy thì không gạt được; tay hút còn sản phẩm thì không bật được (không có bước nhả nào
@@ -1426,7 +1455,7 @@ cụm phát sinh trong vòng 200 ms được đánh `IsRootCause = true`, UI hi�
   operator bấm RESET. Tự xoá thì máy có thể tự chạy lại khi lỗi chập chờn.
 - **Lỗi nào cũng phải RESET xác nhận** (Tuấn chốt 2026-09-26): alarm mức `Warning` hết nguyên nhân
   cũng nằm lại tới khi bấm RESET, không tự xoá nữa. Còn alarm đã hết nguyên nhân mà chưa RESET thì
-  Cặp A và Start 1/Start 2 (kể cả nạp tray giữa chừng) bị chặn, báo "bấm RESET trước". Alarm còn nguyên nhân
+  nút START mềm và nút Start cứng (kể cả nạp tray giữa chừng) bị chặn, báo "bấm RESET trước". Alarm còn nguyên nhân
   (vd. 5020 lúc đang chờ đổi tray, 4090 hiệu chuẩn quá hạn) không chặn — RESET chưa gỡ được chúng.
   Thao tác tay (Jog, Move, về gốc) không bị chặn vì Warning.
 - Banner alarm nằm ở `ShellViewModel` → **hiện trên mọi trang**, không riêng trang Main.

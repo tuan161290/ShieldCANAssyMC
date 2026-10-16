@@ -62,7 +62,7 @@ namespace ShieldCanAssy.Wpf.ViewModels
             CheckFlowOutputsCommand = new RelayCommand(async () => await RunFlowOutputCheckAsync());
 
             // Chạy rà và tay hút chạy Auto chuyển từ trang Main sang đây (Tuấn 2026-10-08). Cùng lệnh McControl: chỉ CHỌN
-            // chế độ, không chạy máy (vẫn phải qua Start 1/Start 2), có hiệu lực ngay không cần bấm Lưu, và bị từ chối khi
+            // chế độ, không chạy máy (vẫn phải qua nút Start cứng), có hiệu lực ngay không cần bấm Lưu, và bị từ chối khi
             // máy đang chạy — lý do hiện ở dòng Status.Message dưới nút.
             ToggleDryRunCommand = new RelayCommand(() => McControl.SetDryRun(!McControl.Status.DryRun));
             SetOnlyNozzleCommand = new RelayCommand<string>(p =>

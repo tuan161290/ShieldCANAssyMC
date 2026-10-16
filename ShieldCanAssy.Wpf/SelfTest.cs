@@ -63,7 +63,8 @@ namespace ShieldCanAssy.Wpf
                 TestSinglePointAlignMath, TestModelManagement, TestAxisScale, TestServoModbusWrites, TestMoveCompletionRule, TestMoveIncrement,
                 TestRotaryWrap, TestPlanarHomeRequiresZHomed, TestZDecelPoint, TestSettleBeforeCapture, TestTrayGridZigzag,
                 TestRoutineCalib, TestGlobalVarCreate, TestVmFlowOutputCheck,
-                TestAutoCycle, TestAssyPreScan, TestResumeIntegrity, TestTrayChangeover, TestTwoInputTrays, TestAssyTrayFull, TestDryRun,
+                TestAutoCycle, TestAssyPreScan, TestResumeIntegrity, TestTrayChangeover, TestTwoInputTrays, TestCellSelection,
+                TestAssyTrayFull, TestDryRun,
                 TestVmContract, TestVmTwinMath, TestVmCalib, TestVmAutoCycle, TestVmStepCheck, TestVmFaults, TestVmHalts, TestVmGate,
                 TestTwoHandGate, TestBrakeInterlock, TestEmergencyBrakeRelease, TestLanguageTables
             };
@@ -531,9 +532,10 @@ namespace ShieldCanAssy.Wpf
                 // Lưới trang Main: ô thứ k trong danh sách phải nằm ở hàng k/Cols, cột k%Cols.
                 var vm = new ViewModels.TrayGridViewModel("kiểm tra", "", null);
                 vm.Sync(tray);
+                var grid = vm.Groups[0].Cells;
                 bool placed = true;
-                for (int k = 0; k < vm.Cells.Count; k++)
-                    if (vm.Cells[k].Row != k / tray.Cols || vm.Cells[k].Col != k % tray.Cols) placed = false;
+                for (int k = 0; k < grid.Count; k++)
+                    if (grid[k].Row != k / tray.Cols || grid[k].Col != k % tray.Cols) placed = false;
                 Check($"Lưới vẽ theo vị trí hình học, hàng trên xuống dưới trái sang phải ({tag})", placed);
 
                 // Trạng thái phải bám đúng Ô, không bám vị trí trong danh sách. Đánh dấu ô ĐẦU TIÊN máy ghé
@@ -541,8 +543,8 @@ namespace ShieldCanAssy.Wpf
                 int mark = tray.IndexOf(1, tray.Cols - 1);
                 tray.Set(mark, ECellState.Ok);
                 vm.Sync(tray);
-                var atRight = vm.Cells[1 * tray.Cols + (tray.Cols - 1)];
-                var atLeft = vm.Cells[1 * tray.Cols];
+                var atRight = grid[1 * tray.Cols + (tray.Cols - 1)];
+                var atLeft = grid[1 * tray.Cols];
                 Check($"Trạng thái hiện đúng ô hình học, không lệch sang ô khác ({tag})",
                     atRight.State == ECellState.Ok && atLeft.State != ECellState.Ok,
                     $"phải {atRight.State}, trái {atLeft.State}");
@@ -2043,10 +2045,16 @@ namespace ShieldCanAssy.Wpf
             Thread.Sleep(200);
             Check("Chìa ở MANUAL thì START bị từ chối",
                 McControl.Status.State != EMcState.Running, McControl.Status.Message);
+            McControl.Status.Message = "";
+            io.SimPress(IoMap.BtnGoB2);
+            Thread.Sleep(200);
+            Check("Ở MANUAL thì nút Start cứng không chạy máy, không vào sẵn sàng — bảo chọn AUTO",
+                McControl.Status.State != EMcState.Running && McControl.Status.State != EMcState.Armed &&
+                (McControl.Status.Message ?? "").Contains("AUTO"), McControl.Status.StateText + " — " + McControl.Status.Message);
 
             McControl.RequestSetMode(EMcMode.Auto);
             WaitUntil(() => McControl.Status.Mode == EMcMode.Auto, 2000);
-            Check("Chọn AUTO là vào luôn trạng thái sẵn sàng, không phải bấm Cặp A (Tuấn 2026-09-30)",
+            Check("Chọn AUTO là vào luôn trạng thái sẵn sàng, không phải bấm thêm nút (Tuấn 2026-09-30)",
                 WaitUntil(() => McControl.Status.State == EMcState.Armed, 1000),
                 McControl.Status.StateText + " — " + McControl.Status.Message);
 
@@ -2078,12 +2086,13 @@ namespace ShieldCanAssy.Wpf
             bool started = WaitUntil(() => McControl.Status.State == EMcState.Running, 3000);
             Check("Chìa AUTO + START thì chu trình chạy", started, McControl.Status.Message);
 
-            // Đèn nút Start Cụm B: báo trạng thái hoạt động, sáng khi đang chạy Auto (Tuấn yêu
+            // Đèn ba nút Start: báo trạng thái hoạt động, sáng khi đang chạy Auto (Tuấn yêu
             // cầu, 2026-09-04) — xem McControl.UpdateOutputs. DO này do UpdateOutputs() ghi mỗi
             // tick quét, có thể trễ tối đa một tick sau khi Status.State đổi (Routine_Auto đổi
             // State độc lập với vòng quét) — WaitUntil thay vì đọc tức thời, tránh test giả-lỗi.
-            Check("Đèn Start Cụm B sáng khi đang chạy Auto",
-                WaitUntil(() => io.GetDo(IoMap.DoLampStartBtnB), 500));
+            Check("Đèn ba nút Start sáng khi đang chạy Auto",
+                WaitUntil(() => io.GetDo(IoMap.DoLampStartBtn) && io.GetDo(IoMap.DoLampStartBtnB) &&
+                                io.GetDo(IoMap.DoLampStartBtnB2), 500));
             // Đèn nút STOP sáng mọi lúc trừ khi đang chạy (Tuấn đổi 2026-09-26).
             Check("Đèn nút STOP tắt khi đang chạy Auto",
                 WaitUntil(() => !io.GetDo(IoMap.DoLampResetBtn), 500));
@@ -2113,12 +2122,13 @@ namespace ShieldCanAssy.Wpf
             var scanVm = new ViewModels.TrayGridViewModel("kiểm tra", "", null);
             scanVm.Sync(run.AssyTray, scanned);
             // ViewModel chỉ ra trạng thái hiển thị (Look), màu do converter TrayCellBrush của App.xaml quyết (MVVM, 2026-10-08).
-            var scannedEmpty = scanVm.Cells.Where(c => c.State == ECellState.Empty && c.IsScanned).ToList();
+            var scanCells = scanVm.Groups[0].Cells;
+            var scannedEmpty = scanCells.Where(c => c.State == ECellState.Empty && c.IsScanned).ToList();
             Check("Ô tray lắp ráp đã quét OK, còn trống → Look = Scanned",
                 scannedEmpty.Count > 0 && scannedEmpty.All(c => c.Look == Models.ETrayCellLook.Scanned),
                 $"{scanned.Length} ô đã quét, {scannedEmpty.Count} ô còn trống");
             Check("Ô đã đặt OK vẫn là Look = Ok dù đã quét",
-                scanVm.Cells.Where(c => c.State == ECellState.Ok).All(c => c.Look == Models.ETrayCellLook.Ok));
+                scanCells.Where(c => c.State == ECellState.Ok).All(c => c.Look == Models.ETrayCellLook.Ok));
             var cellBrush = System.Windows.Application.Current?.TryFindResource("TrayCellBrush") as System.Windows.Data.IValueConverter;
             System.Windows.Media.Color? Paint(Models.ETrayCellLook look) =>
                 (cellBrush?.Convert(look, typeof(System.Windows.Media.Brush), null, System.Globalization.CultureInfo.InvariantCulture)
@@ -2186,15 +2196,15 @@ namespace ShieldCanAssy.Wpf
             Check("Tạm dừng: đèn nút STOP sáng, đèn tháp vàng",
                 WaitUntil(() => io.GetDo(IoMap.DoLampResetBtn) && McControl.Status.TowerLamp == ETowerLamp.Yellow, 500),
                 McControl.Status.TowerLamp.ToString());
-            io.SimPress(IoMap.BtnGoB1);
-            Check("Tạm dừng rồi bấm Start 1 thì chạy tiếp",
+            io.SimPress(IoMap.BtnArmA1);     // nút cụm A — bốn nút Start như nhau (2026-10-16)
+            Check("Tạm dừng rồi bấm Start (nút cụm A #1) thì chạy tiếp",
                 WaitUntil(() => McControl.Status.State == EMcState.Running, 1000), McControl.Status.Message);
             Check("Chạy tiếp làm ra thêm sản phẩm, không báo lỗi nào",
                 WaitUntil(() => run.CountOk > okHeld, 120000) && !AlarmManager.HasError,
                 $"OK {okHeld} → {run.CountOk} — {McControl.Status.Message}");
 
             // Rèm sáng bị cắt lúc đang chạy (Tuấn 2026-10-01): mọi trục dừng như STOP, không alarm; rèm còn cắt thì Start
-            // không chạy tiếp; rèm thông rồi bấm Start 2 thì chạy tiếp đúng chỗ dở, không cần RESET.
+            // không chạy tiếp; rèm thông rồi bấm Start thì chạy tiếp đúng chỗ dở, không cần RESET.
             var sysCurtain = Core.Data.McDataManager.SysData;
             bool savedCurtain = sysCurtain.HasLightCurtain;
             sysCurtain.HasLightCurtain = true;
@@ -2211,16 +2221,16 @@ namespace ShieldCanAssy.Wpf
                 McControl.Motion.AxisList.Select((a, i) => Math.Abs(a.CurrentPos - curtainPos[i]) < 1e-6).All(b => b) &&
                 !McControl.Motion.AnyBusy && run.CountOk == okCurtain && run.AutoState == stepCurtain,
                 $"bước {stepCurtain} → {run.AutoState}");
-            io.SimPress(IoMap.BtnGoB2);
+            io.SimPress(IoMap.BtnArmA2);
             Thread.Sleep(300);
-            Check("Rèm còn bị cắt thì Start 2 không chạy tiếp, báo rõ vì rèm",
+            Check("Rèm còn bị cắt thì Start không chạy tiếp, báo rõ vì rèm",
                 McControl.Status.State == EMcState.Held && McControl.Status.Message.Contains("rèm"), McControl.Status.Message);
             io.SimSet(IoMap.LightCurtainOk, true);
             Thread.Sleep(200);
             Check("Rèm thông trở lại thì máy KHÔNG tự chạy — vẫn tạm dừng chờ Start",
                 McControl.Status.State == EMcState.Held && run.AutoState == stepCurtain, McControl.Status.StateText);
             io.SimPress(IoMap.BtnGoB2);
-            Check("Rèm thông rồi bấm Start 2 thì chạy tiếp đúng chỗ dở, không cần RESET",
+            Check("Rèm thông rồi bấm Start thì chạy tiếp đúng chỗ dở, không cần RESET",
                 WaitUntil(() => McControl.Status.State == EMcState.Running, 1000) &&
                 WaitUntil(() => run.AutoState != stepCurtain || run.CountOk > okCurtain, 30000) && !AlarmManager.HasError,
                 $"bước {stepCurtain} → {run.AutoState} — {McControl.Status.Message}");
@@ -2237,8 +2247,9 @@ namespace ShieldCanAssy.Wpf
             Check("Chạy nốt tới checkpoint rồi mới dừng", paused, McControl.Status.Message);
             Check("Dừng ở ranh giới giữa hai bước, không dừng giữa hành trình",
                 !run.UnsafePause);
-            Check("Đèn Start Cụm B tắt khi chu trình đã dừng ở checkpoint",
-                WaitUntil(() => !io.GetDo(IoMap.DoLampStartBtnB), 500));
+            Check("Đèn ba nút Start tắt khi chu trình đã dừng ở checkpoint",
+                WaitUntil(() => !io.GetDo(IoMap.DoLampStartBtn) && !io.GetDo(IoMap.DoLampStartBtnB) &&
+                                !io.GetDo(IoMap.DoLampStartBtnB2), 500));
             Check("Đèn nút STOP sáng lại khi chu trình đã dừng",
                 WaitUntil(() => io.GetDo(IoMap.DoLampResetBtn), 500));
             Check("Dừng thì đèn tháp vàng",
@@ -2310,9 +2321,14 @@ namespace ShieldCanAssy.Wpf
             // Không vào Armed thật: thoát Armed phải gạt về Manual, máy ra Idle chứ không về Paused như bài sau cần.
             AlarmManager.RaiseEvent(AlarmCode.PlaceFailed, "SelfTest");
             McControl.RequestArm();
-            Check("Còn lỗi chưa RESET thì Cặp A bị chặn, báo bấm RESET",
+            Check("Còn lỗi chưa RESET thì nút START mềm bị chặn, báo bấm RESET",
                 WaitUntil(() => (McControl.Status.Message ?? "").Contains("bấm RESET trước"), 2000) &&
                 McControl.Status.State == EMcState.Paused, McControl.Status.Message);
+            McControl.Status.Message = "";
+            io.SimPress(IoMap.BtnGoB1);
+            Check("Còn lỗi chưa RESET thì nút Start cứng lúc máy đứng cũng bị chặn — không vào Armed, không chạy",
+                WaitUntil(() => (McControl.Status.Message ?? "").Contains("bấm RESET trước"), 2000) &&
+                McControl.Status.State == EMcState.Paused, McControl.Status.StateText + " — " + McControl.Status.Message);
             McControl.RequestReset();
             Check("RESET xoá 5003", WaitUntil(() => !AlarmManager.IsActive(AlarmCode.PlaceFailed), 2000));
             Check("RESET xong thì không còn lỗi nào chờ xác nhận", AlarmManager.PendingReset == null,
@@ -2446,6 +2462,42 @@ namespace ShieldCanAssy.Wpf
 
                 McControl.RequestPause();
                 WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
+
+                // Init giữa hàng rồi Start lại (Tuấn 2026-10-16): tray đã ra vị trí chờ nên bỏ số quét của hàng đang làm —
+                // lưới hết ô xanh nhạt ngay — và chụp lại hàng đó từ ô trống đầu tiên. Trước đó Init giữ nguyên số quét cũ.
+                int scannedBeforeInit = McControl.AutoRoutine.AssyScannedCells.Length;
+                McControl.RequestInit();
+                WaitUntil(() => McControl.Status.State == EMcState.Homing, 2000);
+                bool initDone = WaitUntil(() => McControl.Status.State != EMcState.Homing, 60000);
+                Check("Init: bỏ số quét tray lắp ráp — lưới hết ô đã quét",
+                    initDone && scannedBeforeInit > 0 && McControl.AutoRoutine.AssyScannedCells.Length == 0,
+                    $"trước Init {scannedBeforeInit} ô đã quét, sau {McControl.AutoRoutine.AssyScannedCells.Length} — {McControl.Status.Message}");
+
+                var assy = run.AssyTray;
+                int firstFree = Enumerable.Range(0, assy.CellCount).Where(i => assy.Get(i) == ECellState.Empty)
+                    .DefaultIfEmpty(-1).First();
+                int freeRow = -1, unusedCol;
+                if (firstFree >= 0) assy.RowCol(firstFree, out freeRow, out unusedCol);
+                int rowFree = Enumerable.Range(0, assy.CellCount).Count(i =>
+                {
+                    int r, c;
+                    assy.RowCol(i, out r, out c);
+                    return r == freeRow && assy.Get(i) == ECellState.Empty;
+                });
+                int okBeforeRescan = run.CountOk;
+                int locateBeforeRescan = vision?.LocateTopCount ?? 0;
+                McControl.RequestStart();
+                bool placedAfterInit = WaitUntil(() => run.CountOk > okBeforeRescan, 120000);
+                int rescanned = (vision?.LocateTopCount ?? 0) - locateBeforeRescan;
+                var rescan = McControl.AutoRoutine.AssyScannedCells;
+                Check("Init xong Start lại: chụp lại hàng đang làm từ ô trống đầu tiên, đủ mọi ô trống của hàng rồi mới đặt",
+                    placedAfterInit && firstFree >= 0 && rescan.Length > 0 && rescan[0] == firstFree &&
+                    rescanned >= rowFree && rescanned <= rowFree + cols,
+                    $"ô trống đầu {firstFree} (hàng {freeRow}, {rowFree} ô trống), ô quét đầu {(rescan.Length > 0 ? rescan[0] : -1)}, " +
+                    $"LocateTop +{rescanned}, OK={run.CountOk} — {McControl.Status.Message}");
+
+                McControl.RequestPause();
+                WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
             }
             finally { sysData.ScanAssyByRow = false; }
 
@@ -2548,14 +2600,16 @@ namespace ShieldCanAssy.Wpf
         }
 
         /// <summary>
-        /// Nạp tray bằng nút cứng cụm B (Tuấn chốt 2026-09-26): Start 1 chỉ nạp tray đầu vào, Start 2 chỉ nạp tray lắp ráp.
-        /// Thiếu tray nào thì bước cần tray đó đứng chờ — chưa có tray lắp ráp thì không soi, chưa có tray đầu vào thì hai
-        /// tay hút không làm gì. TH1: Start 1 trước, tray đầu vào đi vào rồi chờ Start 2. TH2: Start 2 trước, chỉ soi hàng
-        /// đầu tray lắp ráp rồi chờ Start 1. Hết tray đầu vào / đầy tray lắp ráp thì tray đó ra vị trí chờ, chờ đúng nút.
+        /// Nạp tray bằng nút Start cứng — bốn nút như nhau (khách hàng, Tuấn chốt 2026-10-16): nút nào cũng nạp mọi tray
+        /// cảm biến thấy ở vị trí chờ, máy tự biết đang chờ tray nào. Thiếu tray nào thì bước cần tray đó đứng chờ — chưa có
+        /// tray lắp ráp thì không soi, chưa có tray đầu vào thì hai tay hút không làm gì (Tuấn chốt 2026-09-26). Bài dựng
+        /// từng cảnh bằng cảm biến tray, không bằng nút: TH1 chỉ có tray đầu vào — tray đi vào rồi chờ tray lắp ráp; TH2
+        /// chỉ có tray lắp ráp — soi hàng đầu rồi chờ tray đầu vào. Hết tray đầu vào / đầy tray lắp ráp thì tray đó ra vị
+        /// trí chờ, Start nạp lại.
         /// </summary>
         private static void TestTrayChangeover()
         {
-            Section("Nạp tray bằng Start 1 / Start 2, hết tray và đổi tray");
+            Section("Nạp tray bằng nút Start, hết tray và đổi tray");
 
             var run = Core.Data.McDataManager.RunData;
             var io = (FakeIo)McControl.Io;
@@ -2609,7 +2663,7 @@ namespace ShieldCanAssy.Wpf
             {
                 WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
 
-                // ── Hết tray đầu vào giữa chừng: tray ra vị trí chờ, chờ Start 1 ──
+                // ── Hết tray đầu vào giữa chừng: tray ra vị trí chờ, chờ Start ──
                 prep(ECellState.Ng, ECellState.Empty);
                 run.InputTray.CurrentIndex = 0;
                 run.InputTray.Set(0, ECellState.Loaded);
@@ -2622,11 +2676,11 @@ namespace ShieldCanAssy.Wpf
                     !AlarmManager.IsActive(AlarmCode.TrayEmpty) && AlarmManager.PendingReset == null,
                     AlarmManager.PendingReset?.Code.ToString());
                 Check("Hết tray đầu vào: trục " + rowIn + " đưa tray ra vị trí chờ", atStandby(rowIn), posText(rowIn));
-                Check("Thông báo bảo thay tray đầu vào rồi bấm Start 1",
-                    msg().Contains("tray đầu vào") && msg().Contains("Start 1"), msg());
+                Check("Thông báo bảo thay tray đầu vào rồi bấm Start",
+                    msg().Contains("tray đầu vào") && msg().Contains("bấm Start"), msg());
 
                 // STOP lúc đang chờ tray: chu trình thoát khỏi vòng chờ, máy phải về DỪNG. Lỗi cũ để nguyên
-                // CHỜ THAO TÁC nên nút cụm B chỉ còn "xác nhận" cho một chu trình đã thoát — máy kẹt.
+                // CHỜ THAO TÁC nên nút Start chỉ còn "xác nhận" cho một chu trình đã thoát — máy kẹt.
                 McControl.RequestStop();
                 Check("STOP lúc chờ tray thì máy về DỪNG, không kẹt ở CHỜ THAO TÁC",
                     WaitUntil(() => McControl.Status.State == EMcState.Paused, 5000), VmState());
@@ -2640,59 +2694,67 @@ namespace ShieldCanAssy.Wpf
                 AlarmManager.RaiseEvent(AlarmCode.RoutineCrashed, "SelfTest");
                 bool inAlarm = WaitUntil(() => McControl.Status.State == EMcState.Alarm, 2000);
                 resetAndArm();
-                Check("Lỗi lúc chờ đổi tray: vào LỖI, RESET xong Cặp A vào lại được trạng thái sẵn sàng",
+                Check("Lỗi lúc chờ đổi tray: vào LỖI, RESET xong nút START mềm vào lại được trạng thái sẵn sàng",
                     inAlarm && McControl.Status.State == EMcState.Armed, VmState());
-                Check("Cặp A nói rõ Start 1 nạp tray đầu vào, Start 2 nạp tray lắp ráp",
-                    msg().Contains("Start 1") && msg().Contains("Start 2"), msg());
-                // Armed: đèn START của CẢ HAI cụm nhấp nháy cùng nhịp (Tuấn 2026-09-26) — phải thấy cả hai cùng sáng,
-                // cùng tắt, rồi cùng sáng lại.
-                Func<bool> bothOn = () => io.GetDo(IoMap.DoLampStartBtn) && io.GetDo(IoMap.DoLampStartBtnB);
-                Func<bool> bothOff = () => !io.GetDo(IoMap.DoLampStartBtn) && !io.GetDo(IoMap.DoLampStartBtnB);
-                Check("Armed: đèn START cụm A và cụm B cùng nhấp nháy — thấy sáng, tắt, rồi sáng lại",
-                    WaitUntil(bothOn, 1500) && WaitUntil(bothOff, 1500) && WaitUntil(bothOn, 1500));
+                Check("Sẵn sàng: bảo đặt tray rồi bấm Start", msg().Contains("bấm Start"), msg());
+                // Đèn ba nút Start chỉ sáng khi đang chạy, không nhấp nháy (Tuấn 2026-10-16): Armed thì tắt suốt — soi đủ
+                // lâu hơn một nhịp nháy 1 Hz cũ mà không lần nào sáng.
+                var lampDo = new[] { IoMap.DoLampStartBtn, IoMap.DoLampStartBtnB, IoMap.DoLampStartBtnB2 };
+                Func<int, int> lampOnCount = ms =>
+                {
+                    int on = 0;
+                    var sw = Stopwatch.StartNew();
+                    while (sw.ElapsedMilliseconds < ms)
+                    {
+                        if (lampDo.Any(b => io.GetDo(b))) on++;
+                        Thread.Sleep(10);
+                    }
+                    return on;
+                };
+                int armedLampOn = lampOnCount(1200);
+                Check("Armed: đèn ba nút Start tắt suốt, không nhấp nháy (Tuấn 2026-10-16)",
+                    armedLampOn == 0 && McControl.Status.State == EMcState.Armed,
+                    $"đèn Start sáng {armedLampOn} lần trong 1.2 s — {VmState()}");
                 Check("Armed: đèn tháp xanh nhấp nháy (Tuấn chốt 2026-09-26)",
                     WaitUntil(() => McControl.Status.TowerLamp == ETowerLamp.GreenBlink, 500), McControl.Status.TowerLamp.ToString());
 
-                // Start 2 lúc sẵn sàng: tray lắp ráp vẫn ở trong máy nên chu trình chạy — nhưng chưa có tray đầu vào thì
-                // hai tay không hút, chờ Start 1. Bấm qua đúng nút cứng DI 0x11.
+                // Start lúc sẵn sàng mà cảm biến chưa thấy tray đầu vào: tray lắp ráp vẫn ở trong máy nên chu trình chạy —
+                // nhưng hai tay không hút, chờ tray đầu vào. Bấm nút cụm A (DI 0x0E) — trước 2026-10-16 nút này chỉ Arm.
+                io.SimSet(IoMap.TrayIn1Present, false);
                 vacOn = 0;
-                io.SimPress(IoMap.BtnGoB2);
-                Check("Start 2 lúc sẵn sàng khởi động chu trình",
+                io.SimPress(IoMap.BtnArmA1);
+                Check("Start (nút cụm A) lúc sẵn sàng khởi động chu trình, không thấy tray nào để nạp cũng chạy",
                     WaitUntil(() => McControl.Status.State != EMcState.Armed, 3000), VmState());
-                Check("Chưa có tray đầu vào: chờ Start 1, hai tay không hút",
-                    WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 30000) && vacOn == 0 && atStandby(rowIn),
+                Check("Chưa có tray đầu vào: tự chờ tray đầu vào, hai tay không hút",
+                    WaitUntil(() => waitingOp() && msg().Contains("tray đầu vào"), 30000) && vacOn == 0 && atStandby(rowIn),
                     VmState() + " — van hút mở " + vacOn + " lần, " + posText(rowIn));
 
-                // Chờ tray giữa chừng vẫn là đang chạy Auto (Tuấn 01/10): đèn cụm A sáng im, đèn Start 1 (tray đầu vào còn
-                // thiếu) nháy nhanh 0.1 s, đèn Start 2 (tray lắp ráp đã vào) sáng im.
-                int lampAOff = 0, lampB2Off = 0, lampB1Flips = 0, lampStopOn = 0;
-                bool lastB1 = io.GetDo(IoMap.DoLampStartBtnB);
+                // Chờ tray giữa chừng: đèn ba nút Start tắt (Tuấn 2026-10-16 — chỉ sáng khi đang chạy; trước đó nháy nhanh
+                // 0.1 s gọi người nạp). Đèn STOP vẫn tắt vì chờ tray vẫn là đang chạy Auto (Tuấn 01/10).
+                int lampStopOn = 0;
                 var swLamp = Stopwatch.StartNew();
                 while (swLamp.ElapsedMilliseconds < 600)
                 {
-                    if (!io.GetDo(IoMap.DoLampStartBtn)) lampAOff++;
                     if (io.GetDo(IoMap.DoLampResetBtn)) lampStopOn++;
-                    if (!io.GetDo(IoMap.DoLampStartBtnB2)) lampB2Off++;
-                    bool b1 = io.GetDo(IoMap.DoLampStartBtnB);
-                    if (b1 != lastB1) { lampB1Flips++; lastB1 = b1; }
                     Thread.Sleep(10);
                 }
-                Check("Chờ tray đầu vào: đèn cụm A sáng im, đèn Start 1 nháy nhanh 0.1 s, đèn Start 2 sáng im, đèn STOP tắt (Tuấn 01/10)",
-                    waitingOp() && lampAOff == 0 && lampB2Off == 0 && lampB1Flips >= 4 && lampStopOn == 0,
-                    $"cụm A tắt {lampAOff} lần, Start 2 tắt {lampB2Off} lần, Start 1 đổi {lampB1Flips} lần, STOP sáng {lampStopOn} lần trong 0.6 s — {VmState()}");
+                int waitLampOn = lampOnCount(600);
+                Check("Chờ tray: đèn ba nút Start tắt, không nháy; đèn STOP tắt (Tuấn 01/10, 2026-10-16)",
+                    waitingOp() && waitLampOn == 0 && lampStopOn == 0,
+                    $"đèn Start sáng {waitLampOn} lần, STOP sáng {lampStopOn} lần trong 0.6 s — {VmState()}");
 
                 // Lỗi Error NGAY LÚC chu trình đang chờ tray (máy thật 30/09 15:42: A1 báo alarm driver): chu trình phải bị bỏ,
-                // không nằm chờ ngầm sau RESET. Lỗi cũ: RESET xong máy về DỪNG mà chu trình vẫn sống, AUTO/Cặp A báo
+                // không nằm chờ ngầm sau RESET. Lỗi cũ: RESET xong máy về DỪNG mà chu trình vẫn sống, AUTO/nút START báo
                 // "Đang có chu trình chạy dở" mãi tới khi tắt App.
                 AlarmManager.RaiseEvent(AlarmCode.RoutineCrashed, "SelfTest");
                 bool alarmWhileWaiting = WaitUntil(() => McControl.Status.State == EMcState.Alarm, 2000);
                 Thread.Sleep(300);
                 resetAndArm();
-                Check("Lỗi ngay lúc đang chờ tray: chu trình bị bỏ, RESET xong Cặp A vào lại được sẵn sàng (Tuấn 30/09)",
+                Check("Lỗi ngay lúc đang chờ tray: chu trình bị bỏ, RESET xong nút START mềm vào lại được sẵn sàng (Tuấn 30/09)",
                     alarmWhileWaiting && McControl.Status.State == EMcState.Armed, VmState());
                 io.SimPress(IoMap.BtnGoB2);
-                Check("Start 2 khởi động lại chu trình, lại chờ Start 1",
-                    WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 30000), VmState());
+                Check("Start khởi động lại chu trình, lại chờ tray đầu vào",
+                    WaitUntil(() => waitingOp() && msg().Contains("tray đầu vào"), 30000), VmState());
 
                 // STOP huỷ chu trình chạy ngầm (Tuấn 30/09): dựng lại đúng cảnh máy thật hôm đó — chu trình còn chờ tray
                 // mà trạng thái đã về DỪNG.
@@ -2700,26 +2762,22 @@ namespace ShieldCanAssy.Wpf
                 McControl.RequestStop();
                 Thread.Sleep(300);
                 McControl.RequestArm();
-                Check("Chu trình chạy ngầm khi máy đang DỪNG: STOP huỷ nó, Cặp A vào lại được sẵn sàng",
+                Check("Chu trình chạy ngầm khi máy đang DỪNG: STOP huỷ nó, nút START mềm vào lại được sẵn sàng",
                     WaitUntil(() => McControl.Status.State == EMcState.Armed, 3000), VmState());
                 io.SimPress(IoMap.BtnGoB2);
-                WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 30000);
+                WaitUntil(() => waitingOp() && msg().Contains("tray đầu vào"), 30000);
 
-                io.SimPress(IoMap.BtnGoB2);
+                // Đang chờ mà cảm biến vẫn chưa thấy tray đầu vào: Start báo chưa thấy, vẫn chờ. Tray lắp ráp đã ở trong máy
+                // thì không làm gì với nó.
+                McControl.Status.Message = "";
+                io.SimPress(IoMap.BtnArmA2);
                 Thread.Sleep(300);
-                Check("Tray lắp ráp đã ở trong máy mà bấm Start 2: báo đã có, vẫn chờ tray đầu vào",
-                    waitingOp() && msg().Contains("Đã có tray lắp ráp") && msg().Contains("Start 1"), VmState());
-
-                // Cảm biến không thấy tray ở vị trí chờ thì không nhận nút.
-                io.SimSet(IoMap.TrayIn1Present, false);
-                io.SimPress(IoMap.BtnGoB1);
-                Thread.Sleep(300);
-                Check("Không thấy tray đầu vào ở vị trí chờ thì Start 1 không nhận",
+                Check("Chờ tray đầu vào mà cảm biến chưa thấy tray: Start báo chưa thấy tray đầu vào, vẫn chờ",
                     waitingOp() && msg().Contains("Chưa thấy tray đầu vào"), VmState());
                 io.SimSet(IoMap.TrayIn1Present, true);
 
                 io.SimPress(IoMap.BtnGoB1);                     // nút cứng DI 0x10
-                Check("Start 1 nạp tray đầu vào — hai tay hút lại",
+                Check("Đặt tray đầu vào rồi bấm Start: nạp tray đầu vào — hai tay hút lại",
                     WaitUntil(() => vacOn > 0, 30000), VmState());
                 Check("Tray đầu vào hết theo sổ nên là tray mới: đầy trở lại",
                     run.InputTray.Cells.ToArray().Count(c => c == ECellState.Loaded) >= run.InputTray.CellCount - 2,
@@ -2730,55 +2788,64 @@ namespace ShieldCanAssy.Wpf
                 McControl.RequestPause();
                 WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
 
-                // ── TH1: về gốc (hai tray ra khỏi máy), Start 1 trước ──
+                // ── TH1: về gốc (hai tray ra khỏi máy), chỉ có tray đầu vào ──
                 origin();
                 Check("Về gốc xong, hai trục hàng ở vị trí chờ",
                     McControl.Status.OrgOk && atStandby(rowIn) && atStandby(rowAssy), posText(rowIn) + ", " + posText(rowAssy));
                 prep(ECellState.Loaded, ECellState.Empty);
 
-                resetAndArm();
+                // Máy đứng ở AUTO: một lần bấm Start là vào sẵn sàng rồi chạy luôn, không qua nút START mềm (Tuấn 2026-10-16).
+                McControl.RequestReset();
+                WaitUntil(() => AlarmManager.PendingReset == null, 2000);
+                var stateBefore = McControl.Status.State;
+                io.SimSet(IoMap.TrayAssyPresent, false);
                 int locate1 = vision?.LocateTopCount ?? 0;
                 int ok1 = run.CountOk;
                 vacOn = 0;
                 io.SimPress(IoMap.BtnGoB1);
-                bool th1Wait = WaitUntil(() => waitingOp() && msg().Contains("Start 2"), 30000);
-                Check("TH1 — Start 1: tray đầu vào đi vào, rồi chờ tray lắp ráp (Start 2)",
+                bool th1Wait = WaitUntil(() => waitingOp() && msg().Contains("tray lắp ráp"), 30000);
+                Check("Máy đứng ở AUTO: bấm Start một lần là chạy, không phải vào sẵn sàng trước (Tuấn 2026-10-16)",
+                    (stateBefore == EMcState.Idle || stateBefore == EMcState.Paused) && th1Wait, stateBefore + " → " + VmState());
+                Check("TH1 — chỉ có tray đầu vào: tray đầu vào đi vào, rồi tự chờ tray lắp ráp",
                     th1Wait && !atStandby(rowIn), VmState() + " — " + posText(rowIn));
                 Check("TH1 — chưa có tray lắp ráp: không soi, không hút, tray lắp ráp nằm ở vị trí chờ",
                     (vision?.LocateTopCount ?? 0) == locate1 && vacOn == 0 && atStandby(rowAssy),
                     "LocateTop +" + ((vision?.LocateTopCount ?? 0) - locate1) + ", van hút " + vacOn + ", " + posText(rowAssy));
-                io.SimPress(IoMap.BtnGoB2);
-                Check("TH1 — Start 2: quét tray lắp ráp rồi hút, đặt",
+                io.SimSet(IoMap.TrayAssyPresent, true);
+                io.SimPress(IoMap.BtnArmA1);
+                Check("TH1 — đặt tray lắp ráp rồi bấm Start: quét tray lắp ráp rồi hút, đặt",
                     WaitUntil(() => run.CountOk > ok1, 120000), $"OK {ok1}→{run.CountOk} — {VmState()}");
                 McControl.RequestPause();
                 WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
 
-                // ── TH2: về gốc, Start 2 trước ──
+                // ── TH2: về gốc, chỉ có tray lắp ráp ──
                 origin();
                 prep(ECellState.Loaded, ECellState.Empty);
 
                 resetAndArm();
+                io.SimSet(IoMap.TrayIn1Present, false);
                 int locate2 = vision?.LocateTopCount ?? 0;
                 int align2 = vision?.AlignBottomCount ?? 0;
                 int ok2 = run.CountOk;
                 vacOn = 0;
-                io.SimPress(IoMap.BtnGoB2);
-                bool th2Wait = WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 60000);
+                io.SimPress(IoMap.BtnArmA2);
+                bool th2Wait = WaitUntil(() => waitingOp() && msg().Contains("tray đầu vào"), 60000);
                 int scanned2 = (vision?.LocateTopCount ?? 0) - locate2;
                 int cols = run.AssyTray.Cols;
-                Check("TH2 — Start 2: chỉ soi hàng đầu tray lắp ráp rồi chờ tray đầu vào (Start 1)",
+                Check("TH2 — chỉ có tray lắp ráp: chỉ soi hàng đầu tray lắp ráp rồi tự chờ tray đầu vào",
                     th2Wait && vision != null && scanned2 == cols,
                     $"LocateTop +{scanned2}, một hàng {cols} ô — {VmState()}");
                 Check("TH2 — chưa có tray đầu vào: hai tay không hút, không soi CAM dưới, tray đầu vào ở vị trí chờ",
                     vacOn == 0 && (vision?.AlignBottomCount ?? 0) == align2 && atStandby(rowIn),
                     "van hút " + vacOn + ", AlignBottom +" + ((vision?.AlignBottomCount ?? 0) - align2) + ", " + posText(rowIn));
-                io.SimPress(IoMap.BtnGoB1);
-                Check("TH2 — Start 1: hút và đặt",
+                io.SimSet(IoMap.TrayIn1Present, true);
+                io.SimPress(IoMap.BtnGoB2);
+                Check("TH2 — đặt tray đầu vào rồi bấm Start: hút và đặt",
                     WaitUntil(() => run.CountOk > ok2, 120000), $"OK {ok2}→{run.CountOk} — {VmState()}");
                 McControl.RequestPause();
                 WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
 
-                // ── Tay còn hàng, chưa có tray đầu vào: soi và đặt nốt chỉ với tray lắp ráp, không chờ Start 1 ──
+                // ── Tay còn hàng, chưa có tray đầu vào: soi và đặt nốt chỉ với tray lắp ráp, không chờ tray đầu vào ──
                 // (Tuấn chốt 2026-09-26: soi hỏng mà không trả về được thì báo lỗi, người lấy hàng ra — chờ tray đầu vào
                 // cũng vô ích, tray mới đầy hàng không đặt ngược lại được.)
                 origin();
@@ -2789,14 +2856,15 @@ namespace ShieldCanAssy.Wpf
                 run.Nozzle1.SourceCellIndex = 0;
 
                 resetAndArm();
+                io.SimSet(IoMap.TrayIn1Present, false);
                 int ok3 = run.CountOk;
                 vacOn = 0;
                 io.SimPress(IoMap.BtnGoB2);
-                Check("Tay còn hàng, chỉ có tray lắp ráp: vẫn soi và đặt nốt, không chờ Start 1",
+                Check("Tay còn hàng, chỉ có tray lắp ráp: vẫn soi và đặt nốt, không chờ tray đầu vào",
                     WaitUntil(() => run.CountOk > ok3, 60000) && vacOn == 0 && atStandby(rowIn),
                     $"OK {ok3}→{run.CountOk}, van hút {vacOn}, {posText(rowIn)} — {VmState()}");
-                Check("Đặt xong hàng đang cầm thì chờ tray đầu vào (Start 1)",
-                    WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 30000), VmState());
+                Check("Đặt xong hàng đang cầm thì chờ tray đầu vào",
+                    WaitUntil(() => waitingOp() && msg().Contains("tray đầu vào"), 30000), VmState());
                 McControl.RequestPause();
                 WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
 
@@ -2832,20 +2900,25 @@ namespace ShieldCanAssy.Wpf
                 run.Nozzle1.SourceCellIndex = -1;
                 run.NozzleClearRequired = false;
                 run.NozzleClearReason = null;
+                io.SimSet(IoMap.TrayIn1Present, true);
 
-                // ── Tray lắp ráp đầy: tray lắp ráp ra vị trí chờ, CHỈ Start 2 nạp lại ──
+                // ── Tray lắp ráp đầy: tray lắp ráp ra vị trí chờ, Start nạp lại ──
                 prep(ECellState.Loaded, ECellState.Ok);
                 McControl.RequestStart();
                 Check("Tray lắp ráp đầy thì vào CHỜ THAO TÁC", WaitUntil(waitingOp, 60000), VmState());
                 Check("Chờ thay tray lắp ráp: trục " + rowAssy + " đưa tray ra vị trí chờ", atStandby(rowAssy), posText(rowAssy));
                 McControl.RequestReset();
                 WaitUntil(() => AlarmManager.PendingReset == null, 2000);
-                McControl.RequestGoInput();
+                // Operator đang thay: tray đầy đã nhấc ra, chưa đặt tray mới — cảm biến không thấy tray.
+                io.SimSet(IoMap.TrayAssyPresent, false);
+                McControl.Status.Message = "";
+                io.SimPress(IoMap.BtnGoB1);
                 Thread.Sleep(300);
-                Check("Chờ tray lắp ráp thì Start 1 chỉ báo đã có tray đầu vào, vẫn chờ Start 2",
-                    waitingOp() && msg().Contains("Start 2"), VmState());
-                io.SimPress(IoMap.BtnGoB2);
-                Check("Start 2 nạp tray lắp ráp — chạy tiếp",
+                Check("Chờ tray lắp ráp mà cảm biến chưa thấy tray: Start báo chưa thấy tray lắp ráp, vẫn chờ",
+                    waitingOp() && msg().Contains("Chưa thấy tray lắp ráp"), VmState());
+                io.SimSet(IoMap.TrayAssyPresent, true);
+                io.SimPress(IoMap.BtnArmA1);
+                Check("Đặt tray lắp ráp mới rồi bấm Start: nạp tray lắp ráp — chạy tiếp",
                     WaitUntil(() => McControl.Status.State == EMcState.Running, 5000), VmState());
                 Check("Đổi tray lắp ráp xong thì tray lắp ráp trống trở lại",
                     run.AssyTray.Cells.ToArray().Count(c => c == ECellState.Ok) <= 2,
@@ -2858,13 +2931,14 @@ namespace ShieldCanAssy.Wpf
             {
                 io.AfterSetDo = null;
                 io.SimSet(IoMap.TrayIn1Present, true);
+                io.SimSet(IoMap.TrayAssyPresent, true);
                 McControl.RequestSetMode(EMcMode.Manual);
             }
         }
 
         /// <summary>
         /// Hai tray đầu vào (Tuấn chốt 2026-10-15): Tray 1 phía trong (DI 0x0C), Tray 2 phía ngoài (DI 0x0A), lưới và cao độ
-        /// teach riêng, cùng kích thước với Tray 1. Tray 2 chưa teach thì máy như một tray. Start 1 nạp tray nào cảm biến
+        /// teach riêng, cùng kích thước với Tray 1. Tray 2 chưa teach thì máy như một tray. Start nạp tray nào cảm biến
         /// thấy; Tray 1 trước; hết cả hai mới ra vị trí chờ.
         /// </summary>
         private static void TestTwoInputTrays()
@@ -2896,6 +2970,15 @@ namespace ShieldCanAssy.Wpf
                 t2.Rows == t1.Rows && t2.Cols == t1.Cols && t2.ScanOrder == t1.ScanOrder && t2.AxisRow == t1.AxisRow &&
                 t2.Z_PickZ1 == t1.Z_PickZ1 && t2.Z_PickZ2 == t1.Z_PickZ2 && t2.Z_SlowZ1 == t1.Z_SlowZ1,
                 $"Tray 2 {t2.Rows}×{t2.Cols} {t2.ScanOrder} {t2.AxisRow}, Z hút {t2.Z_PickZ1}/{t2.Z_PickZ2}");
+
+            // Card tray đầu vào trang Main: hai khối lưới xếp chồng, Tray 1 trên (Tuấn 2026-10-16).
+            var gridVm = new ViewModels.TrayGridViewModel("kiểm tra", "", null, Core.Data.Model.ModelData.InputTraySlots);
+            gridVm.Sync(run.InputTray);
+            Check("Card tray đầu vào: hai khối lưới cỡ một tray; Tray 2 chưa teach thì khối dưới mờ, ô trống",
+                gridVm.Groups.Count == 2 && gridVm.Groups.All(g => g.Rows == t1.Rows && g.Cells.Count == t1.CellCount) &&
+                gridVm.Groups[0].IsTaught && !gridVm.Groups[1].IsTaught &&
+                gridVm.Groups[1].Cells.All(c => c.State == ECellState.Empty),
+                $"{gridVm.Groups.Count} khối, Tray 2 IsTaught {(gridVm.Groups.Count > 1 && gridVm.Groups[1].IsTaught)}");
 
             const double shiftY = 60;    // Tray 2 nằm ngoài Tray 1 theo Y1 — số giả
             Func<Core.Data.Model.TeachPoint, Core.Data.Model.TeachPoint> shifted =
@@ -2931,8 +3014,10 @@ namespace ShieldCanAssy.Wpf
                 McControl.RequestArm();
                 WaitUntil(() => McControl.Status.State == EMcState.Armed, 3000);
             };
-            // Máy chờ Start 1 với tray lắp ráp trống trong máy, sổ tray đầu vào đã dùng hết.
-            Action waitForStart1 = () =>
+            // Máy chờ tray đầu vào với tray lắp ráp trống trong máy, sổ tray đầu vào đã dùng hết. Start bấm lúc cảm biến tray
+            // đầu vào chưa thấy tray — nút nào cũng nạp mọi tray cảm biến thấy (2026-10-16) — xong bật lại cảm biến Tray 1,
+            // Tray 2 để vắng.
+            Action waitForInput = () =>
             {
                 McControl.RequestOrigin();
                 WaitUntil(() => McControl.Status.State == EMcState.Homing, 2000);
@@ -2946,8 +3031,11 @@ namespace ShieldCanAssy.Wpf
                 run.AutoState = EAutoState.S00_Ready;
                 Thread.Sleep(50);
                 resetAndArm();
+                io.SimSet(IoMap.TrayIn1Present, false);
+                io.SimSet(IoMap.TrayIn2Present, false);
                 io.SimPress(IoMap.BtnGoB2);
-                WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 60000);
+                WaitUntil(() => waitingOp() && msg().Contains("tray đầu vào"), 60000);
+                io.SimSet(IoMap.TrayIn1Present, true);
             };
 
             try
@@ -2956,12 +3044,12 @@ namespace ShieldCanAssy.Wpf
                 McControl.RequestSetMode(EMcMode.Auto);
                 WaitUntil(() => McControl.Status.Mode == EMcMode.Auto, 2000);
 
-                // ── Tray 2 chưa teach mà cảm biến Tray 2 thấy tray: không nhận Start 1 ──
-                waitForStart1();
+                // ── Tray 2 chưa teach mà cảm biến Tray 2 thấy tray: không nhận Start ──
+                waitForInput();
                 io.SimSet(IoMap.TrayIn2Present, true);
                 io.SimPress(IoMap.BtnGoB1);
                 Thread.Sleep(300);
-                Check("Cảm biến Tray 2 thấy tray mà Tray 2 chưa teach: Start 1 không nhận, nói rõ lý do",
+                Check("Cảm biến Tray 2 thấy tray mà Tray 2 chưa teach: Start không nhận, nói rõ lý do",
                     waitingOp() && msg().Contains("Tray đầu vào 2 chưa teach"), VmState());
 
                 // ── Teach Tray 2: lưới Tray 1 dời Y1, cao độ hút riêng ──
@@ -2974,6 +3062,11 @@ namespace ShieldCanAssy.Wpf
                 Check("Teach xong Tray 2: sổ nối thêm Tray 2 — gấp đôi số hàng, Tray 1 ở nửa đầu",
                     model.InputTraysInUse == 2 && run.InputTray.Trays == 2 && run.InputTray.Rows == 2 * t1.Rows && n == t1.CellCount,
                     $"sổ {run.InputTray.Rows}×{run.InputTray.Cols}, {run.InputTray.Trays} tray, {n} ô/tray");
+                gridVm.Sync(run.InputTray);
+                var tray2Cells = gridVm.Groups[1].Cells.Select(c => c.Index).ToList();
+                Check("Teach xong Tray 2: khối dưới của card là Tray 2 — đủ các ô nửa sau của sổ, mỗi ô một lần",
+                    gridVm.Groups[1].IsTaught && tray2Cells.All(i => i >= n && i < 2 * n) && tray2Cells.Distinct().Count() == n,
+                    $"{tray2Cells.Count} ô, chỉ số {tray2Cells.DefaultIfEmpty(-1).Min()}..{tray2Cells.DefaultIfEmpty(-1).Max()}");
 
                 int ta, ra, ca, tb, rb, cb;
                 var ga = model.InputCell(run.InputTray, n - 1, out ta, out ra, out ca);
@@ -2983,16 +3076,16 @@ namespace ShieldCanAssy.Wpf
                     Math.Abs(gb.CellPos(AxisId.Z1, rb, cb).Y - t1.CellPos(AxisId.Z1, 0, cb).Y - shiftY) < 1e-9,
                     $"ô {n - 1} → Tray {ta + 1} ({ra},{ca}), ô {n} → Tray {tb + 1} ({rb},{cb})");
 
-                // ── Chỉ Tray 2 có: Start 1 nạp mỗi Tray 2, hút theo lưới Tray 2 ──
+                // ── Chỉ Tray 2 có: Start nạp mỗi Tray 2, hút theo lưới Tray 2 ──
                 io.SimSet(IoMap.TrayIn1Present, false);
                 lock (pickY) pickY.Clear();
                 int okB = run.CountOk;
-                io.SimPress(IoMap.BtnGoB1);
-                Check("Chỉ Tray 2 có: Start 1 nạp mỗi Tray 2 — ô Tray 1 trống, ô Tray 2 có hàng",
+                io.SimPress(IoMap.BtnArmA1);
+                Check("Chỉ Tray 2 có: Start nạp mỗi Tray 2 — ô Tray 1 trống, ô Tray 2 có hàng",
                     WaitUntil(() => run.CountOk > okB, 60000) && countIn(0, n) == 0 &&
                     run.InputTray.Cells.Take(n).All(c => c == ECellState.Empty),
                     $"Tray 1 còn {countIn(0, n)} ô có hàng — {VmState()}");
-                bool doneB = WaitUntil(() => waitingOp() && msg().Contains("Start 1"), 120000);
+                bool doneB = WaitUntil(() => waitingOp() && msg().Contains("tray đầu vào"), 120000);
                 double minY2 = double.MaxValue, maxY2 = double.MinValue;
                 for (int r = 0; r < t2.Rows; r++)
                     for (int c = 0; c < t2.Cols; c++)
@@ -3004,7 +3097,7 @@ namespace ShieldCanAssy.Wpf
                         }
                 double[] ysB;
                 lock (pickY) ysB = pickY.ToArray();
-                Check("Hút hết Tray 2 rồi chờ Start 1; mọi lần hút đều nằm trên lưới Tray 2",
+                Check("Hút hết Tray 2 rồi chờ tray đầu vào; mọi lần hút đều nằm trên lưới Tray 2",
                     doneB && ysB.Length >= n && ysB.All(y => y >= minY2 - 0.01 && y <= maxY2 + 0.01) &&
                     run.InputTray.Cells.Skip(n).All(c => c == ECellState.Ok || c == ECellState.Ng),
                     $"{ysB.Length} lần hút, Y {(ysB.Length > 0 ? ysB.Min() : 0):0.0}..{(ysB.Length > 0 ? ysB.Max() : 0):0.0}, " +
@@ -3013,13 +3106,13 @@ namespace ShieldCanAssy.Wpf
                 WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
 
                 // ── Cả hai tray: Tray 1 trước, hết Tray 1 sang Tray 2 mà không ra vị trí chờ ──
-                io.SimSet(IoMap.TrayIn1Present, true);
-                waitForStart1();
+                waitForInput();
+                io.SimSet(IoMap.TrayIn2Present, true);
                 lock (pickY) { pickY.Clear(); zBad.Clear(); }
                 tray2PickBeforeTray1Done = false;
                 io.SimPress(IoMap.BtnGoB1);
                 // Tray 2 đầy hàng suốt lúc máy làm Tray 1 — thấy đủ n ô là đã nạp cả hai (Tray 1 đang vơi dần).
-                Check("Cả hai tray có: Start 1 nạp cả hai",
+                Check("Cả hai tray có: Start nạp cả hai",
                     WaitUntil(() => countIn(n, 2 * n) == n, 5000),
                     $"Tray 1 {countIn(0, n)}, Tray 2 {countIn(n, 2 * n)} ô có hàng");
                 bool sawWait = false;
@@ -3052,6 +3145,135 @@ namespace ShieldCanAssy.Wpf
                 // Trả model về như chưa có Tray 2 — các bài sau chạy một tray (Normalize lại chép Z của Tray 1 sang).
                 model.InputTray2 = Core.Data.Model.TrayLayout.CreateInputDefault("InputTray2");
                 Core.Data.McDataManager.SyncRunTrays();
+                McControl.RequestSetMode(EMcMode.Manual);
+            }
+        }
+
+        /// <summary>
+        /// Chọn ô ở lưới tray trang Main lúc AUTO (Tuấn chốt 2026-10-16): máy chỉ hút ô đã chọn của tray đầu vào, chỉ soi và
+        /// đặt vào ô đã chọn của tray lắp ráp; làm hết thì coi như xong tray — ô không chọn thành bỏ qua, lựa chọn xoá, tray ra
+        /// vị trí chờ. Chỉ chọn được ở AUTO và chỉ ô còn việc, trừ lúc tray đã hết: chọn trước cho tray sắp đặt vào.
+        /// </summary>
+        private static void TestCellSelection()
+        {
+            Section("Chọn ô ở lưới tray");
+
+            var run = Core.Data.McDataManager.RunData;
+            var io = (FakeIo)McControl.Io;
+            var vision = McControl.Vision as FakeVision;
+            var sys = Core.Data.McDataManager.SysData;
+            Func<string> msg = () => McControl.Status.Message ?? "";
+            Func<bool> waitingOp = () => McControl.Status.State == EMcState.WaitOperator;
+            Func<string, bool> atStandby = axis =>
+                Math.Abs(McControl.Motion[axis].CurrentPos - sys.GetAxis(axis).StandbyPos) < 0.05;
+            Func<Core.Data.TrayState, ECellState, int[]> cellsIn = (t, s) =>
+                Enumerable.Range(0, t.CellCount).Where(i => t.Get(i) == s).ToArray();
+            Func<Core.Data.TrayState, string> trayText = t =>
+                string.Join("", Enumerable.Range(0, t.CellCount).Select(i => t.Get(i).ToString()[0]));
+
+            WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
+            WaitUntil(() => McControl.Status.Mode == EMcMode.Manual, 2000);
+            McControl.ClearCellSelection(true);
+            McControl.ClearCellSelection(false);
+            McControl.ToggleCellSelection(true, 0);
+            Check("Ở MANUAL bấm ô không chọn được", McControl.Status.Mode == EMcMode.Manual && !run.InputTray.HasSelection,
+                McControl.Status.Mode.ToString());
+
+            McControl.RequestSetMode(EMcMode.Auto);
+            WaitUntil(() => McControl.Status.Mode == EMcMode.Auto, 2000);
+            try
+            {
+                // Về gốc: hai tray ra vị trí chờ. Sổ: tray đầu vào đầy hàng, tray lắp ráp trống, tay hút rảnh.
+                McControl.RequestOrigin();
+                WaitUntil(() => McControl.Status.State == EMcState.Homing, 2000);
+                WaitUntil(() => McControl.Status.State != EMcState.Homing, 40000);
+                run.InputTray.ResetAll(ECellState.Loaded);
+                run.AssyTray.ResetAll(ECellState.Empty);
+                McControl.InvalidateAssyScan();
+                run.Nozzle1.HasProduct = run.Nozzle2.HasProduct = false;
+                McControl.Func.SetVacuum(1, false);
+                McControl.Func.SetVacuum(2, false);
+                run.AutoState = EAutoState.S00_Ready;
+                Thread.Sleep(50);
+                McControl.RequestReset();
+                WaitUntil(() => AlarmManager.PendingReset == null, 2000);
+
+                // Ô đã xong thì không chọn được — bấm nhầm một ô đã làm không được thành "xong tray".
+                run.InputTray.Set(0, ECellState.Ok);
+                run.AssyTray.Set(0, ECellState.Ok);
+                McControl.Status.Message = "";
+                McControl.ToggleCellSelection(true, 0);
+                string inputRefused = msg();
+                McControl.ToggleCellSelection(false, 0);
+                Check("Tray còn việc: ô đã xong không chọn được, báo rõ",
+                    !run.InputTray.HasSelection && !run.AssyTray.HasSelection &&
+                    inputRefused.Contains("không còn hàng") && msg().Contains("không còn trống"), inputRefused + " | " + msg());
+                run.InputTray.Set(0, ECellState.Loaded);
+                run.AssyTray.Set(0, ECellState.Empty);
+
+                // Hai ô mỗi tray, không liền nhau. Bấm lại là bỏ chọn; Bỏ chọn xoá hết.
+                int[] pickSel = { 3, 6 }, placeSel = { 2, 9 };
+                foreach (int i in pickSel) McControl.ToggleCellSelection(true, i);
+                McControl.ToggleCellSelection(false, 4);
+                McControl.ClearCellSelection(false);
+                foreach (int i in placeSel) McControl.ToggleCellSelection(false, i);
+                McControl.ToggleCellSelection(false, 5);
+                McControl.ToggleCellSelection(false, 5);
+                Check("Ở AUTO bấm ô là chọn, bấm lại là bỏ, Bỏ chọn xoá hết",
+                    run.InputTray.Selected.OrderBy(i => i).SequenceEqual(pickSel) &&
+                    run.AssyTray.Selected.OrderBy(i => i).SequenceEqual(placeSel),
+                    "đầu vào " + string.Join(",", run.InputTray.Selected) + ", lắp ráp " + string.Join(",", run.AssyTray.Selected));
+
+                var gridVm = new ViewModels.TrayGridViewModel("kiểm tra", "", null, Core.Data.Model.ModelData.InputTraySlots);
+                gridVm.Sync(run.InputTray);
+                var shown = gridVm.Groups.SelectMany(g => g.Cells).Where(c => c.Index < run.InputTray.CellCount).ToList();
+                Check("Lưới trang Main: ô đã chọn viền đậm, ô ngoài lựa chọn vẽ mờ, nút Bỏ chọn ghi số ô",
+                    gridVm.HasSelection && gridVm.SelectedCount == pickSel.Length &&
+                    shown.All(c => c.IsSelected == pickSel.Contains(c.Index) && c.IsOutOfScope == !pickSel.Contains(c.Index)),
+                    $"{gridVm.SelectedCount} ô chọn, " + string.Join(",", shown.Where(c => c.IsSelected).Select(c => c.Index)));
+
+                int locate0 = vision?.LocateTopCount ?? 0;
+                int ok0 = run.CountOk;
+                io.SimPress(IoMap.BtnGoB1);
+                bool done = WaitUntil(() => waitingOp() && !run.InputTray.HasSelection && !run.AssyTray.HasSelection, 120000);
+                Check("Chọn 2 ô mỗi tray: làm hết thì coi như xong cả hai tray — chờ thay tray, lựa chọn đã xoá",
+                    done && msg().Contains("Hết tray đầu vào") && msg().Contains("Đầy tray lắp ráp"), VmState());
+                Check("Chỉ hút đúng các ô đã chọn của tray đầu vào, ô không chọn đánh dấu bỏ qua",
+                    cellsIn(run.InputTray, ECellState.Ok).SequenceEqual(pickSel) &&
+                    cellsIn(run.InputTray, ECellState.Skipped).Length == run.InputTray.CellCount - pickSel.Length,
+                    trayText(run.InputTray));
+                Check("Chỉ đặt vào đúng các ô đã chọn của tray lắp ráp, ô không chọn đánh dấu bỏ qua",
+                    cellsIn(run.AssyTray, ECellState.Ok).SequenceEqual(placeSel) &&
+                    cellsIn(run.AssyTray, ECellState.Skipped).Length == run.AssyTray.CellCount - placeSel.Length &&
+                    run.CountOk - ok0 == placeSel.Length,
+                    trayText(run.AssyTray) + $", OK +{run.CountOk - ok0}");
+                Check("Chỉ soi các ô đã chọn của tray lắp ráp",
+                    vision == null || (vision.LocateTopCount - locate0) == placeSel.Length,
+                    "LocateTop +" + ((vision?.LocateTopCount ?? 0) - locate0));
+                Check("Xong tray theo lựa chọn: hai tray ra vị trí chờ",
+                    atStandby(Core.Data.McDataManager.Model.InputTray.AxisRow) &&
+                    atStandby(Core.Data.McDataManager.Model.AssyTray.AxisRow));
+
+                // Tray đã hết, đang chờ thay: ô nào cũng chọn được — chọn trước cho tray sắp đặt vào, nạp tray mới không xoá.
+                McControl.ToggleCellSelection(true, 0);
+                McControl.ToggleCellSelection(false, 5);
+                Check("Tray đã hết, chờ thay: chọn trước được cả ô đã xong",
+                    run.InputTray.IsSelected(0) && run.AssyTray.IsSelected(5), msg());
+                io.SimPress(IoMap.BtnArmA1);
+                bool done2 = WaitUntil(() => waitingOp() && !run.InputTray.HasSelection && !run.AssyTray.HasSelection &&
+                                             run.AssyTray.Get(5) == ECellState.Ok, 120000);
+                Check("Nạp tray mới vẫn giữ ô chọn trước: tray mới chỉ làm đúng ô đó rồi lại coi như xong",
+                    done2 && cellsIn(run.InputTray, ECellState.Ok).SequenceEqual(new[] { 0 }) &&
+                    cellsIn(run.AssyTray, ECellState.Ok).SequenceEqual(new[] { 5 }),
+                    trayText(run.InputTray) + " / " + trayText(run.AssyTray) + " — " + VmState());
+
+                McControl.RequestPause();
+                WaitUntil(() => McControl.Status.State == EMcState.Paused, 30000);
+            }
+            finally
+            {
+                McControl.ClearCellSelection(true);
+                McControl.ClearCellSelection(false);
                 McControl.RequestSetMode(EMcMode.Manual);
             }
         }
@@ -3103,6 +3325,8 @@ namespace ShieldCanAssy.Wpf
                 run.AssyTrayStartedAt == null &&
                 Math.Abs(run.LastAssyTrayPerProductSec - run.LastAssyTrayTimeSec / run.AssyTray.CellCount) < 1e-9,
                 $"{run.LastAssyTrayTimeSec:0.00} s / {run.LastAssyTrayProducts} sp, mốc {run.AssyTrayStartedAt}");
+            Check("Tray xong: hàng Cycle Time / Tack Time trang Main giữ số vừa chốt, chưa về \"—\" (Tuấn 2026-10-16)",
+                run.AssyTrayHoldLast);
             Check("Chỉ đặt đúng 1 sản phẩm", run.CountOk == 1, "OK=" + run.CountOk + " NG=" + run.CountNg);
             // Soát trạng thái cuối thôi thì không phân biệt được "tay #2 không hút" với "tay #2 hút
             // rồi trả lại" — nhánh trả về ô nguồn che mất cổng ở S1x. Đếm số lần soi bottom-up.
@@ -3124,8 +3348,8 @@ namespace ShieldCanAssy.Wpf
             // Xác nhận đổi tray rồi dừng lại để dựng tình huống 2.
             McControl.RequestStart();
             WaitUntil(() => McControl.Status.State == EMcState.Running, 5000);
-            Check("Thay tray lắp ráp mới vào thì đồng hồ thực tế đếm lại cho tray mới",
-                WaitUntil(() => run.AssyTrayStartedAt != null, 3000));
+            Check("Thay tray lắp ráp mới vào thì đồng hồ thực tế đếm lại cho tray mới, bỏ số giữ của tray trước",
+                WaitUntil(() => run.AssyTrayStartedAt != null, 3000) && !run.AssyTrayHoldLast);
             McControl.RequestPause();
             WaitUntil(() => McControl.Status.State == EMcState.Paused, 60000);
 
@@ -3609,11 +3833,11 @@ namespace ShieldCanAssy.Wpf
             // ── Nút gạt chỉ CHỌN chế độ, không chạy máy ──
             McControl.SetDryRun(true);
             Thread.Sleep(300);
-            Check("Bật chạy rà thì máy KHÔNG tự chạy — vẫn phải bấm Start 1",
+            Check("Bật chạy rà thì máy KHÔNG tự chạy — vẫn phải bấm Start",
                 McControl.Status.DryRun && McControl.Status.State != EMcState.Running,
                 McControl.Status.StateText);
 
-            // Đi ĐÚNG đường của người vận hành: Cặp A (vào Armed) rồi Start 1 cụm B. Bài này trước đây bấm
+            // Đi ĐÚNG đường của người vận hành: vào Armed rồi bấm nút Start cứng. Bài này trước đây bấm
             // RequestStart — đường CHỈ self-test dùng — nên không phát hiện được nhánh chạy rà chưa gắn vào
             // DoGo, và trên máy thật bật chạy rà vẫn chạy chu trình thật (Tuấn phát hiện 24/09). Test phải
             // đi đúng đường máy đi, không đi đường riêng của test.
@@ -3625,7 +3849,7 @@ namespace ShieldCanAssy.Wpf
                 WaitUntil(() => AlarmManager.PendingReset == null, 2000);
                 McControl.RequestArm();
                 WaitUntil(() => McControl.Status.State == EMcState.Armed, 3000);
-                McControl.RequestGoInput();
+                McControl.RequestGo();
             };
 
             // ── Chạy một nhịp ──
@@ -3644,7 +3868,7 @@ namespace ShieldCanAssy.Wpf
             // Không đủ nếu chỉ hỏi "có chạy không" — chạy nhầm chu trình THẬT thì cũng là Running. Đồng hồ của
             // Routine_DryCycle chỉ chạy khi đúng chu trình rà được khởi động, nên đó mới là bằng chứng.
             bool running = WaitUntil(() => McControl.Status.State == EMcState.Running, 3000);
-            Check("Start 1 chạy đúng chu trình RÀ, không phải chu trình thật",
+            Check("Start chạy đúng chu trình RÀ, không phải chu trình thật",
                 running && WaitUntil(() => McControl.DryRoutine.Elapsed.TotalSeconds > 0, 3000),
                 McControl.Status.Message);
 

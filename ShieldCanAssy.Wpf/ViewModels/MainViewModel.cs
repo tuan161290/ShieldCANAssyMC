@@ -27,9 +27,8 @@ namespace ShieldCanAssy.Wpf.ViewModels
             // (Status.Mode). McControl vẫn tự từ chối AUTO khi chưa đủ điều kiện — công tắc khi đó đứng yên.
             ToggleModeCommand = new RelayCommand(() =>
                 McControl.RequestSetMode(McControl.Status.Mode == EMcMode.Auto ? EMcMode.Manual : EMcMode.Auto));
-            // Nút mềm trên UI CỐ Ý chỉ làm được đúng việc của Cặp A (vào Armed) — máy chạy
-            // thật (Idle/Armed → Running, hay xác nhận đổi tray giữa chừng) chỉ nhận từ Cặp B
-            // vật lý (2 tay), không có đường nào từ màn hình cảm ứng bỏ qua được yêu cầu 2 tay
+            // Nút mềm trên UI CỐ Ý chỉ vào Armed — máy chạy thật (Idle/Armed → Running, hay nạp
+            // tray giữa chừng) chỉ nhận từ nút Start vật lý, không có đường nào từ màn hình cảm ứng
             // (xem McControl.RequestArm/RequestGo, 2026-08-20).
             ArmCommand = new RelayCommand(McControl.RequestArm);
             StopCommand = new RelayCommand(McControl.RequestStop);
@@ -43,10 +42,13 @@ namespace ShieldCanAssy.Wpf.ViewModels
             // Mọi ô thành trống, bỏ số đo quét trước của tray cũ, và nếu tay hút còn hàng thì bắt lấy
             // ra trước khi chạy tiếp — xem McControl.ResetAssyTray.
             ResetAssyTrayCommand = new RelayCommand(() => { McControl.ResetAssyTray(); Refresh(); });
-            // Hai tray đầu vào (2026-10-15): card hiện một tray mỗi lúc, nút Select chọn tray — khung giữ nguyên.
+            // Hai tray đầu vào (2026-10-15): card xếp lưới Tray 1 trên Tray 2 (2026-10-16), card tray lắp ráp cao bằng.
+            // Bấm ô lúc AUTO để chọn — máy chỉ làm ô đã chọn (Tuấn 2026-10-16), xem McControl.ToggleCellSelection.
             InputTray = new TrayGridViewModel("Main.InputTray", "Main.ReloadInputTray", ResetInputTrayCommand,
-                                              Core.Data.Model.ModelData.InputTraySlots);
-            AssyTray = new TrayGridViewModel("Main.AssyTray", "Main.ReloadAssyTray", ResetAssyTrayCommand);
+                                              Core.Data.Model.ModelData.InputTraySlots,
+                                              i => McControl.ToggleCellSelection(true, i), () => McControl.ClearCellSelection(true));
+            AssyTray = new TrayGridViewModel("Main.AssyTray", "Main.ReloadAssyTray", ResetAssyTrayCommand, 1,
+                                             i => McControl.ToggleCellSelection(false, i), () => McControl.ClearCellSelection(false));
             // Nút chạy rà và chọn tay hút chạy Auto đã chuyển sang trang Setting (Tuấn 2026-10-08) — SettingViewModel.
 
             // TrayState là POCO ghi từ thread điều khiển, không bindable — đồng bộ theo nhịp
@@ -109,7 +111,8 @@ namespace ShieldCanAssy.Wpf.ViewModels
 
         // Cycle time theo tray lắp ráp (Tuấn 2026-10-09, thay hàng CT theo lượt): CT tray = giờ thực từ lúc máy chạy với
         // tray tới lúc tray hết ô trống, tính cả lúc chờ tray đầu vào và lúc STOP; CT TB = CT tray ÷ số ô đặt OK của tray.
-        // Tray đang làm (đếm liên tục, phân giải 0.1 s) và tray vừa xong.
+        // Tray đang làm (đếm liên tục, phân giải 0.1 s) và tray vừa xong. Tray xong thì hàng tray đang làm giữ số vừa chốt
+        // tới khi tray mới bắt đầu (Tuấn 2026-10-16, RunningData.AssyTrayHoldLast).
         private string _assyTrayElapsed = "—", _lastAssyTray = "—", _assyTrayAvg = "—", _lastAssyTrayAvg = "—";
         public string AssyTrayElapsed { get => _assyTrayElapsed; private set => SetProperty(ref _assyTrayElapsed, value); }
         public string LastAssyTray { get => _lastAssyTray; private set => SetProperty(ref _lastAssyTray, value); }
@@ -144,6 +147,11 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 if (done > 0) currentAvg = sec / done;
                 AssyTrayElapsed = Clock(sec);
                 AssyTrayAvg = done > 0 ? Sec(currentAvg) : "—";
+            }
+            else if (run.AssyTrayHoldLast && hasLast)
+            {
+                AssyTrayElapsed = LastAssyTray;
+                AssyTrayAvg = LastAssyTrayAvg;
             }
             else
             {
@@ -296,6 +304,9 @@ namespace ShieldCanAssy.Wpf.ViewModels
 
             var run = McDataManager.RunData;
 
+            bool auto = Status.Mode == EMcMode.Auto;
+            InputTray.CanSelect = auto;
+            AssyTray.CanSelect = auto;
             InputTray.Sync(run.InputTray);
             AssyTray.Sync(run.AssyTray, McControl.AutoRoutine?.AssyScannedCells);
             InputTray.SetCounts(run.InputCountOk, run.InputCountNg);

@@ -67,7 +67,7 @@ namespace ShieldCanAssy.Core.Data
         /// viết sẵn để tôn trọng cờ này ngay, không cần sửa gì thêm.</para>
         ///
         /// <para>2026-10-01 Tuấn chốt cách xử lý: rèm bị cắt thì dừng mọi trục, Auto tạm dừng như STOP, rèm thông rồi bấm
-        /// Start 1/Start 2 chạy tiếp — không alarm, không RESET. Bật/tắt ở trang Setting.</para>
+        /// Start chạy tiếp — không alarm, không RESET. Bật/tắt ở trang Setting.</para>
         /// </summary>
         public bool HasLightCurtain { get; set; } = false;
 

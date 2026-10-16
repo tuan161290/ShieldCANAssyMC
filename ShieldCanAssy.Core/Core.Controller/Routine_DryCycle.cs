@@ -26,9 +26,9 @@ namespace ShieldCanAssy.Core.Controller
     /// hốc đúng bằng chiều dày sản phẩm. Chạy rà đi đúng cao độ đã teach, không hạ thêm, và không có nhánh
     /// "hút hụt thì hạ sâu thêm" như <see cref="Routine_Auto"/>.</para>
     ///
-    /// <para><b>Khởi động vẫn qua Cặp B.</b> Nút gạt ở trang Main chỉ CHỌN chế độ; máy chạy thật vẫn bắt buộc
-    /// chìa AUTO → Armed → bấm đủ hai nút Cặp B ngoài jig, đúng luật an toàn hai tay đặt 2026-08-20. Không có
-    /// đường nào từ màn hình cảm ứng làm trục chạy.</para>
+    /// <para><b>Khởi động vẫn qua nút Start cứng.</b> Nút gạt ở trang Main chỉ CHỌN chế độ; máy chạy thật vẫn bắt
+    /// buộc chọn AUTO rồi bấm nút Start ngoài jig (2026-08-20). Không có đường nào từ màn hình cảm ứng làm trục
+    /// chạy.</para>
     ///
     /// <para><b>Checkpoint</b> đặt giữa các chặng, mỗi chặng đều kết thúc với Z đã lên cao độ an toàn — STOP giữa
     /// chừng không bao giờ bỏ máy lại với đầu hút nằm trong hốc tray.</para>

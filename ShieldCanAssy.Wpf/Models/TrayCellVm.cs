@@ -52,6 +52,25 @@ namespace ShieldCanAssy.Wpf.Models
             set { if (SetProperty(ref _isScanned, value)) OnPropertyChanged(nameof(Look)); }
         }
 
+        /// <summary>Operator đã chọn ô này lúc AUTO — chu trình chỉ làm trên ô đã chọn (Tuấn 2026-10-16). Viền đậm.</summary>
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
+        }
+
+        /// <summary>Tray có ô được chọn mà ô này không nằm trong đó — chu trình bỏ qua, vẽ mờ.</summary>
+        private bool _isOutOfScope;
+        public bool IsOutOfScope
+        {
+            get => _isOutOfScope;
+            set => SetProperty(ref _isOutOfScope, value);
+        }
+
+        /// <summary>Bấm vào ô — chọn/bỏ chọn, chỉ có tác dụng ở AUTO (<c>TrayGridViewModel.CanSelect</c>).</summary>
+        public System.Windows.Input.ICommand ClickCommand { get; set; }
+
         /// <summary>Màu ô do View quyết định từ giá trị này — ViewModel không giữ Brush (MVVM, 2026-10-08).</summary>
         public ETrayCellLook Look
         {

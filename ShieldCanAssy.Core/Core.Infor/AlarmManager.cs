@@ -212,7 +212,7 @@ namespace ShieldCanAssy.Core.Infor
 
         /// <summary>
         /// Còn alarm đã hết nguyên nhân mà operator chưa bấm RESET xác nhận. McControl chặn vào chạy
-        /// (Cặp A, Cặp B) khi còn alarm loại này. Alarm CÒN nguyên nhân thì RESET chưa gỡ được nên không
+        /// (nút START mềm, nút Start cứng) khi còn alarm loại này. Alarm CÒN nguyên nhân thì RESET chưa gỡ được nên không
         /// tính ở đây — không thì máy kẹt, vd. 4090 hiệu chuẩn quá hạn chỉ hết khi chạy sau lần hiệu chuẩn lại.
         /// </summary>
         public static AlarmData PendingReset

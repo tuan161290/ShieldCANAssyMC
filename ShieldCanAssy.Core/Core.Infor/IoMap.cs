@@ -56,25 +56,17 @@ namespace ShieldCanAssy.Core.Infor
         public const int LightCurtainOk = 13;
 
         /// <summary>
-        /// Cặp A — an toàn kiểu OR: bấm 1 TRONG 2 nút là đủ để đưa máy từ Idle/Paused (đã chọn
-        /// Mode Auto) sang trạng thái Armed (chờ nạp tray), xem <c>McControl.RequestArm</c>.
-        /// KHÔNG phải nút an toàn 2 tay — chỉ là 2 vị trí bấm thuận tiện cho cùng một hành động.
-        /// Đèn chung cho cả 2 nút ở <see cref="DoLampStartBtn"/> (Tuấn xác nhận sơ đồ điện thật,
-        /// 2026-09-08 — đấu lại điện, quay về 2 bit riêng thay vì đấu chung 1 tín hiệu).
+        /// Bốn nút Start cứng — cụm A hai nút (DI14, DI15), cụm B hai nút (DI16, DI17) — tác dụng NHƯ NHAU (khách hàng, Tuấn
+        /// chốt 2026-10-16): bấm nút nào cũng là <c>McControl.RequestGo</c>, máy tự biết đang chờ tray nào. Bắt sườn lên.
+        /// Trước đó cụm A chỉ Arm (OR 2 nút), cụm B Start 1 nạp tray đầu vào, Start 2 nạp tray lắp ráp (2026-09-26); trước
+        /// nữa cụm B là cặp an toàn 2 tay (AND, <c>TwoHandGate</c>). Tên hằng số giữ nguyên theo vị trí nút.
         /// </summary>
         public const int BtnArmA1 = 14;
-        /// <summary>Cặp A, nút thứ 2 — xem <see cref="BtnArmA1"/>.</summary>
         public const int BtnArmA2 = 15;
-
-        /// <summary>
-        /// Cụm B, nút Start 1 — nạp TRAY ĐẦU VÀO (<c>McControl.RequestGoInput</c>); lúc Armed thì nạp rồi khởi động chu
-        /// trình. Từ 2026-09-26 hai nút cụm B là hai nút riêng, bắt sườn lên, mỗi nút nạp một tray (Tuấn chốt) — trước
-        /// đó là cặp an toàn 2 tay (AND, <c>TwoHandGate</c>).
-        /// </summary>
         public const int BtnGoB1 = 16;
-        /// <summary>Cụm B, nút Start 2 — nạp TRAY LẮP RÁP (<c>McControl.RequestGoAssy</c>); lúc Armed thì nạp rồi khởi
-        /// động chu trình. Xem <see cref="BtnGoB1"/>.</summary>
         public const int BtnGoB2 = 17;
+        /// <summary>Bốn nút Start — xem <see cref="BtnArmA1"/>.</summary>
+        public static readonly int[] StartButtons = { BtnArmA1, BtnArmA2, BtnGoB1, BtnGoB2 };
 
         // ── DO ──
         public const int DoVacuum1 = 0;
@@ -95,9 +87,9 @@ namespace ShieldCanAssy.Core.Infor
         /// </summary>
         public const int DoLampResetBtn = 9;
         /// <summary>
-        /// Đèn nút Start 1 cụm B (tray đầu vào) — báo trạng thái HOẠT ĐỘNG của máy: sáng im khi đang chạy Auto
-        /// (Running/Pausing), nhấp nháy khi Armed (chờ bấm Start 1/Start 2), tắt khi máy đứng; chờ nạp tray đầu vào thì
-        /// nháy nhanh 0.1 s (Tuấn 2026-10-01). Start 2 có đèn riêng <see cref="DoLampStartBtnB2"/>. Xem <c>McControl.UpdateOutputs</c>.
+        /// Đèn nút Start 1 cụm B. Ba đèn nút Start — <see cref="DoLampStartBtn"/> (chung hai nút cụm A), đèn này,
+        /// <see cref="DoLampStartBtnB2"/> — báo y hệt nhau vì bốn nút như nhau (2026-10-16): sáng im khi đang chạy
+        /// (Running/Pausing), mọi trạng thái khác tắt, không nhấp nháy (Tuấn 2026-10-16). Xem <c>McControl.UpdateOutputs</c>.
         /// </summary>
         public const int DoLampStartBtnB = 10;
         /// <summary>Đèn chiếu sáng CAM1 (vision).</summary>
@@ -117,8 +109,7 @@ namespace ShieldCanAssy.Core.Infor
         public const int DoBrakeReleaseZ1 = 13;
         /// <summary>Nhả phanh Z2 — xem <see cref="DoBrakeReleaseZ1"/>.</summary>
         public const int DoBrakeReleaseZ2 = 14;
-        /// <summary>Đèn nút Start 2 cụm B (tray lắp ráp) — như <see cref="DoLampStartBtnB"/>, nháy nhanh khi chờ nạp tray
-        /// lắp ráp (Tuấn cho số DO 2026-10-01).</summary>
+        /// <summary>Đèn nút Start 2 cụm B — như <see cref="DoLampStartBtnB"/> (Tuấn cho số DO 2026-10-01).</summary>
         public const int DoLampStartBtnB2 = 15;
 
         public const int DiCount = 32;

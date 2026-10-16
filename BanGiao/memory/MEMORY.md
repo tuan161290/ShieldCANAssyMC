@@ -17,7 +17,7 @@
 - [Rà hết cẩm nang khi đổi thiết kế](feedback_handbook_full_sweep.md) — 15/09 Tuấn thấy bản mới nhất còn PlacementSolver; grep tên cũ, trích nguyên văn thông báo App
 - [Gọi đại lượng theo nghĩa](feedback_name_quantities_by_meaning.md) — không gọi chung là "số"; TopX_mm… là vị trí vật lý của chi tiết đích trong ô (15/09)
 - [Log App trên máy thật](reference_machine_app_log.md) — \\1.2.1.218\Users\Public\App\_RunData\Log\<ngày>\app.log đọc được từ máy dev; xem số đo thay vì đoán từ ảnh
-- [Không chạy máy từ màn hình cảm ứng](project_no_touchscreen_start.md) — luật 20/08, mọi lần chạy phải qua Cặp B hai tay; nút mềm chỉ được chọn chế độ
+- [Không chạy máy từ màn hình cảm ứng](project_no_touchscreen_start.md) — luật 20/08, mọi lần chạy phải qua nút Start cứng; nút mềm chỉ được chọn chế độ
 - [Xét cả mặt cơ khí, không chỉ toán](feedback_check_mechanics_not_just_math.md) — "có cần không" phải trả lời cả vế cơ cấu; 23/09 quên gờ đầu hút nên trả lời hụt chuyện A về 0
 - [Đọc vết AlignBottom để bắt lỗi Group Cmd](reference_group_cmd_trace_signatures.md) — DiagTar = Cell → thiếu hand-eye; DiagDA = −ObjA → góc đích đọc ra 0 (23/09)
 - [Không nới chốt Z_SAFE](feedback_z_safe_interlock_not_negotiable.md) — X/Y chỉ chạy khi cả hai Z ≤ Z_SAFE+1mm; 24/09 Tuấn bác phương án cho Z chạy song song X để rút chu kỳ

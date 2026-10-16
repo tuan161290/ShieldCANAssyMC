@@ -184,7 +184,7 @@
     <value>assy tray rows must use Y2 (LocateTop adds Y2 to PoseY)</value>
   </data>
   <data name="Auto.AssyTrayNotSeen" xml:space="preserve">
-    <value>No assy tray at standby — load, press Start 2 again</value>
+    <value>No assy tray at standby — load, press Start again</value>
   </data>
   <data name="Auto.AssyTrayNotTaught" xml:space="preserve">
     <value>assy tray not taught</value>
@@ -232,7 +232,7 @@
     <value>input tray not in</value>
   </data>
   <data name="Auto.InputTrayNotSeen" xml:space="preserve">
-    <value>No input tray at standby — load, press Start 1 again</value>
+    <value>No input tray at standby — load, press Start again</value>
   </data>
   <data name="Auto.InputTrayNotTaught" xml:space="preserve">
     <value>input tray not taught</value>
@@ -250,7 +250,7 @@
     <value>no input tray {0} at standby</value>
   </data>
   <data name="Auto.InputTray2NotTaught" xml:space="preserve">
-    <value>Input tray 2 not taught — teach it on the Teaching page, or remove tray 2 and press Start 1 again</value>
+    <value>Input tray 2 not taught — teach it on the Teaching page, or remove tray 2 and press Start again</value>
   </data>
   <data name="Auto.InputCellLabel" xml:space="preserve">
     <value>tray {0} ({1},{2})</value>
@@ -262,7 +262,7 @@
     <value>No model</value>
   </data>
   <data name="Auto.NotHomed" xml:space="preserve">
-    <value>not homed</value>
+    <value>Origin not done</value>
   </data>
   <data name="Auto.NozzleCellWhy" xml:space="preserve">
     <value>nozzle #{0} cell {1}: {2}</value>
@@ -358,16 +358,16 @@
     <value>RESET + START restarts from S00</value>
   </data>
   <data name="Auto.WaitAssy" xml:space="preserve">
-    <value>Wait assy tray — load, then Start 2</value>
+    <value>Wait assy tray — load, then Start</value>
   </data>
   <data name="Auto.WaitAssyFull" xml:space="preserve">
-    <value>Assy tray full — replace, then Start 2</value>
+    <value>Assy tray full — replace, then Start</value>
   </data>
   <data name="Auto.WaitInput" xml:space="preserve">
-    <value>Wait input tray — load, then Start 1</value>
+    <value>Wait input tray — load, then Start</value>
   </data>
   <data name="Auto.WaitInputEmpty" xml:space="preserve">
-    <value>Input tray empty — replace, then Start 1</value>
+    <value>Input tray empty — replace, then Start</value>
   </data>
   <data name="Auto.ZAlignHeightFail" xml:space="preserve">
     <value>{0} can't reach Bottom CAM insp height</value>
@@ -388,13 +388,13 @@
     <value>{0} up failed</value>
   </data>
   <data name="Axis.HomeDriverAlarm" xml:space="preserve">
-    <value>driver ALM during Home, code 0x{0}</value>
+    <value>driver ALM during Origin, code 0x{0}</value>
   </data>
   <data name="Axis.HomeDriverError" xml:space="preserve">
-    <value>driver Err during Home, status {0}</value>
+    <value>driver Err during Origin, status {0}</value>
   </data>
   <data name="Axis.HomeSendFail" xml:space="preserve">
-    <value>Home cmd send failed: {0}</value>
+    <value>Origin cmd send failed: {0}</value>
   </data>
   <data name="Axis.HomeTimeoutOrg" xml:space="preserve">
     <value>&gt; {0} ms, no ORG_CMP</value>
@@ -830,19 +830,19 @@
     <value>Air OK (NC)</value>
   </data>
   <data name="Io.DiBtnArmA1" xml:space="preserve">
-    <value>Pair A Arm #1 (OR)</value>
+    <value>Start A #1</value>
   </data>
   <data name="Io.DiBtnArmA2" xml:space="preserve">
-    <value>Pair A Arm #2 (OR)</value>
+    <value>Start A #2</value>
   </data>
   <data name="Io.DiTrayIn1Present" xml:space="preserve">
     <value>Input tray 1 present (inner)</value>
   </data>
   <data name="Io.DiBtnGoB1" xml:space="preserve">
-    <value>B Start 1 (input)</value>
+    <value>Start B #1</value>
   </data>
   <data name="Io.DiBtnGoB2" xml:space="preserve">
-    <value>B Start 2 (assy)</value>
+    <value>Start B #2</value>
   </data>
   <data name="Io.DiBtnStop" xml:space="preserve">
     <value>STOP btn</value>
@@ -896,13 +896,13 @@
     <value>STOP lamp</value>
   </data>
   <data name="Io.DoLampStartBtn" xml:space="preserve">
-    <value>START A lamp</value>
+    <value>Start A lamp</value>
   </data>
   <data name="Io.DoLampStartBtnB" xml:space="preserve">
-    <value>Start 1 lamp</value>
+    <value>Start B #1 lamp</value>
   </data>
   <data name="Io.DoLampStartBtnB2" xml:space="preserve">
-    <value>Start 2 lamp</value>
+    <value>Start B #2 lamp</value>
   </data>
   <data name="Io.DoLampYellow" xml:space="preserve">
     <value>Yellow lamp</value>
@@ -935,22 +935,22 @@
     <value>Tack Time</value>
   </data>
   <data name="Main.CtAvgCurrentTip" xml:space="preserve">
-    <value>Cycle Time ÷ OK pcs.</value>
+    <value>Cycle Time ÷ OK pcs. Kept when the tray is done until a new tray starts.</value>
   </data>
   <data name="Main.CtAvgPrevious" xml:space="preserve">
-    <value>Pre-Tack Time</value>
+    <value>Last Tack Time</value>
   </data>
   <data name="Main.CtAvgPreviousTip" xml:space="preserve">
-    <value>Pre-Cycle Time ÷ OK pcs.</value>
+    <value>Last Cycle Time ÷ OK pcs.</value>
   </data>
   <data name="Main.CtTrayCurrent" xml:space="preserve">
     <value>Cycle Time</value>
   </data>
   <data name="Main.CtTrayCurrentTip" xml:space="preserve">
-    <value>Assy tray in progress. Wall-clock incl. waits/STOP. Resets on new tray.</value>
+    <value>Assy tray in progress. Wall-clock incl. waits/STOP. Kept when the tray is done, resets when a new tray starts.</value>
   </data>
   <data name="Main.CtTrayPrevious" xml:space="preserve">
-    <value>Pre-Cycle Time</value>
+    <value>Last Cycle Time</value>
   </data>
   <data name="Main.CtTrayPreviousTip" xml:space="preserve">
     <value>Last finished assy tray, wall-clock.</value>
@@ -959,7 +959,7 @@
     <value>DRY RUN — NO PRODUCT</value>
   </data>
   <data name="Main.DryRunIdle" xml:space="preserve">
-    <value>No product, axes only — press Start 1</value>
+    <value>No product, axes only — press Start</value>
   </data>
   <data name="Main.DryRunProgress" xml:space="preserve">
     <value>{0} strokes · {1} sweeps · {2} laps · {3:0} min</value>
@@ -968,7 +968,7 @@
     <value>Hide log</value>
   </data>
   <data name="Main.InitTip" xml:space="preserve">
-    <value>Dbl-click: Z to safe, all axes to standby, no homing. Use after pause + manual ops. Reload trays with Start 1/2.</value>
+    <value>Dbl-click: Z to safe, all axes to standby, no Origin. Use after pause + manual ops. Reload trays with Start.</value>
   </data>
   <data name="Main.InputTray" xml:space="preserve">
     <value>INPUT TRAY</value>
@@ -1007,7 +1007,7 @@
     <value>OPERATION</value>
   </data>
   <data name="Main.Origin" xml:space="preserve">
-    <value>Home</value>
+    <value>Origin</value>
   </data>
   <data name="Main.Production" xml:space="preserve">
     <value>PRODUCTION</value>
@@ -1025,7 +1025,7 @@
     <value>Show/hide image toolbar</value>
   </data>
   <data name="Main.RunTip" xml:space="preserve">
-    <value>Grey: stopped · blinking: waiting trays · green: running. Click = Armed only. Run with Start 1 / Start 2 (panel B).</value>
+    <value>Grey: stopped · blinking: press Start · green: running. Click = Armed only. Run with any hardware Start button.</value>
   </data>
   <data name="Main.ShowLog" xml:space="preserve">
     <value>Show log</value>
@@ -1043,7 +1043,7 @@
     <value>From Pre-Tack Time (Tack Time if none). Estimate only.</value>
   </data>
   <data name="Main.WaitTrayBanner" xml:space="preserve">
-    <value>Trays in: Start 1 = input, Start 2 = assy (panel B).</value>
+    <value>Trays in: press any Start button.</value>
   </data>
   <data name="Manual.AxisAlarmNoServo" xml:space="preserve">
     <value>{0} in ALM — RST and clear fault before SVO ON</value>
@@ -1077,7 +1077,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Axis</value>
   </data>
   <data name="Manual.ColHome" xml:space="preserve">
-    <value>Home</value>
+    <value>Origin</value>
   </data>
   <data name="Manual.ColInching" xml:space="preserve">
     <value>Inching (step)</value>
@@ -1101,7 +1101,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>HW DIAGNOSTICS</value>
   </data>
   <data name="Manual.DiagnosticsNote" xml:space="preserve">
-    <value>Raw device values. Check I/O map vs wiring; verify Fastech status bits: SVO on / hit limit / home, see which bit lights.</value>
+    <value>Raw device values. Check I/O map vs wiring; verify Fastech status bits: SVO on / hit limit / Origin, see which bit lights.</value>
   </data>
   <data name="Manual.EmergencyBrakeLocked" xml:space="preserve">
     <value>{0} emergency brake locked again</value>
@@ -1110,7 +1110,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>{0} EMERGENCY BRAKE OFF — axis may fall/move freely; press "Brake off" again to lock</value>
   </data>
   <data name="Manual.HomeRefused" xml:space="preserve">
-    <value>Cannot home {0}: {1}</value>
+    <value>Cannot Origin {0}: {1}</value>
   </data>
   <data name="Manual.IncMinusTip" xml:space="preserve">
     <value>Inching: 1 step −</value>
@@ -1134,10 +1134,10 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Move Abs to entered pos.</value>
   </data>
   <data name="Manual.Origin" xml:space="preserve">
-    <value>Home</value>
+    <value>Origin</value>
   </data>
   <data name="Manual.OriginTip" xml:space="preserve">
-    <value>= Main Home: home whole machine. Refused if cycle running, safety blocking or product on nozzle; reason in top yellow line.</value>
+    <value>= Main Origin: Origin whole machine. Refused if cycle running, safety blocking or product on nozzle; reason in top yellow line.</value>
   </data>
   <data name="Manual.Outputs" xml:space="preserve">
     <value>OUTPUTS (DO)</value>
@@ -1166,11 +1166,11 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
   <data name="Manual.SimAlarmTip" xml:space="preserve">
     <value>Sim driver ALM</value>
   </data>
-  <data name="Manual.SimArm" xml:space="preserve">
-    <value>Pair A — Arm</value>
+  <data name="Manual.SimStart" xml:space="preserve">
+    <value>Start</value>
   </data>
-  <data name="Manual.SimArmTip" xml:space="preserve">
-    <value>Sim: press a Pair A button (OR) → Armed</value>
+  <data name="Manual.SimStartTip" xml:space="preserve">
+    <value>Sim: press a hardware Start button (all 4 the same)</value>
   </data>
   <data name="Manual.SimTray1" xml:space="preserve">
     <value>In-tray 1</value>
@@ -1199,18 +1199,6 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
   <data name="Manual.SimPanelNote" xml:space="preserve">
     <value>Replaces real button panel + safety circuit. Test EMG, door open, door-channel mismatch without unplugging.</value>
   </data>
-  <data name="Manual.SimStart1" xml:space="preserve">
-    <value>Start 1 (input tray)</value>
-  </data>
-  <data name="Manual.SimStart1Tip" xml:space="preserve">
-    <value>Sim Start 1 (panel B): load input tray; runs at once if Armed</value>
-  </data>
-  <data name="Manual.SimStart2" xml:space="preserve">
-    <value>Start 2 (assy tray)</value>
-  </data>
-  <data name="Manual.SimStart2Tip" xml:space="preserve">
-    <value>Sim Start 2 (panel B): load assy tray; runs at once if Armed</value>
-  </data>
   <data name="Manual.SimStop" xml:space="preserve">
     <value>Press STOP</value>
   </data>
@@ -1221,7 +1209,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>STOP all</value>
   </data>
   <data name="Manual.StopAllTip" xml:space="preserve">
-    <value>= Main STOP: stop axes, cancel Home/Init, pause cycle.</value>
+    <value>= Main STOP: stop axes, cancel Origin/Init, pause cycle.</value>
   </data>
   <data name="Manual.TargetPosTip" xml:space="preserve">
     <value>Abs target pos. for Move Abs</value>
@@ -1230,10 +1218,13 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Z at Z_SAFE — needed for X, Y1, Y2 to move</value>
   </data>
   <data name="Mc.Armed" xml:space="preserve">
-    <value>Ready — Start 1: Input tray, Start 2: Assy tray</value>
+    <value>Ready — load trays, press Start</value>
   </data>
   <data name="Mc.ArmedDry" xml:space="preserve">
-    <value>Ready — Start 1 to run</value>
+    <value>Ready — Start to run</value>
+  </data>
+  <data name="Mc.AssyCellNotSelectable" xml:space="preserve">
+    <value>Cell not empty — select empty cells (or pre-select while the tray is out for change)</value>
   </data>
   <data name="Mc.AssyTray" xml:space="preserve">
     <value>Assy tray</value>
@@ -1286,6 +1277,9 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
   <data name="Mc.BothNozzles" xml:space="preserve">
     <value>Both nozzles</value>
   </data>
+  <data name="Mc.BothTrays" xml:space="preserve">
+    <value>Both trays</value>
+  </data>
   <data name="Mc.BusyDryRunChange" xml:space="preserve">
     <value>Running — stop before changing Dry run</value>
   </data>
@@ -1296,7 +1290,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>cancelled</value>
   </data>
   <data name="Mc.CannotHome" xml:space="preserve">
-    <value>Cannot home: {0}</value>
+    <value>Cannot Origin: {0}</value>
   </data>
   <data name="Mc.CannotInit" xml:space="preserve">
     <value>Cannot Init: {0}</value>
@@ -1326,7 +1320,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>cycle running — stop fully before creating vars</value>
   </data>
   <data name="Mc.CurtainHeld" xml:space="preserve">
-    <value>Curtain cut — stopped. Clear area, Start 1/Start 2 to resume</value>
+    <value>Curtain cut — stopped. Clear area, Start to resume</value>
   </data>
   <data name="Mc.CurtainPressAgain" xml:space="preserve">
     <value>Curtain cut — clear area, press {0} again</value>
@@ -1350,16 +1344,13 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Dry run off — real cycle</value>
   </data>
   <data name="Mc.DryRunOn" xml:space="preserve">
-    <value>DRY RUN on — no product, axes only. Start 1 (panel B) to run.</value>
-  </data>
-  <data name="Mc.DryRunPressStart1" xml:space="preserve">
-    <value>Dry run: Start 1 to run</value>
+    <value>DRY RUN on — no product, axes only. Start to run.</value>
   </data>
   <data name="Mc.HasErrorReset" xml:space="preserve">
     <value>Err active — fix cause, press RESET</value>
   </data>
   <data name="Mc.Held" xml:space="preserve">
-    <value>Paused — Start 1/Start 2 to resume, MANUAL to abort cycle</value>
+    <value>Paused — Start to resume, MANUAL to abort cycle</value>
   </data>
   <data name="Mc.HeldAbandoned" xml:space="preserve">
     <value>Paused cycle aborted ({0}) — Init to standby before resuming</value>
@@ -1368,25 +1359,28 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>paused — Start to resume, MANUAL to abort cycle</value>
   </data>
   <data name="Mc.HomingCancelled" xml:space="preserve">
-    <value>Homing cancelled</value>
+    <value>Origin cancelled</value>
   </data>
   <data name="Mc.HomingDone" xml:space="preserve">
-    <value>Homing done — ready</value>
+    <value>Origin done — ready</value>
   </data>
   <data name="Mc.HomingStarted" xml:space="preserve">
-    <value>Homing started</value>
+    <value>Origin started</value>
   </data>
   <data name="Mc.InitDone" xml:space="preserve">
-    <value>Init done — at standby; Start 1/Start 2 to load trays</value>
+    <value>Init done — at standby; load trays, press Start</value>
   </data>
   <data name="Mc.InitNotHomed" xml:space="preserve">
-    <value>Cannot Init: not homed — press Home (Origin)</value>
+    <value>Cannot Init: Origin not done — press Origin</value>
   </data>
   <data name="Mc.InitStarted" xml:space="preserve">
     <value>Init — to standby</value>
   </data>
   <data name="Mc.InitWhileHeld" xml:space="preserve">
     <value>Paused — MANUAL (abort cycle) before Init</value>
+  </data>
+  <data name="Mc.InputCellNotSelectable" xml:space="preserve">
+    <value>Cell has no part — select cells with parts (or pre-select while the tray is out for change)</value>
   </data>
   <data name="Mc.InputTray" xml:space="preserve">
     <value>Input tray</value>
@@ -1401,7 +1395,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>no axis {0}</value>
   </data>
   <data name="Mc.NotHomedPressOrigin" xml:space="preserve">
-    <value>Not homed — press Home (Origin)</value>
+    <value>Origin not done — press Origin</value>
   </data>
   <data name="Mc.NoVacuumSensor" xml:space="preserve">
     <value>Vac sensors unreadable — nozzle product state unknown</value>
@@ -1431,7 +1425,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Running to safe stop pt…</value>
   </data>
   <data name="Mc.SelectAutoFirst" xml:space="preserve">
-    <value>Select AUTO before Ready</value>
+    <value>Select AUTO before Start</value>
   </data>
   <data name="Mc.SolutionNotLoaded" xml:space="preserve">
     <value>vision solution not loaded</value>
@@ -1445,11 +1439,11 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
   <data name="Mc.TrayAccepted" xml:space="preserve">
     <value>{0} accepted ({1})</value>
   </data>
-  <data name="Mc.TrayAlreadyIn" xml:space="preserve">
-    <value>{0} already loaded{1}</value>
-  </data>
   <data name="Mc.TrayWaitCancelled" xml:space="preserve">
     <value>Tray wait cancelled</value>
+  </data>
+  <data name="Mc.TraysAllIn" xml:space="preserve">
+    <value>Both trays already loaded</value>
   </data>
   <data name="Mc.UnackedAlarm" xml:space="preserve">
     <value>Unacked err: {0} {1} — press RESET</value>
@@ -1458,10 +1452,10 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>unexpected err: {0}</value>
   </data>
   <data name="Mc.UnsafePauseInit" xml:space="preserve">
-    <value>Last stop mid-motion — press Init (next to Home) to go to standby</value>
+    <value>Last stop mid-motion — press Init (next to Origin) to go to standby</value>
   </data>
   <data name="Mc.UnsafePauseInitResume" xml:space="preserve">
-    <value>Last stop mid-motion — press Init (next to Home) to go to standby before resuming.</value>
+    <value>Last stop mid-motion — press Init (next to Origin) to go to standby before resuming.</value>
   </data>
   <data name="Mc.WatchdogSilent" xml:space="preserve">
     <value>silent {0} ms &gt; {1} ms</value>
@@ -1479,13 +1473,13 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>STOP pressed</value>
   </data>
   <data name="Mc.ZMustHomeFirst" xml:space="preserve">
-    <value>Home Z1/Z2 before {0} home/Move Abs</value>
+    <value>Origin Z1/Z2 before {0} Origin/Move Abs</value>
   </data>
   <data name="Mc.ZNotSafe" xml:space="preserve">
     <value>Z not at Z_SAFE (Z1={0:0.0}, Z2={1:0.0}, need ≤ {2:0.0})</value>
   </data>
   <data name="Origin.AbortedAtStep" xml:space="preserve">
-    <value>Homing aborted at step {0}: {1}</value>
+    <value>Origin aborted at step {0}: {1}</value>
   </data>
   <data name="Origin.AutoRunning" xml:space="preserve">
     <value>Auto running</value>
@@ -1497,25 +1491,25 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>axis not connected</value>
   </data>
   <data name="Origin.BrakeNotReleased" xml:space="preserve">
-    <value>Z1/Z2 brake locked — Manual: SVO on Z1/Z2, "Brake off", then home</value>
+    <value>Z1/Z2 brake locked — Manual: SVO on Z1/Z2, &quot;Brake off&quot;, then Origin</value>
   </data>
   <data name="Origin.GateNotHomed" xml:space="preserve">
-    <value>Z interlock: Z1/Z2 not both homed</value>
+    <value>Z interlock: Z1/Z2 Origin not both done</value>
   </data>
   <data name="Origin.GateZPos" xml:space="preserve">
     <value>Z interlock: Z1={0:0.00}, Z2={1:0.00}, need ≤ {2:0.00}</value>
   </data>
   <data name="Origin.HomeAFailed" xml:space="preserve">
-    <value>A home failed</value>
+    <value>A Origin failed</value>
   </data>
   <data name="Origin.HomeAXYFailed" xml:space="preserve">
-    <value>A/X/Y home failed</value>
+    <value>A/X/Y Origin failed</value>
   </data>
   <data name="Origin.HomeXYFailed" xml:space="preserve">
-    <value>X/Y home failed</value>
+    <value>X/Y Origin failed</value>
   </data>
   <data name="Origin.HomeZFailed" xml:space="preserve">
-    <value>Z home failed</value>
+    <value>Z Origin failed</value>
   </data>
   <data name="Origin.InitCancelled" xml:space="preserve">
     <value>Init cancelled</value>
@@ -1692,7 +1686,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Axis</value>
   </data>
   <data name="Setting.ColHomeOffset" xml:space="preserve">
-    <value>Home ofs</value>
+    <value>Origin ofs</value>
   </data>
   <data name="Setting.ColJogFast" xml:space="preserve">
     <value>Jog fast</value>
@@ -1758,7 +1752,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>DRY RUN: ON</value>
   </data>
   <data name="Setting.DryRunTip" xml:space="preserve">
-    <value>Nonstop cycle, NO PRODUCT: only X/Y/Z/A move, no vac/blow/CAM. Selects mode only; Start 1 (panel B) runs. Locked while running.</value>
+    <value>Nonstop cycle, NO PRODUCT: only X/Y/Z/A move, no vac/blow/CAM. Selects mode only; a Start button runs. Locked while running.</value>
   </data>
   <data name="Setting.Error" xml:space="preserve">
     <value>ERR: {0}</value>
@@ -1791,10 +1785,10 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Curtain fitted (DI13)</value>
   </data>
   <data name="Setting.HasLightCurtainTip" xml:space="preserve">
-    <value>On: curtain cut stops all axes, none move while cut. Auto pauses; clear area, Start 1/2 resumes. Enable only if DI13 lit (Manual).</value>
+    <value>On: curtain cut stops all axes, none move while cut. Auto pauses; clear area, Start resumes. Enable only if DI13 lit (Manual).</value>
   </data>
   <data name="Setting.HomeRotateSequential" xml:space="preserve">
-    <value>Home A1/A2 in sequence</value>
+    <value>Origin A1/A2 in sequence</value>
   </data>
   <data name="Setting.InputZDown" xml:space="preserve">
     <value>Input tray — down</value>
@@ -1872,7 +1866,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>Top CAM</value>
   </data>
   <data name="Setting.RequireHomeAfterEmg" xml:space="preserve">
-    <value>Re-home after EMG</value>
+    <value>Re-Origin after EMG</value>
   </data>
   <data name="Setting.Saved" xml:space="preserve">
     <value>system.json saved. COM/IP/Simulation change needs restart.</value>
@@ -2037,7 +2031,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>PAUSED</value>
   </data>
   <data name="Status.StateHoming" xml:space="preserve">
-    <value>HOMING</value>
+    <value>ORIGIN RUN</value>
   </data>
   <data name="Status.StateIdle" xml:space="preserve">
     <value>READY</value>
@@ -2046,7 +2040,7 @@ Hold 3 s: EMERGENCY release, push axis by hand, even in ALM/SVO OFF. STAYS off; 
     <value>STARTUP</value>
   </data>
   <data name="Status.StateNotHomed" xml:space="preserve">
-    <value>NOT HOMED</value>
+    <value>NO ORIGIN</value>
   </data>
   <data name="Status.StatePaused" xml:space="preserve">
     <value>STOPPED</value>
@@ -2301,7 +2295,7 @@ New: {2}</value>
     <value>Load</value>
   </data>
   <data name="Teach.LoadModelBusy" xml:space="preserve">
-    <value>Can't load model while running/homing.</value>
+    <value>Can&apos;t load model while running/Origin.</value>
   </data>
   <data name="Teach.LoadModelFailed" xml:space="preserve">
     <value>Load model '{0}' failed — see log.</value>
@@ -2556,10 +2550,10 @@ New: {2}</value>
     <value>Dbl-click: selected Tool Z down to taught pick (input) / place (assy) height, via slow pt.</value>
   </data>
   <data name="Teach.ZHome" xml:space="preserve">
-    <value>Home</value>
+    <value>Origin</value>
   </data>
   <data name="Teach.ZHomeTip" xml:space="preserve">
-    <value>Dbl-click: move to Z=0. Needs Home done.</value>
+    <value>Dbl-click: move to Z=0. Needs Origin done.</value>
   </data>
   <data name="Teach.ZPickHint" xml:space="preserve">
     <value>Z1/Z2 taught SEPARATELY. Jog Z1 (or Z2) down to PICK height on input tray, press Teach of that axis.</value>
@@ -2591,6 +2585,12 @@ New: {2}</value>
   <data name="Teach.ZSlowWrongSide" xml:space="preserve">
     <value>{0}: WRONG — slow pt {1:0.000} must be &lt; {2} height {3:0.000} (+Z = down). Ignored, one go at high.</value>
   </data>
+  <data name="Tray.ClearSelection" xml:space="preserve">
+    <value>Clear ({0})</value>
+  </data>
+  <data name="Tray.ClearSelectionTip" xml:space="preserve">
+    <value>Clear selected cells — whole tray again. In AUTO click cells to select: only those are run, then the tray counts as done.</value>
+  </data>
   <data name="Tray.SummaryCurrent" xml:space="preserve">
     <value>{0} × {1} — cell {2}/{3}</value>
   </data>
@@ -2600,7 +2600,7 @@ New: {2}</value>
   <data name="Tray.SummaryOfTray" xml:space="preserve">
     <value>Tray {0} · {1}</value>
   </data>
-  <data name="Tray.SelectN" xml:space="preserve">
+  <data name="Tray.N" xml:space="preserve">
     <value>Tray {0}</value>
   </data>
   <data name="Tray.NotTaught" xml:space="preserve">
@@ -2911,13 +2911,13 @@ Jig must be unmoved. Continue?</value>
     <value>No model loaded.</value>
   </data>
   <data name="Vision.NoOrigin" xml:space="preserve">
-    <value>Not homed — run Origin first.</value>
+    <value>Origin not done — run Origin first.</value>
   </data>
   <data name="Vision.NoOriginCalib" xml:space="preserve">
-    <value>Not homed — run Origin before calib.</value>
+    <value>Origin not done — run Origin before calib.</value>
   </data>
   <data name="Vision.NoOriginCoords" xml:space="preserve">
-    <value>Not homed — coords meaningless.</value>
+    <value>Origin not done — coords meaningless.</value>
   </data>
   <data name="Vision.NotCalibChecked" xml:space="preserve">
     <value>(calib not checked)</value>
@@ -3129,10 +3129,10 @@ Nothing written to model.</value>
     <value>Test travel (mm)</value>
   </data>
   <data name="Vision.Z1SafeTip" xml:space="preserve">
-    <value>Dbl-click: Z1 to Z_SAFE. Needs home, SVO on, brake off.</value>
+    <value>Dbl-click: Z1 to Z_SAFE. Needs Origin, SVO on, brake off.</value>
   </data>
   <data name="Vision.Z2SafeTip" xml:space="preserve">
-    <value>Dbl-click: Z2 to Z_SAFE. Needs home, SVO on, brake off.</value>
+    <value>Dbl-click: Z2 to Z_SAFE. Needs Origin, SVO on, brake off.</value>
   </data>
   <data name="Vision.ZSafeTitle" xml:space="preserve">
     <value>{0} to Z_SAFE</value>

@@ -68,8 +68,8 @@ namespace ShieldCanAssy.Core.Controller
         /// <summary>
         /// Bật/tắt chế độ <b>chạy rà</b> (không sản phẩm, chỉ chạy trục) — nút gạt ở trang Main.
         ///
-        /// <para>Chỉ CHỌN chế độ, KHÔNG chạy máy: bật xong vẫn phải chìa AUTO → Armed → bấm đủ hai nút Cặp B
-        /// ngoài jig như mọi lần, đúng luật an toàn hai tay đặt 2026-08-20. Không đổi được trong lúc máy đang
+        /// <para>Chỉ CHỌN chế độ, KHÔNG chạy máy: bật xong vẫn phải chọn AUTO rồi bấm nút Start cứng như mọi lần
+        /// — không có đường nào từ màn hình chạy máy (2026-08-20). Không đổi được trong lúc máy đang
         /// chạy — gạt giữa chừng thì nửa vòng sau sẽ là một chu trình khác hẳn nửa vòng trước.</para>
         /// </summary>
         public static void SetDryRun(bool on)
@@ -142,6 +142,38 @@ namespace ShieldCanAssy.Core.Controller
             McDataManager.SaveRunningData();
         }
 
+        /// <summary>
+        /// Bấm một ô ở lưới tray trang Main lúc AUTO (Tuấn 2026-10-16): chọn hoặc bỏ chọn. Có ô được chọn thì chu trình Auto
+        /// chỉ làm trên các ô đó, làm hết thì coi như xong tray — xem <see cref="TrayState.Selected"/>. Gọi được lúc máy đang
+        /// chạy: có hiệu lực từ lần giao ô kế tiếp, ô đang làm dở không đổi. Chỉ chọn được ô còn việc — tray đầu vào ô có
+        /// hàng, tray lắp ráp ô trống — để bấm nhầm một ô đã xong không thành "xong tray"; tray đã hết, đang chờ thay, thì ô
+        /// nào cũng chọn được: chọn trước cho tray sắp đặt vào. Bỏ chọn lúc nào cũng được. Không ghi running.json ở đây —
+        /// lựa chọn chỉ sống trong phiên (mở lại App là mất), chu trình ghi theo nhịp của nó.
+        /// </summary>
+        public static void ToggleCellSelection(bool input, int index)
+        {
+            if (Status.Mode != EMcMode.Auto) return;
+            var tray = input ? McDataManager.RunData.InputTray : McDataManager.RunData.AssyTray;
+            if (index < 0 || index >= tray.CellCount) return;
+            if (!tray.IsSelected(index))
+            {
+                var open = input ? ECellState.Loaded : ECellState.Empty;
+                bool trayDone = !tray.Cells.Contains(open) && !tray.Cells.Contains(ECellState.Processing);
+                if (tray.Get(index) != open && !trayDone)
+                {
+                    Status.Message = Loc.T(input ? "Mc.InputCellNotSelectable" : "Mc.AssyCellNotSelectable");
+                    return;
+                }
+            }
+            tray.ToggleSelected(index);
+        }
+
+        /// <summary>Nút "Bỏ chọn" của card tray trang Main — chu trình lại làm cả tray.</summary>
+        public static void ClearCellSelection(bool input)
+        {
+            (input ? McDataManager.RunData.InputTray : McDataManager.RunData.AssyTray).ClearSelection();
+        }
+
         private static Routine_Origin _origin;
         private static Routine_Auto _auto;
         private static Routine_DryCycle _dry;
@@ -155,7 +187,7 @@ namespace ShieldCanAssy.Core.Controller
         private static readonly object _routineLock = new object();
 
         // Yêu cầu từ UI / nút cứng
-        private static int _reqStart, _reqStop, _reqPause, _reqReset, _reqOrigin, _reqInit, _reqMute, _reqArm, _reqGoInput, _reqGoAssy;
+        private static int _reqStart, _reqStop, _reqPause, _reqReset, _reqOrigin, _reqInit, _reqMute, _reqArm, _reqGo;
 
         /// <summary>Chế độ Auto/Manual đặt bằng phần mềm — máy không có công tắc chìa vật lý,
         /// chọn qua nút trên trang Main (xem RequestSetMode). Khác các _req* ở trên (cờ một
@@ -494,7 +526,7 @@ namespace ShieldCanAssy.Core.Controller
 
             // Chuyển về Manual trong lúc đang chạy thì chạy nốt tới checkpoint rồi dừng (§3.4). Đang tạm dừng thì bỏ
             // chu trình: ở Manual còn jog được, Start sau đó mà phát lại lệnh dở từ chỗ đã jog tới là va.
-            // Đang chờ tray cũng vậy — không thì Start 2 sau đó chạy tiếp chu trình Auto dưới chế độ MANUAL.
+            // Đang chờ tray cũng vậy — không thì Start sau đó chạy tiếp chu trình Auto dưới chế độ MANUAL.
             if (Status.Mode == EMcMode.Auto && (Status.State == EMcState.Running || Status.State == EMcState.WaitOperator))
                 RequestPause();
             if (next == EMcMode.Manual && Status.State == EMcState.Held)
@@ -542,16 +574,12 @@ namespace ShieldCanAssy.Core.Controller
             if (Io.RisingEdge(IoMap.BtnStop)) RequestStop();
             // Không còn nút Tắt còi cứng (Tuấn 2026-10-15) — bit đó thành cảm biến Tray 1, tắt còi bằng nút trang Main.
 
-            // Cặp A — OR: bấm 1 trong 2 nút là đủ (xem IoMap.BtnArmA1). RESET không còn nút vật
-            // lý — chỉ bấm được bằng nút mềm trang Main (MainViewModel.ResetCommand gọi thẳng
-            // RequestReset, không qua DI nào ở đây).
-            if (Io.RisingEdge(IoMap.BtnArmA1) || Io.RisingEdge(IoMap.BtnArmA2))
-                RequestArm();
-
-            // Cụm B — hai nút riêng, mỗi nút một tray (Tuấn chốt 2026-09-26, bỏ AND 2 tay): Start 1 cho tray đầu
-            // vào, Start 2 cho tray lắp ráp. Bắt sườn lên như các nút cứng khác.
-            if (Io.RisingEdge(IoMap.BtnGoB1)) RequestGoInput();
-            if (Io.RisingEdge(IoMap.BtnGoB2)) RequestGoAssy();
+            // Bốn nút Start như nhau (khách hàng, Tuấn chốt 2026-10-16) — trước đó Cặp A chỉ Arm, Start 1 nạp tray đầu
+            // vào, Start 2 nạp tray lắp ráp. Bấm cùng lúc nhiều nút vẫn chỉ là một lần Start (một cờ yêu cầu). RESET không
+            // còn nút vật lý — chỉ bấm được bằng nút mềm trang Main (MainViewModel.ResetCommand gọi thẳng RequestReset,
+            // không qua DI nào ở đây).
+            foreach (int bit in IoMap.StartButtons)
+                if (Io.RisingEdge(bit)) RequestGo();
 
             if (Interlocked.Exchange(ref _reqReset, 0) == 1) DoReset();
             if (Interlocked.Exchange(ref _reqMute, 0) == 1) Status.BuzzerMuted = true;
@@ -560,8 +588,7 @@ namespace ShieldCanAssy.Core.Controller
             if (Interlocked.Exchange(ref _reqOrigin, 0) == 1) DoOrigin();
             if (Interlocked.Exchange(ref _reqInit, 0) == 1) DoInit();
             if (Interlocked.Exchange(ref _reqArm, 0) == 1) DoArm();
-            if (Interlocked.Exchange(ref _reqGoInput, 0) == 1) DoGo(true);
-            if (Interlocked.Exchange(ref _reqGoAssy, 0) == 1) DoGo(false);
+            if (Interlocked.Exchange(ref _reqGo, 0) == 1) DoGo();
 
             // _reqStart/DoStart: xem doc-comment RequestStart — chỉ còn SelfTest.cs dùng.
             if (Interlocked.Exchange(ref _reqStart, 0) == 1) DoStart();
@@ -615,23 +642,18 @@ namespace ShieldCanAssy.Core.Controller
         public static void RequestInit() => Interlocked.Exchange(ref _reqInit, 1);
         public static void RequestMuteBuzzer() => Interlocked.Exchange(ref _reqMute, 1);
 
-        /// <summary>Cặp A (OR) — vào trạng thái Armed, chờ nạp tray. Gọi từ nút mềm "START" trên
-        /// UI cũng như DI vật lý — nút mềm CỐ Ý chỉ làm được đúng việc này (2026-08-20): không
-        /// còn đường nào từ màn hình cảm ứng chạy thẳng máy được nữa, phải qua nút Start 1 vật lý
-        /// ở <see cref="RequestGoInput"/>.</summary>
+        /// <summary>Vào trạng thái Armed, chờ bấm Start. Chỉ nút mềm "START" trên UI gọi — nút mềm CỐ Ý chỉ làm được đúng
+        /// việc này (2026-08-20): không có đường nào từ màn hình cảm ứng chạy thẳng máy, phải qua nút Start vật lý ở
+        /// <see cref="RequestGo"/>. Bốn nút cứng không còn gọi hàm này (2026-10-16).</summary>
         public static void RequestArm() => Interlocked.Exchange(ref _reqArm, 1);
 
-        /// <summary>Start 1 cụm B (DI 0x10) — nạp tray đầu vào; lúc Armed thì nạp rồi khởi động chu trình. KHÔNG có nút
-        /// mềm nào gọi hàm này. Xem <see cref="DoGo"/>.</summary>
-        public static void RequestGoInput() => Interlocked.Exchange(ref _reqGoInput, 1);
-
-        /// <summary>Start 2 cụm B (DI 0x11) — nạp tray lắp ráp; lúc Armed thì nạp rồi khởi động chu trình. Xem
-        /// <see cref="DoGo"/>.</summary>
-        public static void RequestGoAssy() => Interlocked.Exchange(ref _reqGoAssy, 1);
+        /// <summary>Một trong bốn nút Start cứng (DI 0x0E, 0x0F, 0x10, 0x11 — <see cref="IoMap.StartButtons"/>), như nhau
+        /// (Tuấn chốt 2026-10-16). KHÔNG có nút mềm nào gọi hàm này. Xem <see cref="DoGo"/>.</summary>
+        public static void RequestGo() => Interlocked.Exchange(ref _reqGo, 1);
 
         /// <summary>
-        /// Lỗi nào cũng phải bấm RESET xác nhận rồi mới cho chạy tiếp (Tuấn chốt 2026-09-26) — chặn Cặp A
-        /// và Start 1/Start 2 (cả lúc nạp tray giữa chừng). Chỉ xét alarm đã hết nguyên nhân: alarm còn nguyên nhân thì RESET
+        /// Lỗi nào cũng phải bấm RESET xác nhận rồi mới cho chạy tiếp (Tuấn chốt 2026-09-26) — chặn nút START mềm
+        /// và nút Start cứng (cả lúc nạp tray giữa chừng). Chỉ xét alarm đã hết nguyên nhân: alarm còn nguyên nhân thì RESET
         /// chưa gỡ được, Error đã tự chặn qua trạng thái ALARM. Chờ đổi tray không phải alarm (Tuấn 2026-09-30).
         /// Warning mà máy tự chạy tiếp (hút hụt, soi hỏng trả về, bỏ ô…) tự rời danh sách nên không chặn — AlarmManager.Dismiss
         /// (Tuấn 2026-09-29).
@@ -644,24 +666,26 @@ namespace ShieldCanAssy.Core.Controller
             return false;
         }
 
-        /// <summary>Cặp A / nút START mềm — vào lại sẵn sàng khi đã ở AUTO (vd. sau STOP). Chọn AUTO thì tự vào, xem
-        /// <see cref="UpdateMode"/>.</summary>
+        /// <summary>Nút START mềm — vào lại sẵn sàng khi đã ở AUTO (vd. sau STOP). Chọn AUTO thì tự vào, xem
+        /// <see cref="UpdateMode"/>; nút Start cứng lúc máy đứng thì vào rồi chạy luôn, xem <see cref="DoGo"/>.</summary>
         private static void DoArm()
         {
             if (Status.State == EMcState.Armed) return;
-            if (Status.Mode != EMcMode.Auto)
-            {
-                Status.Message = Loc.T("Mc.SelectAutoFirst");
-                return;
-            }
-            string why = ArmBlockReason();
+            string why = ArmRefusal();
             if (why != null) { Status.Message = why; return; }
-            Arm("Cặp A");
+            Arm("nút START mềm");
+        }
+
+        /// <summary>Lý do không vào Armed được từ nút bấm (START mềm, Start cứng lúc máy đứng); null = vào được.</summary>
+        private static string ArmRefusal()
+        {
+            if (Status.Mode != EMcMode.Auto) return Loc.T("Mc.SelectAutoFirst");
+            return ArmBlockReason();
         }
 
         /// <summary>
-        /// Lý do chưa vào được trạng thái sẵn sàng; null = vào được. Chọn AUTO và Cặp A cùng xét ở đây nên hai đường
-        /// không lệch nhau. Chạy dở giữa hành trình mà chưa Init thì chặn ngay từ đây (Tuấn 2026-09-30: không đủ điều
+        /// Lý do chưa vào được trạng thái sẵn sàng; null = vào được. Chọn AUTO, nút START mềm và nút Start cứng cùng xét
+        /// ở đây nên các đường không lệch nhau. Chạy dở giữa hành trình mà chưa Init thì chặn ngay từ đây (Tuấn 2026-09-30: không đủ điều
         /// kiện thì báo luôn lúc chọn AUTO), không đợi tới lúc bấm Start mới báo.
         /// </summary>
         private static string ArmBlockReason()
@@ -704,23 +728,25 @@ namespace ShieldCanAssy.Core.Controller
         }
 
         /// <summary>
-        /// Start 1 (<paramref name="input"/> = true) / Start 2 cụm B — mỗi nút nạp đúng tray của nó: Start 1 tray đầu vào,
-        /// Start 2 tray lắp ráp (Tuấn chốt 2026-09-26). Tray nạp rồi thì chu trình làm được gì với tray đó thì làm, thiếu tray
-        /// kia thì chờ — xem <c>Routine_Auto.LoadTray</c>.
+        /// Nút Start cứng — bốn nút như nhau (khách hàng, Tuấn chốt 2026-10-16). Máy tự biết đang thiếu tray nào: nạp mọi
+        /// tray chưa vào máy mà cảm biến thấy ở vị trí chờ; tray không thấy thì chu trình làm được gì với tray đã có thì
+        /// làm, bước cần tray kia đứng ở CHỜ THAO TÁC tới lần bấm Start sau — xem <c>Routine_Auto.LoadTrays</c>. Trước đó
+        /// Start 1 chỉ nạp tray đầu vào, Start 2 chỉ nạp tray lắp ráp, Cặp A chỉ Arm (2026-09-26).
         /// <list type="bullet">
-        /// <item>Armed: nạp tray của nút rồi khởi động chu trình. Tray đã ở trong máy (chạy tiếp sau STOP) thì chỉ khởi
-        /// động. Chạy rà không dùng tray, chỉ Start 1 khởi động.</item>
+        /// <item>Tạm dừng: chạy tiếp đúng chỗ dở.</item>
+        /// <item>AUTO mà máy đứng (IDLE/PAUSED, vd. sau STOP): vào Armed rồi chạy luôn — một lần bấm (Tuấn 2026-10-16).</item>
+        /// <item>Armed: nạp tray rồi khởi động chu trình, không thấy tray nào cũng khởi động — chu trình chờ tray. Tray đã
+        /// ở trong máy (chạy tiếp sau STOP) thì chỉ khởi động. Chạy rà không dùng tray.</item>
         /// <item>Chu trình đang chạy hoặc đang chờ tray: chỉ nạp tray.</item>
         /// </list>
         /// KHÔNG có nhánh NotHomed→DoOrigin() như DoStart cũ: về gốc là chuyển động thật, phải
         /// bấm nút "Về gốc" riêng (2026-08-20, chủ ý đơn giản hoá).
         /// </summary>
-        private static void DoGo(bool input)
+        private static void DoGo()
         {
-            string button = input ? "Start 1" : "Start 2";
-            string tray = input ? Loc.T("Mc.InputTray") : Loc.T("Mc.AssyTray");
+            const string button = "Start";
 
-            // Tạm dừng: Start nào cũng bật lại bit RUN, chu trình chạy tiếp đúng chỗ dở (Tuấn 2026-09-29).
+            // Tạm dừng: Start bật lại bit RUN, chu trình chạy tiếp đúng chỗ dở (Tuấn 2026-09-29).
             if (Status.State == EMcState.Held)
             {
                 if (!Safety.SafeToMove) { Status.Message = Loc.F("Mc.CannotResume", Safety.BlockReason); return; }
@@ -741,28 +767,30 @@ namespace ShieldCanAssy.Core.Controller
                 // Nạp tray là cho chu trình chạy trục tiếp — rèm còn bị cắt thì chưa nhận (Tuấn 2026-10-01).
                 if (!Status.LightCurtainOk)
                 { Status.Message = Loc.F("Mc.CurtainPressAgain", button); return; }
-                if (_auto.TrayIn(input))
+                string loaded, notSeen, why = _auto.LoadTrays(out loaded, out notSeen);
+                if (why != null) { Status.Message = why; return; }
+                if (loaded == null)
                 {
-                    string waiting = _auto.WaitingMessage;
-                    Status.Message = Loc.F("Mc.TrayAlreadyIn", tray, waiting != null ? " — " + waiting : "");
+                    // Không nạp thêm được tray nào: tray còn thiếu chưa đặt, hoặc cả hai đã ở trong máy.
+                    Status.Message = notSeen ?? Loc.T("Mc.TraysAllIn");
                     return;
                 }
-                string why = _auto.LoadTray(input);
-                if (why != null) { Status.Message = why; return; }
-                Status.Message = Loc.F("Mc.TrayAccepted", tray, button);
+                Status.Message = Loc.F("Mc.TrayAccepted", loaded, button);
                 LogWorker.Instance.RecordLog(Status.Message, Utility.Log.LogLevel.Info, "McControl");
                 return;
+            }
+
+            // AUTO mà máy đứng (vd. sau STOP): vào sẵn sàng rồi chạy luôn, không bắt bấm hai lần (Tuấn 2026-10-16).
+            if (Status.State == EMcState.Idle || Status.State == EMcState.Paused)
+            {
+                string why = ArmRefusal();
+                if (why != null) { Status.Message = why; return; }
+                Arm(button);
             }
 
             if (Status.State != EMcState.Armed)
             {
                 Status.Message = Loc.F("Mc.CannotRunButtonInState", button, Status.StateText);
-                return;
-            }
-
-            if (Status.DryRun && !input)
-            {
-                Status.Message = Loc.T("Mc.DryRunPressStart1");
                 return;
             }
 
@@ -783,10 +811,11 @@ namespace ShieldCanAssy.Core.Controller
             }
 
             // Tray hết theo sổ (còn từ lần chạy trước) thì chu trình nhận là tray mới — không chạy tới S50 rồi mới đòi đổi
-            // (Tuấn gặp 2026-09-26). Chạy rà không dùng tray.
+            // (Tuấn gặp 2026-09-26). Không thấy tray nào vẫn khởi động: chu trình tự vào CHỜ THAO TÁC, báo thiếu tray nào.
+            // Chạy rà không dùng tray.
             if (!Status.DryRun)
             {
-                string why = _auto.LoadTray(input);
+                string loaded, notSeen, why = _auto.LoadTrays(out loaded, out notSeen);
                 if (why != null) { Status.Message = why; return; }
             }
 
@@ -795,7 +824,7 @@ namespace ShieldCanAssy.Core.Controller
 
         /// <summary>
         /// Khởi động chu trình — chạy chu trình THẬT hay chu trình RÀ do <see cref="McStatus.DryRun"/> quyết,
-        /// tại ĐÚNG MỘT CHỖ. Cả hai đường vào đều đi qua đây: Start 1 (<see cref="DoGo"/>, đường vận hành thật)
+        /// tại ĐÚNG MỘT CHỖ. Cả hai đường vào đều đi qua đây: nút Start (<see cref="DoGo"/>, đường vận hành thật)
         /// và đường START cũ (<see cref="DoStart"/>, chỉ self-test dùng).
         ///
         /// <para><b>Vì sao phải gom về một chỗ.</b> 23/09 phép rẽ nhánh chạy rà chỉ được đặt trong
@@ -811,8 +840,8 @@ namespace ShieldCanAssy.Core.Controller
         /// <summary>
         /// Đường START cũ, CHỈ còn dùng cho SelfTest.cs (mô phỏng qua FakeIo, không phải vận
         /// hành thật) — giữ nguyên để không phải viết lại các kịch bản test đã có. Đường vận
-        /// hành thật (UI + DI vật lý) phải qua <see cref="RequestArm"/> rồi <see cref="RequestGoInput"/>
-        /// (Start 1 cụm B), không còn gọi hàm này nữa (2026-08-20).
+        /// hành thật (DI vật lý) phải qua <see cref="RequestGo"/> (nút Start cứng), không còn gọi hàm này
+        /// nữa (2026-08-20).
         /// </summary>
         public static void RequestStart() => Interlocked.Exchange(ref _reqStart, 1);
 
@@ -822,7 +851,7 @@ namespace ShieldCanAssy.Core.Controller
             // trình vẫn đang chạy — nó đang nằm chờ chính cái xác nhận này. Đặt sau thì nút
             // START ở màn hình đổi tray sẽ mãi mãi báo "đang có chu trình chạy dở".
             // Không chặn theo AlarmsAcknowledged ở đây: đường này chỉ self-test đi, và các kịch bản test nối
-            // nhau qua nó sau những cảnh báo cố ý gây ra. Đường vận hành thật (Cặp A, Start 1/Start 2) có chặn.
+            // nhau qua nó sau những cảnh báo cố ý gây ra. Đường vận hành thật (nút START mềm, nút Start cứng) có chặn.
             if (Status.State == EMcState.WaitOperator)
             {
                 // Nạp mọi tray đang thiếu một lượt — tiện cho kịch bản test, không qua kiểm cảm biến tray.
@@ -1057,7 +1086,7 @@ namespace ShieldCanAssy.Core.Controller
                     // Routine tự đặt Paused khi dừng có kiểm soát. Mọi đường ra khác đều là dừng
                     // bất thường và không được để máy trông như đang sẵn sàng. WaitOperator cũng phải
                     // gỡ: STOP lúc chờ đổi tray làm chu trình thoát ngay trong vòng chờ, để nguyên thì
-                    // START/Cặp B chỉ còn "xác nhận" cho một chu trình đã thoát và máy kẹt ở đó.
+                    // Start chỉ còn "xác nhận" cho một chu trình đã thoát và máy kẹt ở đó.
                     if (Status.State == EMcState.Running || Status.State == EMcState.Pausing ||
                         Status.State == EMcState.WaitOperator || Status.State == EMcState.Held)
                         Status.State = ok ? EMcState.Idle : EMcState.Paused;
@@ -1108,7 +1137,7 @@ namespace ShieldCanAssy.Core.Controller
                     return;
 
                 case EMcState.Running:
-                    // Tắt bit RUN: mọi trục dừng ngay, chu trình đứng nguyên chỗ, Start 1/Start 2 chạy tiếp (Tuấn
+                    // Tắt bit RUN: mọi trục dừng ngay, chu trình đứng nguyên chỗ, nút Start chạy tiếp (Tuấn
                     // 2026-09-29). GIỮ servo và GIỮ vacuum. Trước đó STOP lần 1 chạy nốt tới checkpoint, lần 2 mới dừng
                     // ngay và bắt nâng Z bằng tay trước khi chạy lại.
                     Hold(HeldMessage, "STOP");
@@ -1161,7 +1190,7 @@ namespace ShieldCanAssy.Core.Controller
 
         private static string HeldMessage => Loc.T("Mc.Held");
 
-        /// <summary>Tạm dừng chu trình đang chạy: tắt bit RUN, trục dừng tại chỗ, Start 1/Start 2 chạy tiếp.</summary>
+        /// <summary>Tạm dừng chu trình đang chạy: tắt bit RUN, trục dừng tại chỗ, nút Start chạy tiếp.</summary>
         private static void Hold(string message, string why)
         {
             Func.SetRunBit(false);
@@ -1173,7 +1202,7 @@ namespace ShieldCanAssy.Core.Controller
 
         /// <summary>
         /// Rèm sáng vừa bị cắt — SafetyMonitor gọi trên vòng quét, TRƯỚC khi SafeToMove tắt (Tuấn 2026-10-01): dừng mọi
-        /// chuyển động; chu trình Auto/chạy rà tạm dừng y như STOP, rèm thông rồi bấm Start 1/Start 2 chạy tiếp đúng chỗ dở.
+        /// chuyển động; chu trình Auto/chạy rà tạm dừng y như STOP, rèm thông rồi bấm Start chạy tiếp đúng chỗ dở.
         /// Về gốc/Init thì huỷ như STOP lúc về gốc; đang chạy nốt tới checkpoint (sau khi chuyển MANUAL) thì dừng ngay như
         /// STOP. Chờ tray thì không trục nào chạy — người nạp tray đi qua rèm là chuyện thường — nên để nguyên; Start lúc
         /// rèm còn cắt bị từ chối ở <see cref="DoGo"/>.
@@ -1271,9 +1300,8 @@ namespace ShieldCanAssy.Core.Controller
 
             // Không đòi lấy sản phẩm ra trước khi về gốc (Tuấn bỏ 2026-09-26).
 
-            // Về gốc lại thì số quét ô và tư thế trên tay cất từ trước không còn cùng hệ toạ độ trục (R24).
-            InvalidateVisionCache();
-            // Mọi trục về vị trí chờ nên hai tray ra khỏi máy — chạy lại phải bấm Start 1/Start 2 nạp lại.
+            // Mọi trục về vị trí chờ nên hai tray ra khỏi máy — chạy lại phải bấm Start nạp lại. TraysOut bỏ luôn số quét ô
+            // và tư thế trên tay: về gốc lại thì chúng không còn cùng hệ toạ độ trục (R24); chạy lại từ S00, quét lại hàng.
             _auto.TraysOut();
 
             Safety.RenewToken();
@@ -1299,8 +1327,8 @@ namespace ShieldCanAssy.Core.Controller
         /// <summary>
         /// Init (Tuấn 2026-09-29): nâng Z rồi đưa mọi trục về vị trí chờ, không về gốc lại — dùng sau khi tạm dừng, chuyển
         /// MANUAL và thao tác tay, trước khi chạy tiếp. Y1/Y2 về vị trí chờ nên hai tray ra khỏi máy, chạy tiếp phải bấm
-        /// Start 1/Start 2 nạp lại (tray còn dở thì giữ sổ). Chạy dưới trạng thái Homing để STOP, đèn và chốt an toàn xử lý
-        /// y như lúc về gốc.
+        /// Start nạp lại (tray còn dở thì giữ sổ, nhưng hàng đang làm được chụp lại từ đầu — xem Routine_Auto.TraysOut).
+        /// Chạy dưới trạng thái Homing để STOP, đèn và chốt an toàn xử lý y như lúc về gốc.
         /// </summary>
         private static void DoInit()
         {
@@ -1414,7 +1442,6 @@ namespace ShieldCanAssy.Core.Controller
 
             bool blinkPhase = (_clock.ElapsedMilliseconds / 250) % 2 == 0;   // 2 Hz
             bool blinkSlow = (_clock.ElapsedMilliseconds / 500) % 2 == 0;    // 1 Hz
-            bool blinkFast = (_clock.ElapsedMilliseconds / 100) % 2 == 0;    // sáng 0.1 s / tắt 0.1 s
 
             bool red = lamp == ETowerLamp.Red || (lamp == ETowerLamp.RedBlink && blinkPhase);
             bool yellow = lamp == ETowerLamp.Yellow || (lamp == ETowerLamp.YellowBlink && blinkSlow);
@@ -1433,24 +1460,18 @@ namespace ShieldCanAssy.Core.Controller
             // Pausing vẫn còn di chuyển tới checkpoint, chưa thật sự dừng.
             bool running = Status.State == EMcState.Running || Status.State == EMcState.Pausing;
 
-            // Đèn nút START của CẢ HAI cụm y hệt nhau (Tuấn chốt 2026-09-26): sáng IM khi đang chạy Auto,
-            // NHẤP NHÁY 1 Hz khi Armed (đã bấm RUN, chờ bấm Cặp B — nút RUN trên trang Main nháy xanh cùng
-            // lúc), tắt khi máy đứng. Trước đó đèn Cặp A báo "khả dụng để bấm" (sáng khi Idle/Paused) còn
-            // đèn Cặp B báo "đang hoạt động" (Tuấn 2026-09-04) — nay cả hai cùng báo trạng thái chạy. Tạm dừng (STOP,
-            // chờ Start chạy tiếp) cũng nháy như Armed.
-            // Chờ nạp tray giữa chừng (CHỜ THAO TÁC) vẫn là đang chạy Auto (Tuấn 2026-10-01): đèn cụm A sáng im; đèn Start
-            // của tray còn thiếu — Start 1 tray đầu vào, Start 2 tray lắp ráp — nháy nhanh 0.1 s gọi người nạp, tray đã vào
-            // thì sáng im như đèn cụm A.
+            // Đèn ba nút Start (chung hai nút cụm A, Start 1, Start 2) y hệt nhau — bốn nút như nhau: sáng IM khi đang chạy,
+            // mọi trạng thái khác TẮT, không nhấp nháy (Tuấn 2026-10-16) — kể cả Armed, tạm dừng (Held) và chờ nạp tray (CHỜ
+            // THAO TÁC). Trước đó Armed/Held nháy 1 Hz, chờ tray nháy nhanh 0.1 s gọi người nạp.
             bool waitTray = Status.State == EMcState.WaitOperator;
-            bool startLamp = running || waitTray || ((Status.State == EMcState.Armed || Status.State == EMcState.Held) && blinkSlow);
-            Io.SetDo(IoMap.DoLampStartBtn, startLamp);
-            Io.SetDo(IoMap.DoLampStartBtnB, waitTray && _auto != null && _auto.WaitingInputTray ? blinkFast : startLamp);
-            Io.SetDo(IoMap.DoLampStartBtnB2, waitTray && _auto != null && _auto.WaitingAssyTray ? blinkFast : startLamp);
+            Io.SetDo(IoMap.DoLampStartBtn, running);
+            Io.SetDo(IoMap.DoLampStartBtnB, running);
+            Io.SetDo(IoMap.DoLampStartBtnB2, running);
 
             // Đèn nút STOP (DO09 — tên hằng số còn chữ Reset vì đèn này trước báo "cần RESET"): sáng IM
             // mọi lúc trừ khi đang chạy (Tuấn đổi 2026-09-26). Trước đó chỉ sáng khi còn alarm — alarm
-            // Error thì máy đã dừng nên vẫn sáng như cũ. Chờ nạp tray giữa chừng cũng là đang chạy Auto nên tắt, ngược
-            // với đèn cụm A đang sáng (Tuấn 2026-10-01).
+            // Error thì máy đã dừng nên vẫn sáng như cũ. Chờ nạp tray giữa chừng cũng là đang chạy Auto nên tắt
+            // (Tuấn 2026-10-01).
             Io.SetDo(IoMap.DoLampResetBtn, !running && !waitTray);
         }
 

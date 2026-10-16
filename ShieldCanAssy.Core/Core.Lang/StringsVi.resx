@@ -184,7 +184,7 @@
     <value>tray lắp ráp phải quét hàng bằng trục Y2 — Flow LocateTop cộng biến Y2 vào PoseY</value>
   </data>
   <data name="Auto.AssyTrayNotSeen" xml:space="preserve">
-    <value>Chưa thấy tray lắp ráp ở vị trí chờ — đặt tray rồi bấm lại Start 2</value>
+    <value>Chưa thấy tray lắp ráp ở vị trí chờ — đặt tray rồi bấm lại Start</value>
   </data>
   <data name="Auto.AssyTrayNotTaught" xml:space="preserve">
     <value>tray lắp ráp chưa teach</value>
@@ -232,7 +232,7 @@
     <value>tray đầu vào chưa vào máy</value>
   </data>
   <data name="Auto.InputTrayNotSeen" xml:space="preserve">
-    <value>Chưa thấy tray đầu vào ở vị trí chờ — đặt tray rồi bấm lại Start 1</value>
+    <value>Chưa thấy tray đầu vào ở vị trí chờ — đặt tray rồi bấm lại Start</value>
   </data>
   <data name="Auto.InputTrayNotTaught" xml:space="preserve">
     <value>tray đầu vào chưa teach</value>
@@ -250,7 +250,7 @@
     <value>không có Tray đầu vào {0} ở vị trí chờ</value>
   </data>
   <data name="Auto.InputTray2NotTaught" xml:space="preserve">
-    <value>Tray đầu vào 2 chưa teach — teach ở trang Teaching, hoặc lấy Tray 2 ra rồi bấm lại Start 1</value>
+    <value>Tray đầu vào 2 chưa teach — teach ở trang Teaching, hoặc lấy Tray 2 ra rồi bấm lại Start</value>
   </data>
   <data name="Auto.InputCellLabel" xml:space="preserve">
     <value>Tray {0} ({1},{2})</value>
@@ -358,16 +358,16 @@
     <value>RESET rồi START sẽ chạy lại từ S00</value>
   </data>
   <data name="Auto.WaitAssy" xml:space="preserve">
-    <value>Chờ tray lắp ráp — đặt tray rồi bấm Start 2</value>
+    <value>Chờ tray lắp ráp — đặt tray rồi bấm Start</value>
   </data>
   <data name="Auto.WaitAssyFull" xml:space="preserve">
-    <value>Đầy tray lắp ráp — thay tray rồi bấm Start 2</value>
+    <value>Đầy tray lắp ráp — thay tray rồi bấm Start</value>
   </data>
   <data name="Auto.WaitInput" xml:space="preserve">
-    <value>Chờ tray đầu vào — đặt tray rồi bấm Start 1</value>
+    <value>Chờ tray đầu vào — đặt tray rồi bấm Start</value>
   </data>
   <data name="Auto.WaitInputEmpty" xml:space="preserve">
-    <value>Hết tray đầu vào — thay tray rồi bấm Start 1</value>
+    <value>Hết tray đầu vào — thay tray rồi bấm Start</value>
   </data>
   <data name="Auto.ZAlignHeightFail" xml:space="preserve">
     <value>{0} không tới được cao độ soi CAM bottom-up</value>
@@ -830,19 +830,19 @@
     <value>Áp suất khí OK (NC)</value>
   </data>
   <data name="Io.DiBtnArmA1" xml:space="preserve">
-    <value>Cặp A — nút Arm #1 (OR)</value>
+    <value>Nút Start cụm A #1</value>
   </data>
   <data name="Io.DiBtnArmA2" xml:space="preserve">
-    <value>Cặp A — nút Arm #2 (OR)</value>
+    <value>Nút Start cụm A #2</value>
   </data>
   <data name="Io.DiTrayIn1Present" xml:space="preserve">
     <value>Có Tray đầu vào 1 (trong)</value>
   </data>
   <data name="Io.DiBtnGoB1" xml:space="preserve">
-    <value>Cụm B — Start 1 (tray đầu vào)</value>
+    <value>Nút Start cụm B #1</value>
   </data>
   <data name="Io.DiBtnGoB2" xml:space="preserve">
-    <value>Cụm B — Start 2 (tray lắp ráp)</value>
+    <value>Nút Start cụm B #2</value>
   </data>
   <data name="Io.DiBtnStop" xml:space="preserve">
     <value>Nút STOP</value>
@@ -896,13 +896,13 @@
     <value>Đèn nút STOP</value>
   </data>
   <data name="Io.DoLampStartBtn" xml:space="preserve">
-    <value>Đèn nút START Cụm A</value>
+    <value>Đèn nút Start cụm A</value>
   </data>
   <data name="Io.DoLampStartBtnB" xml:space="preserve">
-    <value>Đèn nút Start 1 (tray đầu vào)</value>
+    <value>Đèn nút Start cụm B #1</value>
   </data>
   <data name="Io.DoLampStartBtnB2" xml:space="preserve">
-    <value>Đèn nút Start 2 (tray lắp ráp)</value>
+    <value>Đèn nút Start cụm B #2</value>
   </data>
   <data name="Io.DoLampYellow" xml:space="preserve">
     <value>Đèn vàng</value>
@@ -935,22 +935,22 @@
     <value>Tack Time</value>
   </data>
   <data name="Main.CtAvgCurrentTip" xml:space="preserve">
-    <value>Thời gian TB một sản phẩm của tray đang làm = Cycle Time ÷ số sản phẩm đã đặt OK (tính cả lúc chờ và lúc dừng).</value>
+    <value>Thời gian TB một sản phẩm của tray đang làm = Cycle Time ÷ số sản phẩm đã đặt OK (tính cả lúc chờ và lúc dừng). Tray xong thì giữ số vừa chốt tới khi tray mới bắt đầu.</value>
   </data>
   <data name="Main.CtAvgPrevious" xml:space="preserve">
-    <value>Pre-Tack Time</value>
+    <value>Last Tack Time</value>
   </data>
   <data name="Main.CtAvgPreviousTip" xml:space="preserve">
-    <value>Thời gian TB một sản phẩm của tray vừa xong = Pre-Cycle Time ÷ số sản phẩm đặt OK của tray đó.</value>
+    <value>Thời gian TB một sản phẩm của tray vừa xong = Last Cycle Time ÷ số sản phẩm đặt OK của tray đó.</value>
   </data>
   <data name="Main.CtTrayCurrent" xml:space="preserve">
     <value>Cycle Time</value>
   </data>
   <data name="Main.CtTrayCurrentTip" xml:space="preserve">
-    <value>Tray lắp ráp đang làm: giờ thực từ lúc máy chạy với tray này — tính cả lúc chờ tray đầu vào và lúc STOP. Thay tray mới thì đếm lại từ 0.</value>
+    <value>Tray lắp ráp đang làm: giờ thực từ lúc máy chạy với tray này — tính cả lúc chờ tray đầu vào và lúc STOP. Tray xong thì giữ số vừa chốt, tray mới bắt đầu mới đếm lại từ 0.</value>
   </data>
   <data name="Main.CtTrayPrevious" xml:space="preserve">
-    <value>Pre-Cycle Time</value>
+    <value>Last Cycle Time</value>
   </data>
   <data name="Main.CtTrayPreviousTip" xml:space="preserve">
     <value>Tray lắp ráp vừa xong: giờ thực từ lúc bắt đầu tới lúc tray hết ô trống.</value>
@@ -959,7 +959,7 @@
     <value>CHẠY RÀ — KHÔNG SẢN PHẨM</value>
   </data>
   <data name="Main.DryRunIdle" xml:space="preserve">
-    <value>Không sản phẩm, chỉ chạy trục — bấm Start 1 để chạy</value>
+    <value>Không sản phẩm, chỉ chạy trục — bấm Start để chạy</value>
   </data>
   <data name="Main.DryRunProgress" xml:space="preserve">
     <value>{0} nhịp · {1} lượt quét · {2} lượt tray · {3:0} phút</value>
@@ -968,7 +968,7 @@
     <value>Ẩn Nhật ký — khung ảnh CAM rộng ra</value>
   </data>
   <data name="Main.InitTip" xml:space="preserve">
-    <value>Bấm đúp: nâng Z lên cao độ an toàn rồi đưa mọi trục về vị trí chờ, không về gốc lại. Bấm sau khi tạm dừng, chuyển MANUAL và thao tác tay — trước khi chạy tiếp. Hai tray ra vị trí chờ, nạp lại bằng Start 1/Start 2.</value>
+    <value>Bấm đúp: nâng Z lên cao độ an toàn rồi đưa mọi trục về vị trí chờ, không về gốc lại. Bấm sau khi tạm dừng, chuyển MANUAL và thao tác tay — trước khi chạy tiếp. Hai tray ra vị trí chờ, nạp lại bằng nút Start.</value>
   </data>
   <data name="Main.InputTray" xml:space="preserve">
     <value>TRAY ĐẦU VÀO</value>
@@ -1025,7 +1025,7 @@
     <value>Hiện/ẩn thanh công cụ của khung ảnh (chọn ảnh, phóng to, thu nhỏ)</value>
   </data>
   <data name="Main.RunTip" xml:space="preserve">
-    <value>Đèn báo chạy: xám là máy đang đứng, xanh nhấp nháy là đang chờ nạp tray, xanh lá là đang chạy. Bấm để vào trạng thái Armed (chờ nạp tray) — máy CHỈ thực sự chạy khi bấm nút cứng ở cụm B: Start 1 nạp tray đầu vào, Start 2 nạp tray lắp ráp. Nút này không tự chạy máy.</value>
+    <value>Đèn báo chạy: xám là máy đang đứng, xanh nhấp nháy là đang chờ bấm Start, xanh lá là đang chạy. Bấm để vào trạng thái Armed — máy CHỈ thực sự chạy khi bấm một trong bốn nút Start cứng, máy tự nạp các tray cảm biến thấy. Nút này không tự chạy máy.</value>
   </data>
   <data name="Main.ShowLog" xml:space="preserve">
     <value>Hiện Nhật ký</value>
@@ -1043,7 +1043,7 @@
     <value>Tính từ Pre-Tack Time (chưa có tray nào xong thì từ Tack Time), không phải sản lượng thực đếm — chỉ để tham khảo nhanh.</value>
   </data>
   <data name="Main.WaitTrayBanner" xml:space="preserve">
-    <value>Đặt tray xong: tray đầu vào bấm Start 1, tray lắp ráp bấm Start 2 (cụm B).</value>
+    <value>Đặt tray xong thì bấm nút Start nào cũng được — máy tự nhận các tray cảm biến thấy.</value>
   </data>
   <data name="Manual.AxisAlarmNoServo" xml:space="preserve">
     <value>{0} đang Alarm — bấm RST xử lý xong lỗi trước khi bật servo</value>
@@ -1166,11 +1166,11 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
   <data name="Manual.SimAlarmTip" xml:space="preserve">
     <value>Giả lập driver báo alarm</value>
   </data>
-  <data name="Manual.SimArm" xml:space="preserve">
-    <value>Cặp A — Arm</value>
+  <data name="Manual.SimStart" xml:space="preserve">
+    <value>Start</value>
   </data>
-  <data name="Manual.SimArmTip" xml:space="preserve">
-    <value>Mô phỏng bấm 1 trong 2 nút Cặp A (OR) — vào Armed</value>
+  <data name="Manual.SimStartTip" xml:space="preserve">
+    <value>Mô phỏng bấm một nút Start cứng — bốn nút như nhau</value>
   </data>
   <data name="Manual.SimTray1" xml:space="preserve">
     <value>Tray vào 1</value>
@@ -1199,18 +1199,6 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
   <data name="Manual.SimPanelNote" xml:space="preserve">
     <value>Thay cho panel nút cứng và mạch an toàn thật. Đây là cách chạy được các nhánh EMG, cửa mở và lệch kênh cửa mà không phải rút cáp máy.</value>
   </data>
-  <data name="Manual.SimStart1" xml:space="preserve">
-    <value>Start 1 (tray vào)</value>
-  </data>
-  <data name="Manual.SimStart1Tip" xml:space="preserve">
-    <value>Mô phỏng bấm Start 1 cụm B — nạp tray đầu vào (lúc Armed thì chạy luôn)</value>
-  </data>
-  <data name="Manual.SimStart2" xml:space="preserve">
-    <value>Start 2 (tray assy)</value>
-  </data>
-  <data name="Manual.SimStart2Tip" xml:space="preserve">
-    <value>Mô phỏng bấm Start 2 cụm B — nạp tray lắp ráp (lúc Armed thì chạy luôn)</value>
-  </data>
   <data name="Manual.SimStop" xml:space="preserve">
     <value>Nhấn STOP</value>
   </data>
@@ -1230,10 +1218,13 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
     <value>Z ở cao độ an toàn — điều kiện để X, Y1, Y2 được phép chạy</value>
   </data>
   <data name="Mc.Armed" xml:space="preserve">
-    <value>Đã sẵn sàng — tray đầu vào bấm Start 1, tray lắp ráp bấm Start 2</value>
+    <value>Đã sẵn sàng — đặt tray rồi bấm Start</value>
   </data>
   <data name="Mc.ArmedDry" xml:space="preserve">
-    <value>Đã sẵn sàng — bấm Start 1 để chạy</value>
+    <value>Đã sẵn sàng — bấm Start để chạy</value>
+  </data>
+  <data name="Mc.AssyCellNotSelectable" xml:space="preserve">
+    <value>Ô này không còn trống — chỉ chọn được ô trống (hoặc chọn trước lúc tray đã đầy, đang chờ thay)</value>
   </data>
   <data name="Mc.AssyTray" xml:space="preserve">
     <value>tray lắp ráp</value>
@@ -1286,6 +1277,9 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
   <data name="Mc.BothNozzles" xml:space="preserve">
     <value>Chạy cả hai tay hút</value>
   </data>
+  <data name="Mc.BothTrays" xml:space="preserve">
+    <value>cả hai tray</value>
+  </data>
   <data name="Mc.BusyDryRunChange" xml:space="preserve">
     <value>Đang chạy — dừng máy rồi hãy đổi chế độ chạy rà</value>
   </data>
@@ -1326,7 +1320,7 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
     <value>đang có chu trình chạy — dừng hẳn rồi mới tạo biến</value>
   </data>
   <data name="Mc.CurtainHeld" xml:space="preserve">
-    <value>Rèm sáng bị tác động — đã dừng. Ra khỏi vùng rèm rồi bấm Start 1 hoặc Start 2 để chạy tiếp</value>
+    <value>Rèm sáng bị tác động — đã dừng. Ra khỏi vùng rèm rồi bấm Start để chạy tiếp</value>
   </data>
   <data name="Mc.CurtainPressAgain" xml:space="preserve">
     <value>Rèm sáng đang bị cắt — ra khỏi vùng rèm rồi bấm lại {0}</value>
@@ -1350,16 +1344,13 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
     <value>Đã tắt chạy rà — trở lại chu trình thật</value>
   </data>
   <data name="Mc.DryRunOn" xml:space="preserve">
-    <value>Đã bật CHẠY RÀ — không sản phẩm, chỉ chạy trục. Bấm Start 1 (cụm B) để chạy.</value>
-  </data>
-  <data name="Mc.DryRunPressStart1" xml:space="preserve">
-    <value>Chạy rà: bấm Start 1 để chạy</value>
+    <value>Đã bật CHẠY RÀ — không sản phẩm, chỉ chạy trục. Bấm Start để chạy.</value>
   </data>
   <data name="Mc.HasErrorReset" xml:space="preserve">
     <value>Đang có lỗi — xử lý nguyên nhân rồi bấm RESET</value>
   </data>
   <data name="Mc.Held" xml:space="preserve">
-    <value>Tạm dừng — bấm Start 1 hoặc Start 2 để chạy tiếp, chuyển MANUAL để bỏ chu trình</value>
+    <value>Tạm dừng — bấm Start để chạy tiếp, chuyển MANUAL để bỏ chu trình</value>
   </data>
   <data name="Mc.HeldAbandoned" xml:space="preserve">
     <value>Đã bỏ chu trình đang tạm dừng ({0}) — bấm Init để về vị trí chờ trước khi chạy tiếp</value>
@@ -1377,7 +1368,7 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
     <value>Bắt đầu chuỗi về gốc</value>
   </data>
   <data name="Mc.InitDone" xml:space="preserve">
-    <value>Init xong — máy ở vị trí chờ; nạp tray bằng Start 1/Start 2 để chạy tiếp</value>
+    <value>Init xong — máy ở vị trí chờ; đặt tray rồi bấm Start để chạy tiếp</value>
   </data>
   <data name="Mc.InitNotHomed" xml:space="preserve">
     <value>Không Init được: chưa về gốc — bấm Về gốc (Origin)</value>
@@ -1387,6 +1378,9 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
   </data>
   <data name="Mc.InitWhileHeld" xml:space="preserve">
     <value>Đang tạm dừng — chuyển MANUAL để bỏ chu trình rồi mới bấm Init</value>
+  </data>
+  <data name="Mc.InputCellNotSelectable" xml:space="preserve">
+    <value>Ô này không còn hàng — chỉ chọn được ô có hàng (hoặc chọn trước lúc tray đã hết, đang chờ thay)</value>
   </data>
   <data name="Mc.InputTray" xml:space="preserve">
     <value>tray đầu vào</value>
@@ -1431,7 +1425,7 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
     <value>Đang chạy nốt tới điểm dừng an toàn…</value>
   </data>
   <data name="Mc.SelectAutoFirst" xml:space="preserve">
-    <value>Chọn chế độ AUTO trước khi bấm nút vào trạng thái sẵn sàng</value>
+    <value>Chọn chế độ AUTO trước khi bấm Start</value>
   </data>
   <data name="Mc.SolutionNotLoaded" xml:space="preserve">
     <value>chưa nạp solution vision</value>
@@ -1445,11 +1439,11 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
   <data name="Mc.TrayAccepted" xml:space="preserve">
     <value>Đã nhận {0} ({1})</value>
   </data>
-  <data name="Mc.TrayAlreadyIn" xml:space="preserve">
-    <value>Đã có {0} trong máy{1}</value>
-  </data>
   <data name="Mc.TrayWaitCancelled" xml:space="preserve">
     <value>Đã huỷ chờ tray</value>
+  </data>
+  <data name="Mc.TraysAllIn" xml:space="preserve">
+    <value>Hai tray đều đã ở trong máy</value>
   </data>
   <data name="Mc.UnackedAlarm" xml:space="preserve">
     <value>Còn lỗi chưa xác nhận: {0} {1} — bấm RESET trước</value>
@@ -1758,7 +1752,7 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
     <value>CHẠY RÀ: BẬT</value>
   </data>
   <data name="Setting.DryRunTip" xml:space="preserve">
-    <value>Chạy rà: máy chạy liên tục KHÔNG SẢN PHẨM để rà cơ khí — chỉ chạy trục X, Y, Z, A theo đúng quỹ đạo chu trình thật, không đụng van hút, van thổi hay camera. Nút này chỉ chọn chế độ; bấm Start 1 ở cụm B mới chạy. Không đổi được trong lúc máy đang chạy.</value>
+    <value>Chạy rà: máy chạy liên tục KHÔNG SẢN PHẨM để rà cơ khí — chỉ chạy trục X, Y, Z, A theo đúng quỹ đạo chu trình thật, không đụng van hút, van thổi hay camera. Nút này chỉ chọn chế độ; bấm nút Start cứng mới chạy. Không đổi được trong lúc máy đang chạy.</value>
   </data>
   <data name="Setting.Error" xml:space="preserve">
     <value>LỖI: {0}</value>
@@ -1791,7 +1785,7 @@ Giữ đủ 3 giây: nhả phanh KHẨN CẤP để đẩy tay trục, kể cả
     <value>Có rèm sáng (DI13)</value>
   </data>
   <data name="Setting.HasLightCurtainTip" xml:space="preserve">
-    <value>Bật: rèm sáng bị cắt thì dừng mọi trục ngay. Đang chạy Auto thì máy TẠM DỪNG, ra khỏi vùng rèm rồi bấm Start 1 hoặc Start 2 để chạy tiếp. Rèm còn bị cắt thì không trục nào chạy được. Kiểm tra DI13 sáng ở trang Manual (rèm thông) trước khi bật.</value>
+    <value>Bật: rèm sáng bị cắt thì dừng mọi trục ngay. Đang chạy Auto thì máy TẠM DỪNG, ra khỏi vùng rèm rồi bấm Start để chạy tiếp. Rèm còn bị cắt thì không trục nào chạy được. Kiểm tra DI13 sáng ở trang Manual (rèm thông) trước khi bật.</value>
   </data>
   <data name="Setting.HomeRotateSequential" xml:space="preserve">
     <value>Về gốc A1/A2 tuần tự</value>
@@ -2591,6 +2585,12 @@ Mới: {2}</value>
   <data name="Teach.ZSlowWrongSide" xml:space="preserve">
     <value>{0}: SAI — điểm giảm tốc {1:0.000} phải NHỎ HƠN cao độ {2} {3:0.000} (Z dương là chiều đi xuống). Máy bỏ qua điểm này và hạ một mạch ở mức cao.</value>
   </data>
+  <data name="Tray.ClearSelection" xml:space="preserve">
+    <value>Bỏ chọn ({0})</value>
+  </data>
+  <data name="Tray.ClearSelectionTip" xml:space="preserve">
+    <value>Bỏ các ô đã chọn — máy lại làm cả tray. Ở AUTO bấm vào ô để chọn: máy chỉ làm các ô đã chọn, làm hết thì coi như xong tray.</value>
+  </data>
   <data name="Tray.SummaryCurrent" xml:space="preserve">
     <value>{0} × {1} — ô hiện tại {2}/{3}</value>
   </data>
@@ -2600,7 +2600,7 @@ Mới: {2}</value>
   <data name="Tray.SummaryOfTray" xml:space="preserve">
     <value>Tray {0} · {1}</value>
   </data>
-  <data name="Tray.SelectN" xml:space="preserve">
+  <data name="Tray.N" xml:space="preserve">
     <value>Tray {0}</value>
   </data>
   <data name="Tray.NotTaught" xml:space="preserve">

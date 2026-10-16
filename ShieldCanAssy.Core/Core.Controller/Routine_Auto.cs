@@ -200,8 +200,8 @@ namespace ShieldCanAssy.Core.Controller
         public volatile bool PauseRequested;
 
         /// <summary>
-        /// Tray đang ở trong máy: operator đặt tray ở vị trí chờ rồi bấm nút của nó — Start 1 tray đầu vào, Start 2 tray
-        /// lắp ráp (Tuấn chốt 2026-09-26). Bước cần tray nào mà tray đó chưa vào thì đứng chờ: chưa có tray lắp ráp thì
+        /// Tray đang ở trong máy: operator đặt tray ở vị trí chờ rồi bấm Start — nút nào cũng nạp mọi tray cảm biến thấy
+        /// (2026-10-16; trước đó Start 1 tray đầu vào, Start 2 tray lắp ráp, Tuấn chốt 2026-09-26). Bước cần tray nào mà tray đó chưa vào thì đứng chờ: chưa có tray lắp ráp thì
         /// không soi, chưa có tray đầu vào thì hai tay hút không làm gì (chỉ soi trước hàng đầu tray lắp ráp). Tắt khi
         /// tray chạy ra vị trí chờ (S50, về gốc); mở App lên là chưa tray nào vào.
         /// </summary>
@@ -391,7 +391,7 @@ namespace ShieldCanAssy.Core.Controller
             if (!_assyIn)
             {
                 // Chưa có tray lắp ráp thì không soi (Tuấn chốt 2026-09-26). Tray đầu vào đã nạp mà còn nằm ở vị trí
-                // chờ thì đưa vào máy trước; Start 1 đến giữa lúc chờ cũng đánh thức vòng chờ để đưa tray vào.
+                // chờ thì đưa vào máy trước; Start nạp tray đầu vào giữa lúc chờ cũng đánh thức vòng chờ để đưa tray vào.
                 if (!await MoveInputTrayInAsync(ct).ConfigureAwait(false))
                     return Halt(Loc.T("Auto.InputTrayInFail"));
                 bool hadInput = _inputIn;
@@ -462,25 +462,24 @@ namespace ShieldCanAssy.Core.Controller
         /// <summary>
         /// Ô lắp ráp còn trống và CHƯA có kết quả quét trước. Bật <see cref="SystemData.ScanAssyByRow"/> thì chỉ
         /// xét HÀNG đang làm — hàng của ô trống đầu tiên, tức hàng mà <see cref="AssignCell"/> sắp giao tới. Tray đầu vào
-        /// chưa vào cũng chỉ xét hàng đó: soi trước hàng đầu trong lúc chờ Start 1 (Tuấn chốt 2026-09-26).
+        /// chưa vào cũng chỉ xét hàng đó: soi trước hàng đầu trong lúc chờ tray đầu vào (Tuấn chốt 2026-09-26).
         /// </summary>
         private int NextUnscannedCell(TrayState tray)
         {
             int onlyRow = -1;
             if (_sys().ScanAssyByRow || !_inputIn)
             {
-                int first = -1;
-                for (int i = 0; i < tray.CellCount; i++)
-                    if (tray.Get(i) == ECellState.Empty) { first = i; break; }
+                int first = NextFreeCell(tray);
                 if (first < 0) return -1;
                 int r0, c0;
                 tray.RowCol(first, out r0, out c0);
                 onlyRow = r0;
             }
 
+            // Có chọn ô thì chỉ soi ô đã chọn (Tuấn 2026-10-16).
             for (int i = 0; i < tray.CellCount; i++)
             {
-                if (tray.Get(i) != ECellState.Empty || _assyScan.ContainsKey(i)) continue;
+                if (tray.Get(i) != ECellState.Empty || !tray.InScope(i) || _assyScan.ContainsKey(i)) continue;
                 if (onlyRow >= 0)
                 {
                     int r, c;
@@ -625,7 +624,7 @@ namespace ShieldCanAssy.Core.Controller
                 return true;
             }
 
-            // Chưa có tray đầu vào thì không hút (Tuấn chốt 2026-09-26) — chờ Start 1. Hàng đang cầm thì soi và đặt nốt
+            // Chưa có tray đầu vào thì không hút (Tuấn chốt 2026-09-26) — chờ nạp tray. Hàng đang cầm thì soi và đặt nốt
             // trước, chỉ cần tray lắp ráp. Nạp xong thì làm lại bước này từ đầu: tray lắp ráp mới soi hàng đầu, giờ mới
             // quét nốt.
             if (!_inputIn)
@@ -869,7 +868,7 @@ namespace ShieldCanAssy.Core.Controller
             int first = -1, second = -1;
             for (int i = 0; i < tray.CellCount; i++)
             {
-                if (tray.Get(i) != ECellState.Empty || i == reserved) continue;
+                if (tray.Get(i) != ECellState.Empty || i == reserved || !tray.InScope(i)) continue;
                 if (first < 0) first = i;
                 else { second = i; break; }
             }
@@ -1215,11 +1214,13 @@ namespace ShieldCanAssy.Core.Controller
             string holdNote = holding
                 ? " — tay hút còn cầm sản phẩm, đổi tray xong sẽ quét tray mới và soi lại trước khi đặt"
                 : "";
+            if (needInput) CloseSelection(Run.InputTray, ECellState.Loaded, "tray đầu vào");
+            if (needAssy) CloseSelection(Run.AssyTray, ECellState.Empty, "tray lắp ráp");
             Save();
 
             // Tray cần thay chạy ra vị trí chờ của nó (StandbyPos trục hàng) cho operator lấy ra, đặt tray mới — từ lúc
-            // đó coi như tray đã ra khỏi máy. Bước nào cần tray đó thì tự chờ nút của nó: Start 1 tray đầu vào, Start 2
-            // tray lắp ráp (Tuấn chốt 2026-09-26).
+            // đó coi như tray đã ra khỏi máy. Bước nào cần tray đó thì tự chờ tới khi nạp lại bằng nút Start (Tuấn chốt
+            // 2026-09-26).
             if (!await MoveTraysToStandbyAsync(needInput, needAssy, ct).ConfigureAwait(false))
                 return Halt(Loc.F("Auto.TrayToStandbyFail", Loc.T(needInput && needAssy ? "Auto.TrayBoth" : needInput ? "Auto.TrayInput" : "Auto.TrayAssy")));
             if (needInput) _inputIn = false;
@@ -1233,8 +1234,24 @@ namespace ShieldCanAssy.Core.Controller
             return true;
         }
 
+        /// <summary>
+        /// Xong các ô operator đã chọn (Tuấn 2026-10-16) — coi như xong tray: ô còn việc (<paramref name="open"/>: tray đầu
+        /// vào còn hàng, tray lắp ráp còn trống) mà KHÔNG được chọn thành <c>Skipped</c>, để sổ hết thật và tray đặt vào sau
+        /// là tray mới; rồi xoá lựa chọn, vì lựa chọn chỉ cho tray đang làm. Không chọn ô nào thì không làm gì.
+        /// </summary>
+        private static void CloseSelection(TrayState tray, ECellState open, string what)
+        {
+            if (!tray.HasSelection) return;
+            int skipped = 0;
+            for (int i = 0; i < tray.CellCount; i++)
+                if (tray.Get(i) == open && !tray.InScope(i)) { tray.Set(i, ECellState.Skipped); skipped++; }
+            tray.ClearSelection();
+            LogWorker.Instance.RecordLog("Xong các ô đã chọn của " + what + " — " + skipped + " ô không chọn đánh dấu bỏ qua",
+                Utility.Log.LogLevel.Info, "Auto");
+        }
+
         /// <summary>Operator vừa đặt tray mới: tray đầu vào có mặt (<paramref name="inputMask"/>, 0 = không đổi) đầy hàng,
-        /// tray lắp ráp trống hết.</summary>
+        /// tray lắp ráp trống hết. Ô đã chọn giữ nguyên — chọn lúc chờ thay tray là chọn cho tray này.</summary>
         private void ReloadTrays(int inputMask, bool assy)
         {
             if (inputMask != 0)
@@ -1253,7 +1270,7 @@ namespace ShieldCanAssy.Core.Controller
                 InvalidateAssyScan();
                 _restartCycle = true;
                 // Tray mới bắt đầu đếm từ lúc vào máy (chu trình đang chạy, nhận tray ở đây).
-                Run.AssyTrayStartedAt = DateTime.Now;
+                Run.RestartAssyTrayClock(DateTime.Now);
             }
         }
 
@@ -1272,7 +1289,7 @@ namespace ShieldCanAssy.Core.Controller
             return !_inputIn && !_assyIn ? input + "; " + assy : _inputIn ? assy : input;
         }
 
-        /// <summary>Bước cần tray lắp ráp mà tray chưa vào: về S05 chờ Start 2, quét xong quay lại đúng bước này.</summary>
+        /// <summary>Bước cần tray lắp ráp mà tray chưa vào: về S05 chờ nạp tray, quét xong quay lại đúng bước này.</summary>
         private bool NeedAssyTray()
         {
             _afterScan = Run.AutoState;
@@ -1339,15 +1356,15 @@ namespace ShieldCanAssy.Core.Controller
             if (assy) _assyIn = true;
             Save();
 
-            if (input) LogWorker.Instance.RecordLog("Nhận tray đầu vào (Start 1)" +
+            if (input) LogWorker.Instance.RecordLog("Nhận tray đầu vào (Start)" +
                 (newInput ? " — tray mới: " + InputTraysText(inputMask) : " — tray còn dở, giữ sổ"),
                 Utility.Log.LogLevel.Info, "Auto");
-            if (assy) LogWorker.Instance.RecordLog("Nhận tray lắp ráp (Start 2)" + (newAssy ? " — tray mới" : " — tray còn dở, giữ sổ"),
+            if (assy) LogWorker.Instance.RecordLog("Nhận tray lắp ráp (Start)" + (newAssy ? " — tray mới" : " — tray còn dở, giữ sổ"),
                 Utility.Log.LogLevel.Info, "Auto");
         }
 
         /// <summary>Tray đầu vào vừa nạp còn nằm ở vị trí chờ: Z lên an toàn, Y1 đưa tray vào tới hàng hút kế tiếp —
-        /// "Start 1 thì tray đầu vào đi vào" (Tuấn 2026-09-26). Chưa nạp hoặc đã ở trong máy thì không chạy gì.</summary>
+        /// "Start thì tray đầu vào đi vào" (Tuấn 2026-09-26). Chưa nạp hoặc đã ở trong máy thì không chạy gì.</summary>
         private async Task<bool> MoveInputTrayInAsync(CancellationToken ct)
         {
             if (!_inputIn) return true;
@@ -1388,39 +1405,53 @@ namespace ShieldCanAssy.Core.Controller
         /// <summary>Chu trình đang chờ nạp tray — thông báo của lần chờ đó; null khi không chờ.</summary>
         public string WaitingMessage { get { return _waiting; } }
 
-        /// <summary>Đang chờ nạp tray đầu vào / tray lắp ráp — đèn Start 1 / Start 2 nháy nhanh gọi người nạp (Tuấn 2026-10-01).</summary>
-        public bool WaitingInputTray => _waiting != null && !_inputIn;
-        public bool WaitingAssyTray => _waiting != null && !_assyIn;
-
         /// <summary>
-        /// Start 1 (<paramref name="input"/> = true) / Start 2 — operator đã đặt tray ở vị trí chờ (Tuấn chốt 2026-09-26).
-        /// Gọi từ vòng quét McControl, lúc sẵn sàng hoặc lúc chu trình đang chạy/chờ tray. Cảm biến phải thấy tray ở vị trí
-        /// chờ. Tray đã ở trong máy thì không làm gì. Trả về lý do từ chối, null nếu nhận.
+        /// Nút Start — bốn nút như nhau (khách hàng, Tuấn chốt 2026-10-16): nạp MỌI tray chưa vào máy mà cảm biến thấy ở
+        /// vị trí chờ (operator đã đặt tray, Tuấn chốt 2026-09-26). Tray không thấy thì bỏ qua — chu trình chạy với tray
+        /// đã có, bước cần tray kia thì chờ. Tray đã ở trong máy thì không làm gì. Gọi từ vòng quét McControl, lúc sẵn sàng
+        /// hoặc lúc chu trình đang chạy/chờ tray. Trước đó mỗi nút một tray: Start 1 tray đầu vào, Start 2 tray lắp ráp.
         /// </summary>
-        public string LoadTray(bool input)
+        /// <param name="loaded">Tray vừa nạp, để báo ("tray đầu vào", "tray lắp ráp", "cả hai tray"); null khi không nạp
+        /// thêm tray nào.</param>
+        /// <param name="notSeen">Tray còn thiếu mà cảm biến không thấy, để báo khi không nạp được gì; null khi không thiếu.</param>
+        /// <returns>Lý do từ chối — chưa có model, thấy Tray 2 mà Tray 2 chưa teach — khi đó không nạp tray nào; null nếu
+        /// không có gì sai.</returns>
+        public string LoadTrays(out string loaded, out string notSeen)
         {
-            if (TrayIn(input)) return null;
+            loaded = notSeen = null;
             if (Model == null) return Loc.T("Auto.NoModelLoaded");
 
-            if (!input)
+            var missing = new List<string>();
+            int mask = 0;
+            if (!TrayIn(true))
             {
-                if (TrayMissing(Model.AssyTray.AxisRow, _func.HasTrayAssy())) return Loc.T("Auto.AssyTrayNotSeen");
-                Interlocked.Exchange(ref _loadAssy, 1);
-                return null;
+                string why;
+                mask = InputTraysSeen(out why);
+                if (why != null) return why;
+                if (mask == 0) missing.Add(Loc.T("Auto.InputTrayNotSeen"));
+            }
+            bool assy = false;
+            if (!TrayIn(false))
+            {
+                assy = !TrayMissing(Model.AssyTray.AxisRow, _func.HasTrayAssy());
+                if (!assy) missing.Add(Loc.T("Auto.AssyTrayNotSeen"));
             }
 
-            string why;
-            int mask = InputTraysSeen(out why);
-            if (mask == 0) return why;
-            Interlocked.Exchange(ref _loadInput, mask);
+            if (mask != 0) Interlocked.Exchange(ref _loadInput, mask);
+            if (assy) Interlocked.Exchange(ref _loadAssy, 1);
+            loaded = mask != 0 && assy ? Loc.T("Mc.BothTrays")
+                   : mask != 0 ? Loc.T("Mc.InputTray")
+                   : assy ? Loc.T("Mc.AssyTray") : null;
+            if (missing.Count > 0) notSeen = string.Join("; ", missing);
             return null;
         }
 
         /// <summary>
-        /// Các tray đầu vào operator vừa đặt — bit 0 Tray 1, bit 1 Tray 2; 0 kèm lý do khi từ chối. Bàn Y1 đang ở vị trí chờ
-        /// thì theo hai cảm biến: tray nào có thì chạy (Tuấn chốt 2026-10-15). Thấy Tray 2 mà Tray 2 chưa teach thì từ chối —
-        /// hút theo lưới chưa teach là đâm đầu hút xuống chỗ không biết. Bàn không ở vị trí chờ thì cảm biến không đo được
-        /// (<see cref="TrayMissingAt"/>): tin lời operator như trước khi có Tray 2 — Tray 1, thêm Tray 2 nếu đã teach.
+        /// Các tray đầu vào operator vừa đặt — bit 0 Tray 1, bit 1 Tray 2; 0 khi không thấy tray nào, 0 kèm lý do khi từ
+        /// chối. Bàn Y1 đang ở vị trí chờ thì theo hai cảm biến: tray nào có thì chạy (Tuấn chốt 2026-10-15). Thấy Tray 2 mà
+        /// Tray 2 chưa teach thì từ chối — hút theo lưới chưa teach là đâm đầu hút xuống chỗ không biết. Bàn không ở vị trí
+        /// chờ thì cảm biến không đo được (<see cref="TrayMissingAt"/>): tin lời operator như trước khi có Tray 2 — Tray 1,
+        /// thêm Tray 2 nếu đã teach.
         /// </summary>
         private int InputTraysSeen(out string why)
         {
@@ -1428,7 +1459,6 @@ namespace ShieldCanAssy.Core.Controller
             if (!AtStandby(Model.InputTray.AxisRow)) return Model.UsableInputTrays;
 
             bool t1 = _func.HasTrayIn(0), t2 = _func.HasTrayIn(1);
-            if (!t1 && !t2) { why = Loc.T("Auto.InputTrayNotSeen"); return 0; }
             if (t2 && !Model.InputTray2.IsTaught) { why = Loc.T("Auto.InputTray2NotTaught"); return 0; }
             return (t1 ? 1 : 0) | (t2 ? 2 : 0);
         }
@@ -1446,13 +1476,21 @@ namespace ShieldCanAssy.Core.Controller
             return mask == 3 ? "Tray 1 + Tray 2" : mask == 2 ? "Tray 2" : "Tray 1";
         }
 
-        /// <summary>Về gốc đưa mọi trục về vị trí chờ — cả hai tray coi như ra khỏi máy, phải bấm Start 1/Start 2 lại.</summary>
+        /// <summary>
+        /// Init / Về gốc đưa mọi trục về vị trí chờ — cả hai tray coi như ra khỏi máy, phải bấm Start lại. Số đo vision của
+        /// hàng đang làm dở (quét ô ở S05, lệnh đặt đã tính cho hàng trên tay) bỏ luôn, và lần chạy kế tiếp bắt đầu lại từ
+        /// S00: S05 chụp lại hàng đó từ ô trống đầu tiên, hàng trên tay soi lại ở CAM bottom-up rồi mới đặt (Tuấn
+        /// 2026-10-16 — tray đã ra ngoài, không tin số đo cũ). Trước đó Init giữ nguyên số quét, về gốc bỏ số đo nhưng chạy
+        /// tiếp đúng bước dở nên chỉ soi lại từng ô khi bước soi đòi. Chỉ gọi lúc chu trình không chạy.
+        /// </summary>
         public void TraysOut()
         {
             Interlocked.Exchange(ref _loadInput, 0);
             Interlocked.Exchange(ref _loadAssy, 0);
             _inputIn = false;
             _assyIn = false;
+            ClearVisionCaches("Init/về gốc, tray ra vị trí chờ — chạy lại thì chụp lại hàng đang làm từ đầu");
+            _restartCycle = true;
         }
 
         /// <summary>Nạp tray nào chưa vào, không qua cảm biến — chỉ đường START cũ của self-test dùng
@@ -1640,11 +1678,14 @@ namespace ShieldCanAssy.Core.Controller
         /// van nên máy vẫn "thành công" rồi đặt hai lần cùng một sản phẩm tưởng tượng. Quét từ
         /// đầu thay vì từ con trỏ thì không có trạng thái con trỏ nào để hỏng: ô đã dùng mang
         /// nhãn khác <c>Loaded</c> nên tự khắc bị bỏ qua.</para>
+        ///
+        /// <para>Operator có chọn ô (<see cref="TrayState.Selected"/>) thì chỉ xét ô đã chọn — hết ô đã chọn là hết tray.
+        /// Mọi chỗ chọn ô của chu trình đều qua <see cref="TrayState.InScope"/> như vậy.</para>
         /// </summary>
         private static int NextLoadedCell(TrayState tray)
         {
             for (int i = 0; i < tray.CellCount; i++)
-                if (tray.Get(i) == ECellState.Loaded) return i;
+                if (tray.Get(i) == ECellState.Loaded && tray.InScope(i)) return i;
             return -1;
         }
 
@@ -1666,7 +1707,7 @@ namespace ShieldCanAssy.Core.Controller
             int first = -1, second = -1;
             for (int i = 0; i < tray.CellCount; i++)
             {
-                if (tray.Get(i) != ECellState.Loaded) continue;
+                if (tray.Get(i) != ECellState.Loaded || !tray.InScope(i)) continue;
                 if (first < 0) first = i;
                 else { second = i; break; }
             }
@@ -1730,15 +1771,15 @@ namespace ShieldCanAssy.Core.Controller
         {
             int n = 0;
             for (int i = 0; i < tray.CellCount; i++)
-                if (tray.Get(i) == ECellState.Empty && _assyScan.ContainsKey(i)) n++;
+                if (tray.Get(i) == ECellState.Empty && tray.InScope(i) && _assyScan.ContainsKey(i)) n++;
             return n;
         }
 
-        /// <summary>Ô lắp ráp kế tiếp còn trống — cùng quy tắc với <see cref="NextLoadedCell"/>.</summary>
+        /// <summary>Ô lắp ráp kế tiếp còn trống — cùng quy tắc với <see cref="NextLoadedCell"/>, kể cả chỉ xét ô đã chọn.</summary>
         private static int NextFreeCell(TrayState tray)
         {
             for (int i = 0; i < tray.CellCount; i++)
-                if (tray.Get(i) == ECellState.Empty) return i;
+                if (tray.Get(i) == ECellState.Empty && tray.InScope(i)) return i;
             return -1;
         }
 

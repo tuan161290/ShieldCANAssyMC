@@ -31,12 +31,39 @@ namespace ShieldCanAssy.Core.Data
         public int RowsPerTray => Trays > 1 ? Rows / Trays : Rows;
         public int CellsPerTray => RowsPerTray * Cols;
 
+        /// <summary>
+        /// Ô operator chọn ở lưới trang Main lúc AUTO, theo chỉ số ô (thứ tự ghé) — có ô nào thì chu trình Auto chỉ làm trên
+        /// các ô đó: tray đầu vào chỉ hút ô đã chọn, tray lắp ráp chỉ soi và đặt vào ô đã chọn; làm hết thì coi như xong
+        /// tray (Tuấn 2026-10-16). Trống = cả tray. Chỉ cho tray đang làm: máy xong tray thì xoá
+        /// (<c>Routine_Auto.CloseSelection</c>), mở lại App cũng mất. Nạp tray mới KHÔNG xoá — chọn trước lúc chờ thay tray
+        /// là cho tray sắp đặt vào. KHÔNG sửa list tại chỗ: mỗi lần đổi là một list mới, luồng chu trình đọc không cần khoá.
+        /// </summary>
+        public List<int> Selected { get; set; } = new List<int>();
+
+        public bool HasSelection { get { var s = Selected; return s != null && s.Count > 0; } }
+
+        public bool IsSelected(int index) { var s = Selected; return s != null && s.Contains(index); }
+
+        /// <summary>Chu trình được làm ô này: chưa chọn ô nào thì mọi ô, có chọn thì chỉ ô đã chọn.</summary>
+        public bool InScope(int index) { var s = Selected; return s == null || s.Count == 0 || s.Contains(index); }
+
+        public void ToggleSelected(int index)
+        {
+            var next = Selected != null ? new List<int>(Selected) : new List<int>();
+            if (!next.Remove(index)) next.Add(index);
+            Selected = next;
+        }
+
+        public void ClearSelection() { Selected = new List<int>(); }
+
         public void Resize(int rows, int cols)
         {
             // Giữ lại trạng thái phần lưới trùng nhau — cùng lý do với TrayLayout.Resize.
             var old = Cells;
             int oldCols = Cols;
             int oldRows = Rows;
+            // Lưới đổi cỡ thì chỉ số ô không còn trỏ đúng ô cũ — bỏ lựa chọn.
+            if (rows != oldRows || cols != oldCols) ClearSelection();
 
             var next = new List<ECellState>(rows * cols);
             for (int r = 0; r < rows; r++)
@@ -186,14 +213,15 @@ namespace ShieldCanAssy.Core.Data
             InputTray.CurrentIndex = cells.IndexOf(ECellState.Loaded);
         }
 
-        /// <summary>Tray đầu vào thứ <paramref name="tray"/> còn ô máy sẽ ghé (có hàng) hoặc ô nguồn của hàng đang trên tay —
-        /// vắng tray này thì máy không làm tiếp được. Tray đã xong hết hoặc không nạp thì vắng cũng không sao.</summary>
+        /// <summary>Tray đầu vào thứ <paramref name="tray"/> còn ô máy sẽ ghé (có hàng, trong số ô đã chọn nếu có chọn) hoặc ô
+        /// nguồn của hàng đang trên tay — vắng tray này thì máy không làm tiếp được. Tray đã xong hết hoặc không nạp thì vắng
+        /// cũng không sao.</summary>
         public bool InputTrayNeeded(int tray)
         {
             int n = InputTray.CellsPerTray;
             var cells = InputTray.Cells;
             for (int i = tray * n; i < (tray + 1) * n && i < cells.Count; i++)
-                if (cells[i] == ECellState.Loaded || cells[i] == ECellState.Processing) return true;
+                if ((cells[i] == ECellState.Loaded && InputTray.InScope(i)) || cells[i] == ECellState.Processing) return true;
             return false;
         }
 
@@ -261,19 +289,34 @@ namespace ShieldCanAssy.Core.Data
         /// <summary>Thời gian thực tế trung bình một sản phẩm của tray vừa xong = thời gian tray ÷ số ô đặt OK.</summary>
         public double LastAssyTrayPerProductSec => LastAssyTrayProducts > 0 ? LastAssyTrayTimeSec / LastAssyTrayProducts : 0;
 
+        /// <summary>
+        /// Tray lắp ráp vừa xong mà tray mới chưa bắt đầu đếm: hàng Cycle Time / Tack Time của trang Main giữ số của tray
+        /// vừa xong, tới khi tray mới bắt đầu mới xoá (Tuấn 2026-10-16) — trước đó hai hàng về "—" ngay lúc tray xong.
+        /// </summary>
+        public bool AssyTrayHoldLast { get; set; }
+
         /// <summary>Bắt đầu đếm nếu tray đang làm chưa có mốc — gọi khi máy bắt đầu chạy.</summary>
         public void StartAssyTrayClock(DateTime now)
         {
-            if (AssyTrayStartedAt == null) AssyTrayStartedAt = now;
+            if (AssyTrayStartedAt == null) RestartAssyTrayClock(now);
         }
 
-        /// <summary>Tray lắp ráp vừa hết ô trống: chốt thời gian thực tế và số sản phẩm, bỏ mốc. Chưa có mốc thì bỏ qua.</summary>
+        /// <summary>Tray lắp ráp mới bắt đầu: đếm lại từ <paramref name="now"/>, bỏ số giữ lại của tray trước.</summary>
+        public void RestartAssyTrayClock(DateTime now)
+        {
+            AssyTrayStartedAt = now;
+            AssyTrayHoldLast = false;
+        }
+
+        /// <summary>Tray lắp ráp vừa hết ô trống: chốt thời gian thực tế và số sản phẩm, bỏ mốc — số chốt hiện ở cả hàng tray
+        /// đang làm tới khi tray mới bắt đầu (<see cref="AssyTrayHoldLast"/>). Chưa có mốc thì bỏ qua.</summary>
         public void FinishAssyTray(DateTime now, int products)
         {
             if (AssyTrayStartedAt == null) return;
             LastAssyTrayTimeSec = Math.Max(0, (now - AssyTrayStartedAt.Value).TotalSeconds);
             LastAssyTrayProducts = products;
             AssyTrayStartedAt = null;
+            AssyTrayHoldLast = true;
         }
 
         public double NgRatePercent => CountTotal > 0 ? CountNg * 100.0 / CountTotal : 0;
@@ -287,6 +330,7 @@ namespace ShieldCanAssy.Core.Data
             RecentProductTimes = new List<double>();
             LastAssyTrayTimeSec = 0;
             LastAssyTrayProducts = 0;
+            AssyTrayHoldLast = false;
         }
 
         /// <summary>
