@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ShieldCanAssy.AlarmPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ShieldCanAssy">
+
+    <!-- Trang Alarm (UI-SPEC §7): alarm đang tác động (nửa trên) + lịch sử 200 dòng (nửa dưới). Hai bảng dựng trong code
+         (ui::AlarmTable); chạm một dòng để mở Cause / Remedy. -->
+    <Grid x:Name="Root" Loaded="OnRootLoaded">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- AL-1..AL-4 -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,0,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock x:Name="ActiveHeaderText" Text="ACTIVE ALARMS" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+                <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                <Border x:Name="ActiveTableHost" Grid.Row="2"/>
+                <Border Grid.Row="3" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0" Padding="12,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Tối đa 2 dòng × 18 (thấp hơn nút 40): câu Status dài không làm chân trang cao lên, xô nút RESET/Mute
+                             (Tuấn 2026-10-20). Dài hơn cắt "…", đủ câu ở tooltip. -->
+                        <TextBlock x:Name="AlarmMessageText" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                   Margin="0,0,16,0" MaxWidth="480" TextWrapping="Wrap" MaxLines="2" LineHeight="18"
+                                   LineStackingStrategy="BlockLineHeight" TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource CriticalBrush}"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="AlarmMuteButton" Content="Mute" Width="100" Height="40" Click="OnMuteClick"/>
+                            <Button x:Name="AlarmResetButton" Content="RESET" Width="120" Height="40"
+                                    Style="{StaticResource PrimaryButton}" Click="OnResetClick"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- AL-5 -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Style="{StaticResource CardHeaderStyle}">
+                    <TextBlock x:Name="HistoryHeaderText" Text="ALARM HISTORY (LAST 200)" Style="{StaticResource SectionHeaderStyle}"/>
+                </Border>
+                <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                <Border x:Name="HistoryTableHost" Grid.Row="2"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

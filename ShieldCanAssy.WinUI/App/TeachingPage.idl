@@ -1,0 +1,8 @@
+﻿namespace ShieldCanAssy
+{
+    [default_interface]
+    runtimeclass TeachingPage : Microsoft.UI.Xaml.Controls.UserControl
+    {
+        TeachingPage();
+    }
+}

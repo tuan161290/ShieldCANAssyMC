@@ -1,0 +1,262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ShieldCanAssy.ManualPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ShieldCanAssy">
+
+    <!-- Trang Manual (UI-SPEC §3): điều khiển đầy đủ từng trục (SVO/RST/Brake Off/Origin/Jog/Inching/Move/Stop), bảng đèn
+         I/O, bảng mô phỏng và chẩn đoán phần cứng — bản WinUI của ManualView + ManualViewModel + AxisRowVm. Hàng trục, đèn
+         I/O, nút lỗi driver giả lập và dòng trạng thái Fastech dựng trong code (ManualPage.xaml.cpp, Ui/ManualPageAxisRow.*).
+         Khí nén (Vacuum/Blow) ở trang Teaching như bản WPF. -->
+    <UserControl.Resources>
+        <!-- Bảng trục — Width các ô tiêu đề PHẢI khớp các ô của hàng trục (ui::manualpage::AxisColumns). -->
+        <Style x:Key="AxisHeaderCellStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+            <Setter Property="BorderThickness" Value="1,0,0,0"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+            <Setter Property="Padding" Value="5,0,0,4"/>
+        </Style>
+        <Style x:Key="AxisHeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="AxisSectionTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="CommandButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Height" Value="40"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid x:Name="Root" Loaded="OnRootLoaded">
+        <!-- Cột đèn I/O 340 px — nhãn dài nhất (Consolas 11) cần ~300 px kể cả chấm đèn, khung card và thanh cuộn. -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="340"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ScrollViewer là lưới an toàn (cuộn khi tràn: Bảng mô phỏng, màn hình thấp). Lề phải 8 = khe giữa hai cột;
+             thanh cuộn nổi của WinUI nằm trong khe đó. -->
+        <ScrollViewer x:Name="LeftScroll" Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,8,0">
+
+                <!-- ══════════ Card lệnh chung (MN-1…11) ══════════ -->
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8" Padding="12,10,12,6">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <!-- MN-3: nhóm lệnh cho TẤT CẢ trục — dừng/xoá lỗi, rồi chuẩn bị chạy theo trình tự
+                                 RESET → Servo On → Brake Off → Origin. -->
+                            <TextBlock Text="ALL AXES" Style="{StaticResource AxisSectionTextStyle}"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,12,0"
+                                       VerticalAlignment="Top"/>
+                            <VariableSizedWrapGrid Grid.Column="1" Orientation="Horizontal" ItemWidth="126" ItemHeight="44">
+                                <Button x:Name="StopAllButton" Content="STOP" Style="{StaticResource CommandButtonStyle}"
+                                        Click="OnStopAllClick"/>
+                                <Button x:Name="ResetAllButton" Content="RESET" Style="{StaticResource CommandButtonStyle}"
+                                        Click="OnResetClick"/>
+                                <Button x:Name="ServoOnAllButton" Content="Servo On" Style="{StaticResource CommandButtonStyle}"
+                                        Click="OnServoOnAllClick"/>
+                                <Button x:Name="BrakeAllButton" Content="Brake Off" Style="{StaticResource CommandButtonStyle}"
+                                        Click="OnBrakeAllClick"/>
+                                <Button x:Name="OriginAllButton" Content="Origin" Style="{StaticResource CommandButtonStyle}"
+                                        Click="OnOriginClick"/>
+                            </VariableSizedWrapGrid>
+                            <!-- MN-9…11: đèn trigger CAM — bật/tắt tay, độc lập với Auto; ghi thẳng DO qua McControl::Io nên
+                                 dùng được cả máy thật lẫn mô phỏng. Trạng thái xem ở bảng OUTPUTS (DO 0x0B / 0x0C). -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="12,0,0,0">
+                                <TextBlock Text="CAM lamps" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0"/>
+                                <Button x:Name="CamBtmLampButton" Content="Bottom-up" Width="110" Height="40" Margin="0,0,6,0"
+                                        Click="OnCamBtmLampClick"/>
+                                <Button x:Name="CamTopLampButton" Content="Top-down" Width="110" Height="40"
+                                        Click="OnCamTopLampClick"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- MN-1 (lý do chặn chuyển động, Safety.SafeToMove = false) + MN-2 (Status.Message — lý do Origin/Move/SVO
+                             bị từ chối): MỘT ô cao cố định 2 dòng ngay dưới hàng nút, ẩn/hiện bằng ui::ShowInPlace. Trước
+                             2026-10-20 là hai InfoBar ở đầu card, mỗi lần mở/đóng hay đổi số dòng là mọi nút trên trang xô theo
+                             (Tuấn). Câu dài cắt "…", đủ câu ở tooltip. -->
+                        <Border x:Name="NoticeSlot" Style="{StaticResource NoticeSlotStyle}" Height="50" Margin="0,4,0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Style="{StaticResource InfoBarWarningIconStyle}"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                                    <TextBlock x:Name="BlockText" Style="{StaticResource NoticeLineStyle}" MaxLines="1"
+                                               Visibility="Collapsed"><Run Text="Motion blocked: " FontWeight="SemiBold"/><Run x:Name="BlockReasonRun"/></TextBlock>
+                                    <TextBlock x:Name="MessageText" Style="{StaticResource NoticeLineStyle}" MaxLines="2"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- ══════════ Bảng trục (MN-12…25) — mỗi trục một hàng, nút xếp thành cột theo trình tự thao tác ══════════ -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="12,8,12,10" Margin="0,0,0,8">
+                    <StackPanel>
+                        <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,1">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="ColAxisText" Width="30" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                <TextBlock x:Name="ColPosText" Width="84" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                <TextBlock x:Name="ColLimitText" Width="40" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                <Border Width="202" Style="{StaticResource AxisHeaderCellStyle}">
+                                    <TextBlock Text="Servo" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="64" Style="{StaticResource AxisHeaderCellStyle}">
+                                    <TextBlock x:Name="ColHomeText" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="93" Style="{StaticResource AxisHeaderCellStyle}">
+                                    <TextBlock x:Name="ColJogText" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="132" Style="{StaticResource AxisHeaderCellStyle}">
+                                    <TextBlock x:Name="ColInchText" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="137" Style="{StaticResource AxisHeaderCellStyle}">
+                                    <TextBlock x:Name="ColMoveText" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                                <Border Width="62" Style="{StaticResource AxisHeaderCellStyle}">
+                                    <TextBlock x:Name="ColStopText" Style="{StaticResource AxisHeaderTextStyle}"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- MN-12: đèn Z an toàn ngay trên dòng tên nhóm Gantry — cùng ngữ cảnh Z1/Z2, đỡ một hàng. -->
+                        <Grid Margin="0,8,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Gantry — X, Z1, Z2" Style="{StaticResource AxisSectionTextStyle}"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Ellipse x:Name="ZSafeLamp" Width="12" Height="12" VerticalAlignment="Center"
+                                         Stroke="#40000000" StrokeThickness="1"/>
+                                <TextBlock x:Name="ZSafeText" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel x:Name="GantryRows"/>
+
+                        <TextBlock Text="Tray — Y1, Y2" Style="{StaticResource AxisSectionTextStyle}" Margin="0,10,0,2"/>
+                        <StackPanel x:Name="TrayRows"/>
+
+                        <TextBlock x:Name="RotateSectionText" Style="{StaticResource AxisSectionTextStyle}" Margin="0,10,0,2"/>
+                        <StackPanel x:Name="RotateRows"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ══════════ SIM PANEL (MN-26…33) — chỉ hiện khi Io là FakeIo. Không phải đồ chơi: là cách duy nhất chạy
+                     được các nhánh EMG, rèm sáng và mất kết nối mà không phải rút cáp máy thật. ══════════ -->
+                <Border x:Name="SimCard" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,0,8" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Style="{StaticResource CardHeaderStyle}">
+                            <TextBlock x:Name="SimHeaderText" Style="{StaticResource SectionHeaderStyle}"/>
+                        </Border>
+                        <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                        <StackPanel Grid.Row="2" Margin="12">
+                            <TextBlock x:Name="SimNoteText" Style="{StaticResource HintStyle}"/>
+                            <!-- Nút cứng (Start/STOP) rồi tín hiệu giữ mức (EMG/rèm/khí, hai cảm biến tray đầu vào), cách nhau
+                                 rộng hơn. Bốn nút Start như nhau nên một nút mô phỏng (bấm Start B #1). -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="SimStartButton" Content="Start" Width="110" Margin="0,0,6,6" Click="OnSimStartClick"/>
+                                <Button x:Name="SimStopButton" Content="Stop" Width="110" Margin="0,0,16,6" Click="OnSimStopClick"/>
+                                <Button x:Name="SimEmgButton" Content="EMG" Width="90" Margin="0,0,6,6" Click="OnSimEmgClick"/>
+                                <Button x:Name="SimCurtainButton" Content="Curtain" Width="110" Margin="0,0,6,6" Click="OnSimCurtainClick"/>
+                                <Button x:Name="SimAirButton" Content="Air" Width="90" Margin="0,0,6,6" Click="OnSimAirClick"/>
+                                <Button x:Name="SimTray1Button" Content="Tray 1" Width="100" Margin="0,0,6,6" Click="OnSimTray1Click"/>
+                                <Button x:Name="SimTray2Button" Content="Tray 2" Width="100" Margin="0,0,6,6" Click="OnSimTray2Click"/>
+                            </StackPanel>
+
+                            <Border Style="{StaticResource CardDividerStyle}" Margin="-12,6,-12,10"/>
+
+                            <TextBlock x:Name="SimFaultsText" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <!-- Mỗi trục mô phỏng: tên | ALM | Offline (bấm lại để gỡ). -->
+                            <VariableSizedWrapGrid x:Name="SimAxisGrid" Orientation="Horizontal" ItemWidth="168" ItemHeight="46"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ══════════ HW DIAGNOSTICS (MN-34…36) — công cụ cho ngày đầu ra máy: giá trị THÔ đọc về từ thiết bị. ══════════ -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Style="{StaticResource CardHeaderStyle}">
+                            <TextBlock x:Name="DiagHeaderText" Style="{StaticResource SectionHeaderStyle}"/>
+                        </Border>
+                        <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                        <StackPanel Grid.Row="2" Margin="12">
+                            <TextBlock x:Name="DiagNoteText" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,6"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock x:Name="RawDiText" FontFamily="Consolas" FontSize="12" IsTextSelectionEnabled="True"/>
+                            <TextBlock x:Name="RawDoText" FontFamily="Consolas" FontSize="12" Margin="0,2,0,6"
+                                       IsTextSelectionEnabled="True"/>
+                            <!-- Một dòng mỗi trục Fastech: "{Name}  0x{RawStatus:X8}  {RawStatusText}". -->
+                            <StackPanel x:Name="FastechStatusPanel"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ══════════ Bảng đèn I/O (MN-37/38) — chỉ đọc, như bản WPF ══════════ -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock x:Name="InputsHeaderText" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                    <ScrollViewer x:Name="DiScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource CardHeaderStyle}">
+                        <TextBlock x:Name="OutputsHeaderText" Style="{StaticResource SectionHeaderStyle}"/>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                    <ScrollViewer x:Name="DoScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

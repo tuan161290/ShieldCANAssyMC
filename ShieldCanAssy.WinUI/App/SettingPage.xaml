@@ -1,0 +1,683 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="ShieldCanAssy.SettingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ShieldCanAssy">
+
+    <UserControl.Resources>
+        <!-- Dòng cài đặt kiểu Windows 11 (UI-SPEC §5): tên bên trái, ô nhập + đơn vị bên phải, ngăn bằng đường kẻ 1 px -->
+        <Style x:Key="SettingRowStyle" TargetType="Grid">
+            <Setter Property="MinHeight" Value="52"/>
+            <Setter Property="Padding" Value="16,6"/>
+        </Style>
+        <Style x:Key="RowTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource SettingRowTitleStyle}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="0,0,16,0"/>
+        </Style>
+        <Style x:Key="RowValueStyle" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="RowDividerStyle" TargetType="Border">
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Background" Value="{StaticResource DividerBrush}"/>
+        </Style>
+        <Style x:Key="ValueNumberStyle" TargetType="NumberBox">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ValueTextStyle" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="UnitTextStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionStyle}">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="RowToggleStyle" TargetType="ToggleSwitch">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="MinHeight" Value="40"/>
+            <Setter Property="OnContent" Value="On"/>
+            <Setter Property="OffContent" Value="Off"/>
+        </Style>
+        <!-- Tiêu đề nhóm nhỏ trong card (WPF: TextBlock SemiBold 12) -->
+        <Style x:Key="GroupTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource SubHeaderStyle}">
+            <Setter Property="Margin" Value="16,12,16,2"/>
+        </Style>
+        <Style x:Key="GroupNoteStyle" TargetType="TextBlock" BasedOn="{StaticResource HintStyle}">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="16,0,16,6"/>
+        </Style>
+        <!-- Báo cáo chỉ đọc (biến toàn cục / Output Flow): chọn và chép được -->
+        <Style x:Key="ReportTextStyle" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="IsTextSelectionEnabled" Value="True"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style x:Key="ModeButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="SideButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Trang Setting (UI-SPEC §5): NavigationView trái 5 mục (System · Vision · Servo · Delay · Log), nội dung đổi bằng
+         Visibility; PaneFooter = khối Lưu system.json (luôn thấy, như hàng Lưu nằm ngoài tab của bản WPF). Mọi ô nhập
+         nạp từ dữ liệu sống khi trang mở / sau Lưu; OnTick không ghi đè chúng. -->
+    <Grid x:Name="Root" Loaded="OnRootLoaded">
+        <NavigationView x:Name="SectionNav"
+                        PaneDisplayMode="Left"
+                        IsPaneToggleButtonVisible="False"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        IsTitleBarAutoPaddingEnabled="False"
+                        AlwaysShowHeader="False"
+                        OpenPaneLength="200"
+                        SelectionChanged="OnSectionChanged">
+            <NavigationView.Resources>
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="Transparent"/>
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"/>
+                <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent"/>
+                <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                <Thickness x:Key="NavigationViewContentMargin">0</Thickness>
+            </NavigationView.Resources>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="NavSystem" Content="System" Tag="0">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE713;"/></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavVision" Content="Vision" Tag="1">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE722;"/></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavServo" Content="Servo" Tag="2">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE90F;"/></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavDelay" Content="Delay" Tag="3">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE916;"/></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavLog" Content="Log" Tag="4">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE8FD;"/></NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <!-- ══════════ Khối Lưu (SE-1…SE-6) ══════════ -->
+            <NavigationView.PaneFooter>
+                <StackPanel Spacing="6" Padding="8,8,8,12">
+                    <Border Style="{StaticResource DividerStyle}" Margin="0,0,0,4"/>
+                    <Button x:Name="SaveSystemButton" Content="Save System" Style="{StaticResource PrimaryButton}"
+                            HorizontalAlignment="Stretch" Click="OnSaveClick"/>
+                    <Button x:Name="OpenFolderButton" Content="Open Folder" Style="{StaticResource SideButtonStyle}"
+                            Click="OnOpenFolderClick"/>
+                    <!-- Kết quả Lưu: ô cao cố định 2 dòng, ẩn tới lần Lưu đầu (ui::SetNotice). Chân pane neo ở ĐÁY nên trước
+                         2026-10-20 InfoBar mở ra là đẩy chính nút Save vừa bấm lên trên (Tuấn). -->
+                    <Border x:Name="SaveResultSlot" Style="{StaticResource NoticeSlotStyle}" Height="50">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon x:Name="SaveResultIcon" Style="{StaticResource InfoBarWarningIconStyle}"/>
+                            <TextBlock x:Name="SaveResultText" Grid.Column="1" Style="{StaticResource NoticeLineStyle}" MaxLines="2"/>
+                        </Grid>
+                    </Border>
+                    <TextBlock x:Name="DataRootText" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="FallbackRootText" Text="Fallback folder next to exe (no D:)" FontSize="11"
+                               Foreground="{StaticResource CautionBrush}" TextWrapping="Wrap" Visibility="Collapsed"/>
+                    <TextBlock x:Name="AlarmCatalogText" Text="alarms.json NOT loaded — alarms show codes only" FontSize="11"
+                               Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" Visibility="Collapsed"/>
+                </StackPanel>
+            </NavigationView.PaneFooter>
+
+            <Grid Margin="12,0,0,0">
+
+                <!-- ══════════ SYSTEM (§5.2) ══════════ -->
+                <ScrollViewer x:Name="SystemSection" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="8" Padding="0,0,12,12">
+
+                        <!-- AUTO MODE — chỉ CHỌN chế độ, không chạy máy; có hiệu lực ngay, không qua Lưu; máy đang chạy thì
+                             McControl từ chối và báo lý do ở dải vàng (Status.Message). -->
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="AUTO MODE" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Auto nozzles" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}" Spacing="4">
+                                        <Button x:Name="NozzleBothButton" Content="Both" Width="110" Tag="0"
+                                                Style="{StaticResource ModeButtonStyle}" Click="OnNozzleClick"/>
+                                        <Button x:Name="Nozzle1Button" Content="Nozzle #1" Width="110" Tag="1"
+                                                Style="{StaticResource ModeButtonStyle}" Click="OnNozzleClick"/>
+                                        <Button x:Name="Nozzle2Button" Content="Nozzle #2" Width="110" Tag="2"
+                                                Style="{StaticResource ModeButtonStyle}" Click="OnNozzleClick"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Dry run" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}" Spacing="12">
+                                        <TextBlock x:Name="DryRunStateText" Text="OFF" VerticalAlignment="Center"
+                                                   Style="{StaticResource CaptionStyle}"/>
+                                        <Button x:Name="DryRunButton" Content="Dry Run" Width="160"
+                                                Style="{StaticResource ModeButtonStyle}" Click="OnDryRunClick"
+                                                ToolTipService.ToolTip="Nonstop cycle, NO PRODUCT: only X/Y/Z/A move, no vac/blow/CAM. Selects mode only; a Start button runs. Locked while running."/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <!-- Dừng khi Vision NG (Tuấn 2026-10-18): đổi được cả lúc đang chạy, không lưu, mở lại app là tắt. -->
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Vision NG" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}" Spacing="12">
+                                        <TextBlock x:Name="NgStopStateText" Text="OFF — NG handled" VerticalAlignment="Center"
+                                                   Style="{StaticResource CaptionStyle}"/>
+                                        <Button x:Name="NgStopButton" Content="NG Stop" Width="160"
+                                                Style="{StaticResource ModeButtonStyle}" Click="OnNgStopClick"
+                                                ToolTipService.ToolTip="Auto halts AT each Vision NG (LocateTop/AlignBottom not found, comp. out of range, target off grid) before returning product or marking NG: nozzle, CAM image and VisionMaster result stay as they are. START = inspect again. Not saved; off after app restart."/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <StackPanel Padding="16,8,16,12" Spacing="6">
+                                    <TextBlock Text="Applies at once, no Save. Nozzles / Dry run locked while running — stop first." FontSize="11"
+                                               Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                    <!-- Status.Message (vd. lý do từ chối đổi chế độ): ô cao cố định 2 dòng, ẩn/hiện bằng
+                                         ui::SetNotice — trước 2026-10-20 là InfoBar, mở/đóng hay đổi số dòng là các card bên
+                                         dưới xô theo (Tuấn). -->
+                                    <Border x:Name="AutoNoticeSlot" Style="{StaticResource NoticeSlotStyle}" Height="50">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Style="{StaticResource InfoBarWarningIconStyle}"/>
+                                            <TextBlock x:Name="AutoMessageText" Grid.Column="1" Style="{StaticResource NoticeLineStyle}"
+                                                       MaxLines="2"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- SYSTEM PARAMS — Z_SAFE là giá trị riêng của trang, chỉ áp khi bấm Save System (như ViewModel cũ);
+                             các ô còn lại ghi thẳng vào SystemData sống khi rời ô. -->
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="SYSTEM PARAMS" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Z_SAFE" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="ZSafeBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="mm" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Pick retries" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="PickRetryBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Max NG in a row" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="MaxNgBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Ctrl loop" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="ControlTickBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Watchdog" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="WatchdogBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Simulation (needs restart)" Style="{StaticResource RowTitleStyle}"/>
+                                    <ToggleSwitch x:Name="SimModeSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Re-Origin after EMG" Style="{StaticResource RowTitleStyle}"/>
+                                    <ToggleSwitch x:Name="RequireHomeSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Origin A1/A2 in sequence" Style="{StaticResource RowTitleStyle}"/>
+                                    <ToggleSwitch x:Name="HomeSeqSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}"
+                                      ToolTipService.ToolTip="On: curtain cut stops all axes, none move while cut. Auto pauses; clear area, Start resumes. Enable only if DI13 lit (Manual).">
+                                    <TextBlock Text="Curtain fitted (DI13)" Style="{StaticResource RowTitleStyle}"/>
+                                    <ToggleSwitch x:Name="CurtainSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}"
+                                      ToolTipService.ToolTip="On: Top CAM inspects empty cells of CURRENT ROW, places them, then next row. Off (default): whole tray first. Use if Y2 travel shifts Assy tray.">
+                                    <TextBlock Text="Scan Assy tray by row" Style="{StaticResource RowTitleStyle}"/>
+                                    <ToggleSwitch x:Name="ScanByRowSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ══════════ VISION (§5.3) — 3 card như bản WPF ══════════ -->
+                <ScrollViewer x:Name="VisionSection" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Spacing="8" Padding="0,0,12,12">
+
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="VISION — SOLUTION SETUP" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+
+                                <TextBlock Text="Solution path (.solw)" Style="{StaticResource GroupTitleStyle}"/>
+                                <TextBlock Text="One .solw per machine. After change: Reload solution, no restart."
+                                           Style="{StaticResource GroupNoteStyle}"
+                                           ToolTipService.ToolTip="All 3 Flows (LocateTop / AlignBottom_Tool1 / AlignBottom_Tool2) must be in one .solw (SDK singleton)."/>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0,16,12">
+                                    <TextBox x:Name="SolutionPathBox" Width="360" Style="{StaticResource ValueTextStyle}"
+                                             TextChanged="OnSolutionPathChanged"/>
+                                    <Button x:Name="BrowseSolutionButton" Content="Browse" Width="96" Click="OnBrowseSolutionClick"/>
+                                    <Button x:Name="ReloadSolutionButton" Content="Reload" Width="110"
+                                            Style="{StaticResource PrimaryButton}" Click="OnReloadSolutionClick"/>
+                                    <!-- Tối đa 2 dòng × 15 (thấp hơn nút Reload) — kết quả dài không làm hàng cao lên. -->
+                                    <TextBlock x:Name="ReloadResultText" VerticalAlignment="Center" FontSize="11" MaxWidth="300"
+                                               TextWrapping="Wrap" MaxLines="2" LineHeight="15" LineStackingStrategy="BlockLineHeight"
+                                               TextTrimming="CharacterEllipsis" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <TextBlock Text="Solution tools" Style="{StaticResource GroupTitleStyle}"/>
+                                <TextBlock Text="No Flow run, no CAM trigger. Hover for details. Use a .solw copy first."
+                                           Style="{StaticResource GroupNoteStyle}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0,16,8">
+                                    <Button x:Name="CheckVarsButton" Content="Check Vars" Width="120" Click="OnCheckVarsClick"
+                                            ToolTipService.ToolTip="Check solution for the 13 GVars: 4 axis vars, RunId, IsTriggerLocate, HasTarget, CellX_mm / CellY_mm / CellA_deg, HandEyeDx_mm / HandEyeDy_mm, AlignSign. Read-only."/>
+                                    <Button x:Name="CreateVarsButton" Content="Create Vars" Width="130"
+                                            Style="{StaticResource PrimaryButton}" Click="OnCreateVarsClick"
+                                            ToolTipService.ToolTip="Create MISSING vars via SDK, then save solution. Existing vars unchanged."/>
+                                    <Button x:Name="CheckOutputsButton" Content="Check Outputs" Width="140" Margin="8,0,0,0"
+                                            Click="OnCheckOutputsClick"
+                                            ToolTipService.ToolTip="Flow: outputs of 3 Flows (missing, misspelled, non-numeric). Script: rows of TopAbs (LocateTop) and Cmd (AlignBottom), Input rows with EMPTY Subscribe (silently 0)."/>
+                                    <ProgressRing x:Name="VisionBusyRing" Width="20" Height="20" IsActive="False"
+                                                  VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                <ScrollViewer x:Name="VarReportScroll" MaxHeight="160" Margin="16,0,16,8"
+                                              VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                                    <TextBlock x:Name="VarReportText" Style="{StaticResource ReportTextStyle}"/>
+                                </ScrollViewer>
+                                <ScrollViewer x:Name="FlowReportScroll" MaxHeight="320" Margin="16,0,16,12"
+                                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                              Visibility="Collapsed">
+                                    <TextBlock x:Name="FlowReportText" Style="{StaticResource ReportTextStyle}"
+                                               FontFamily="Consolas" TextWrapping="NoWrap"/>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="VISION — LIMITS &amp; TOLERANCES" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+                                <TextBlock Text="App checks AlignBottom_ToolN place cmd against limits below before moving. Save system.json above; applies from next START."
+                                           Style="{StaticResource GroupNoteStyle}" Margin="16,10,16,0"/>
+
+                                <TextBlock Text="Auto place limits" Style="{StaticResource GroupTitleStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Max comp. angle" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="MaxCompAngleBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="°" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Max center ofs" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="MaxCompDistBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="mm" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Max grid dev." Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="PlaceGuardBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="mm" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Off-grid cells in a row" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="GuardSkipBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Insp pos. X tol." Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="AlignXTolBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="mm" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="A dev. at capture" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="ACapTolBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="°" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Timeout Flow" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="FlowTimeoutBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <TextBlock Text="Top-down check &amp; rot. test" Style="{StaticResource GroupTitleStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Check tol." Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="CalibResidualBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="mm" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Rot. test angle tol." Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="VerifyAngleTolBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="°" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Rot. test min ecc." Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="VerifyMinEccBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="mm" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Min test turn" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="VerifyMinTurnBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="°" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="VISION — FLOW &amp; VAR NAMES" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+                                <TextBlock Text="Enter exact solution names, then Save. VisionConnect rereads at next trigger, no rebuild."
+                                           Style="{StaticResource GroupNoteStyle}" Margin="16,10,16,0"/>
+
+                                <TextBlock Text="Flow names (Procedure)" Style="{StaticResource GroupTitleStyle}"/>
+                                <TextBlock Text="Each Flow inspects + loads calib pts: App writes IsTriggerLocate = 1 (insp) / 0 (calib), Flow branches on it."
+                                           Style="{StaticResource GroupNoteStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Flow LocateTop" Style="{StaticResource RowTitleStyle}"/>
+                                    <TextBox x:Name="FlowLocateTopBox" Width="150" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                </Grid>
+
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <TextBlock Text="Flows per nozzle" Style="{StaticResource GroupTitleStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Flow AlignBottom Tool1" Style="{StaticResource RowTitleStyle}"/>
+                                    <TextBox x:Name="FlowTool1Box" Width="150" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Flow AlignBottom Tool2" Style="{StaticResource RowTitleStyle}"/>
+                                    <TextBox x:Name="FlowTool2Box" Width="150" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Output Found (shared)" Style="{StaticResource RowTitleStyle}"/>
+                                    <TextBox x:Name="OutFoundBox" Width="150" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                </Grid>
+
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <TextBlock Text="Main image views" Style="{StaticResource GroupTitleStyle}"/>
+                                <TextBlock Text="Per view: Flow name (T1) → whole Flow Display; Flow.Module (T1.Module) → that module. Empty = whole Flow. Reopen Main after Save."
+                                           Style="{StaticResource GroupNoteStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Bottom CAM — Nozzle #1" Style="{StaticResource RowTitleStyle}"/>
+                                    <TextBox x:Name="RenderTool1Box" Width="200" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Bottom CAM — Nozzle #2" Style="{StaticResource RowTitleStyle}"/>
+                                    <TextBox x:Name="RenderTool2Box" Width="200" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}" Margin="0,0,0,4">
+                                    <TextBlock Text="Top CAM" Style="{StaticResource RowTitleStyle}"/>
+                                    <TextBox x:Name="RenderTopBox" Width="200" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ══════════ SERVO (§5.4) ══════════ Bảng 7 trục dựng trong code (BuildAxisTable); ô ghi thẳng vào
+                     AxisConfig sống mà MotionConnect đang dùng: soft limit, vị trí chờ, acc/dec ăn ngay từ lệnh kế tiếp. -->
+                <Grid x:Name="ServoSection" Visibility="Collapsed" Padding="0,0,12,12">
+                    <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Style="{StaticResource CardHeaderStyle}">
+                                <TextBlock Text="7-AXIS CFG" Style="{StaticResource SectionHeaderStyle}"/>
+                            </Border>
+                            <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                            <Grid Grid.Row="2" ColumnSpacing="24" Padding="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- Card I/O Ezi-IO Ethernet: HAI module riêng — 32Di và 32Do, mỗi cái một IP (IoConnect.Connect). -->
+                                <StackPanel>
+                                    <TextBlock Text="Card I/O Ezi-IO Ethernet" Style="{StaticResource GroupTitleStyle}"/>
+                                    <Grid Style="{StaticResource SettingRowStyle}" MinWidth="340">
+                                        <TextBlock Text="IP module 32Di" Style="{StaticResource RowTitleStyle}"/>
+                                        <TextBox x:Name="IoDiIpBox" Width="140" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                    </Grid>
+                                    <Grid Style="{StaticResource SettingRowStyle}" MinWidth="340">
+                                        <TextBlock Text="IP module 32Do" Style="{StaticResource RowTitleStyle}"/>
+                                        <TextBox x:Name="IoDoIpBox" Width="140" HorizontalAlignment="Right" Style="{StaticResource ValueTextStyle}"/>
+                                    </Grid>
+                                </StackPanel>
+                                <!-- Chặng Z nào của Auto/chạy rà đi qua điểm giảm tốc (SystemData.InputZSlowDown…) -->
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Z slow-down pt (Auto, dry run)" Style="{StaticResource GroupTitleStyle}"
+                                               ToolTipService.ToolTip="On: Z at Auto low from slow-down pt to pick/place height (Teaching). Off: Auto high all the way, harder contact. NG return to Input tray always slows."/>
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid Style="{StaticResource SettingRowStyle}">
+                                            <TextBlock Text="Input tray — down" Style="{StaticResource RowTitleStyle}"/>
+                                            <ToggleSwitch x:Name="InputZDownSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                        </Grid>
+                                        <Grid Grid.Column="1" Style="{StaticResource SettingRowStyle}">
+                                            <TextBlock Text="Input tray — up" Style="{StaticResource RowTitleStyle}"/>
+                                            <ToggleSwitch x:Name="InputZUpSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                        </Grid>
+                                        <Grid Grid.Row="1" Style="{StaticResource SettingRowStyle}">
+                                            <TextBlock Text="Assy tray — down" Style="{StaticResource RowTitleStyle}"/>
+                                            <ToggleSwitch x:Name="AssyZDownSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                        </Grid>
+                                        <Grid Grid.Row="1" Grid.Column="1" Style="{StaticResource SettingRowStyle}">
+                                            <TextBlock Text="Assy tray — up" Style="{StaticResource RowTitleStyle}"/>
+                                            <ToggleSwitch x:Name="AssyZUpSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                        </Grid>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                            <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                          HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled"
+                                          BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0">
+                                <Border x:Name="AxisTableHost" HorizontalAlignment="Left" Padding="4,0,4,4"/>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- ══════════ DELAY (§5.5) ══════════ -->
+                <ScrollViewer x:Name="DelaySection" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Spacing="8" Padding="0,0,12,12">
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="DELAY" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+
+                                <!-- Chờ trước khi chụp, mỗi camera một bộ số: hàng = camera, cột = khoảng chờ. -->
+                                <TextBlock Text="Capture" Style="{StaticResource GroupTitleStyle}"/>
+                                <Grid Margin="16,4,16,8" ColumnSpacing="24" RowSpacing="8" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock x:Name="SettleHeaderText" Grid.Column="1" Text="Capture settle" Style="{StaticResource CaptionStyle}"/>
+                                    <TextBlock x:Name="LampHeaderText" Grid.Column="2" Text="Light warm-up" Style="{StaticResource CaptionStyle}"/>
+
+                                    <TextBlock Grid.Row="1" Text="CAM bottom-up" VerticalAlignment="Center" Style="{StaticResource SettingRowTitleStyle}"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                                        <NumberBox x:Name="BottomSettleBox" Style="{StaticResource ValueNumberStyle}" Width="150"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                        <NumberBox x:Name="BottomLampBox" Style="{StaticResource ValueNumberStyle}" Width="150"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="2" Text="CAM top-down" VerticalAlignment="Center" Style="{StaticResource SettingRowTitleStyle}"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                        <NumberBox x:Name="TopSettleBox" Style="{StaticResource ValueNumberStyle}" Width="150"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                                        <NumberBox x:Name="TopLampBox" Style="{StaticResource ValueNumberStyle}" Width="150"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <TextBlock Text="Vac" Style="{StaticResource GroupTitleStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}"
+                                      ToolTipService.ToolTip="Wait for vac sensor after valve on/off. Timeout = missed pick (pick) / part stuck on nozzle (release). Slow gauge: raise.">
+                                    <TextBlock Text="Sensor timeout" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="VacTimeoutBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}"
+                                      ToolTipService.ToolTip="Extra wait after vac sensor OK before Z up, so can won't shift/drop. 0 = lift at once.">
+                                    <TextBlock Text="Vac build-up" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="VacSettleBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}" Margin="0,0,0,4"
+                                      ToolTipService.ToolTip="Blow to detach part from nozzle; after vac off, before Z up.">
+                                    <TextBlock Text="Release blow" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="BlowTimeBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="ms" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ══════════ LOG (§5.6) ══════════ -->
+                <Grid x:Name="LogSection" Visibility="Collapsed" Padding="0,0,12,12">
+                    <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Style="{StaticResource CardHeaderStyle}">
+                                <TextBlock Text="LOG (MEMORY)" Style="{StaticResource SectionHeaderStyle}"/>
+                            </Border>
+                            <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                            <Border x:Name="LogTableHost" Grid.Row="2" Padding="4,0,4,4"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </NavigationView>
+    </Grid>
+</UserControl>

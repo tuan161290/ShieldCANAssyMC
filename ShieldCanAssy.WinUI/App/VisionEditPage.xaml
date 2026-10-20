@@ -1,0 +1,439 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Trang Vision Edit (UI-SPEC §6) — port của VisionEditView.xaml + VisionCalibViewModel (WPF).
+     Hàng trên: thanh Jog toàn bề ngang. Cột trái: VmGlobalToolControl + VmMainViewConfigControl (popup ActiveX, ui::VmPane).
+     Cột phải (320): cột hiệu chuẩn vision — cổng Auto, dòng tiến trình, chọn Tool, chọn bước (ComboBox), khung của bước.
+     Chữ dài (chú thích, tooltip) lấy từ Loc trong code (cùng khoá resx), không chép tay vào đây. -->
+<UserControl
+    x:Class="ShieldCanAssy.VisionEditPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ShieldCanAssy">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <!-- Expander nhẹ (lightweight styling): trong suốt, không viền — chú thích gập dưới tiêu đề như NoteExpanderStyle
+                 của bản WPF. Chỉ áp cho Expander trong trang này. -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <SolidColorBrush x:Key="ExpanderHeaderBackground" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver" Color="#09000000"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed" Color="#06000000"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBorderBrush" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPointerOver" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPressed" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderContentBackground" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderContentBorderBrush" Color="Transparent"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ExpanderHeaderBackground" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver" Color="#09000000"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed" Color="#06000000"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBorderBrush" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPointerOver" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPressed" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderContentBackground" Color="Transparent"/>
+                    <SolidColorBrush x:Key="ExpanderContentBorderBrush" Color="Transparent"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+            <Thickness x:Key="ExpanderHeaderBorderThickness">0</Thickness>
+            <Thickness x:Key="ExpanderContentDownBorderThickness">0</Thickness>
+            <Thickness x:Key="ExpanderContentUpBorderThickness">0</Thickness>
+            <Thickness x:Key="ExpanderContentPadding">8,0,0,6</Thickness>
+            <Thickness x:Key="ExpanderHeaderPadding">4,0,0,0</Thickness>
+            <x:Double x:Key="ExpanderMinHeight">32</x:Double>
+
+            <Style x:Key="NoteExpanderStyle" TargetType="Expander">
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Margin" Value="0,0,0,4"/>
+            </Style>
+            <Style x:Key="NoteHeaderStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            </Style>
+            <Style x:Key="NoteBodyStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            </Style>
+            <!-- Dòng trạng thái / kết quả 11 pt -->
+            <Style x:Key="InfoLineStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                <Setter Property="Margin" Value="0,0,0,6"/>
+            </Style>
+            <!-- Dòng trạng thái nằm TRÊN nút: cao cố định n × 15 (Height + MaxLines ở chỗ dùng), chữ dài cắt "…", đủ câu ở
+                 tooltip (ui::SetClampedText) — đổi số dòng không được xô các nút bên dưới (Tuấn 2026-10-20). -->
+            <Style x:Key="ClampedInfoLineStyle" TargetType="TextBlock" BasedOn="{StaticResource InfoLineStyle}">
+                <Setter Property="LineHeight" Value="15"/>
+                <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            </Style>
+            <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
+            </Style>
+            <!-- Nút trong cột hiệu chuẩn: kéo hết bề ngang, chữ dài xuống dòng (cột hẹp) -->
+            <Style x:Key="ColumnButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,0,6"/>
+            </Style>
+            <Style x:Key="ColumnPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="0,0,0,6"/>
+            </Style>
+            <!-- Nút có số bước (huy hiệu tròn + nhãn) — nội dung dựng trong code (SetBadge) -->
+            <Style x:Key="BadgeButtonStyle" TargetType="Button" BasedOn="{StaticResource FlatButtonStyle}">
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Padding" Value="8,4"/>
+                <Setter Property="Margin" Value="0,0,0,6"/>
+            </Style>
+            <Style x:Key="SectionDividerStyle" TargetType="Border">
+                <Setter Property="Height" Value="1"/>
+                <Setter Property="Margin" Value="0,4,0,10"/>
+                <Setter Property="Background" Value="{StaticResource DividerBrush}"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid x:Name="Root" Loaded="OnRootLoaded">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="320"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ══════════ 6.1 Thanh Jog (toàn bề ngang) ══════════
+             X  −+   Z1 −+   Z2 −+  │ [Z1 Safe][Z2 Safe] │ ‹Slow|Fast› │ [STOP]
+             Y2 −+   A1 −+   A2 −+  │ [Vac #1 ][Vac #2 ] │             │ [    ]
+             Cột 1 gantry X/Y2, cột 2 tay #1 Z1/A1, cột 3 tay #2 Z2/A2 (Tuấn sắp 2026-09-26). Không hiện toạ độ: thanh tiêu đề
+             đã có. -->
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8" Padding="12,8">
+            <Grid HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="VISION EDIT" FontSize="20" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="0,0,20,0"/>
+
+                <!-- Jog −/+ giữ để chạy (ui::AttachJog), dựng trong code. Khoá khi Busy. -->
+                <Grid x:Name="JogGrid" Grid.Column="1" VerticalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+
+                <Border Grid.Column="2" Style="{StaticResource VerticalDividerStyle}" Margin="4,0,16,0"/>
+
+                <!-- Theo từng tay: Z_SAFE hàng trên (bấm đúp), van hút hàng dưới (xanh = DO đang bật). Khoá khi Busy. -->
+                <Grid Grid.Column="3" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Button x:Name="Z1SafeButton" Grid.Row="0" Grid.Column="0" Content="Z1 Safe" Width="112" Height="40" Margin="0,2,4,2"/>
+                    <Button x:Name="Z2SafeButton" Grid.Row="0" Grid.Column="1" Content="Z2 Safe" Width="112" Height="40" Margin="0,2,0,2"/>
+                    <Button x:Name="Vac1Button" Grid.Row="1" Grid.Column="0" Content="Vac #1" Width="112" Height="40" Margin="0,2,4,2"
+                            Click="OnVac1Click"/>
+                    <Button x:Name="Vac2Button" Grid.Row="1" Grid.Column="1" Content="Vac #2" Width="112" Height="40" Margin="0,2,0,2"
+                            Click="OnVac2Click"/>
+                </Grid>
+
+                <Border Grid.Column="4" Style="{StaticResource VerticalDividerStyle}" Margin="16,0,16,0"/>
+
+                <!-- Chậm/Nhanh chung mọi trục, mọi trang (McFunction::JogFast) -->
+                <!-- Slow = xanh lá, Fast = vàng cảnh báo (ui::SetJogSpeedButtons) -->
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                    <Button x:Name="JogSlowButton" Content="Slow" MinWidth="80" Height="40" FontWeight="SemiBold"
+                            Click="OnJogSlowClick"/>
+                    <Button x:Name="JogFastButton" Content="Fast" MinWidth="80" Height="40" FontWeight="SemiBold"
+                            Click="OnJogFastClick"/>
+                </StackPanel>
+
+                <Border Grid.Column="6" Style="{StaticResource VerticalDividerStyle}" Margin="16,0,16,0"/>
+
+                <!-- STOP cao hai hàng; KHÔNG BAO GIỜ khoá theo Busy — huỷ luôn chuỗi hiệu chuẩn trên ManualToken. -->
+                <Button x:Name="StopAllButton" Grid.Column="7" Content="STOP" Width="96" Height="76"
+                        FontSize="16" FontWeight="Bold" VerticalAlignment="Center"
+                        Background="{StaticResource RedOnBrush}" BorderBrush="{StaticResource RedOnBrush}"
+                        Foreground="{StaticResource TextOnAccentBrush}" Click="OnStopAllClick"/>
+            </Grid>
+        </Border>
+
+        <!-- ══════════ 6.2 VisionMaster (trái) ══════════ -->
+        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,8,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border x:Name="GlobalToolHost" Height="40" Margin="2" HorizontalAlignment="Stretch"/>
+                <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
+                <Grid Grid.Row="2">
+                    <Border x:Name="ConfigHost"/>
+                    <TextBlock x:Name="VmPlaceholderText" Style="{StaticResource HintStyle}" Margin="24"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" MaxWidth="560"/>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- ══════════ 6.3–6.9 Cột hiệu chuẩn (phải) — cả cột [Busy-off] qua ContentControl CalibPanel ══════════ -->
+        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorderStyle}" Padding="0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ContentControl x:Name="CalibPanel" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                IsTabStop="False">
+                    <StackPanel Margin="12,4,16,12">
+
+                        <!-- ── luôn hiện: cổng Auto, dòng tiến trình, Tool, bước ── -->
+                        <Expander x:Name="HeaderExpander" Style="{StaticResource NoteExpanderStyle}">
+                            <Expander.Header>
+                                <TextBlock Text="VISION CALIB" Style="{StaticResource SectionHeaderStyle}"/>
+                            </Expander.Header>
+                            <TextBlock x:Name="HeaderNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                        </Expander>
+                        <!-- Cổng Auto và kết quả Check Calib: 3 dòng cố định (câu "NOT ready" nhiều lý do dài hơn — xem tooltip). -->
+                        <TextBlock x:Name="ReadyText" Style="{StaticResource ClampedInfoLineStyle}" Height="45" MaxLines="3"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <Button x:Name="CheckCalibButton" Content="Check Calib" Style="{StaticResource ColumnButtonStyle}"
+                                Click="OnCheckCalibClick"/>
+                        <TextBlock x:Name="GateText" Style="{StaticResource ClampedInfoLineStyle}" Height="45" MaxLines="3"
+                                   IsTextSelectionEnabled="True"/>
+                        <!-- Dòng tiến trình (VE-13): LUÔN giữ chỗ 2 dòng, hiện/ẩn bằng ui::ShowInPlace — trước 2026-10-20 nó
+                             Collapsed khi rảnh, bấm lệnh chạy trục là vòng quay bật ra và đẩy cả cột nút xuống (Tuấn). -->
+                        <Grid x:Name="SequenceRow" Height="30" Margin="0,0,0,8" Opacity="0" IsHitTestVisible="False">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ProgressRing x:Name="BusyRing" Width="16" Height="16" IsActive="False" Opacity="0"
+                                          Margin="0,0,8,0" VerticalAlignment="Top"/>
+                            <TextBlock x:Name="SequenceText" Grid.Column="1" Style="{StaticResource ClampedInfoLineStyle}" Margin="0"
+                                       MaxLines="2" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </Grid>
+
+                        <Border Style="{StaticResource SectionDividerStyle}"/>
+
+                        <TextBlock Text="Tool (nozzle)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                        <SelectorBar x:Name="ToolSelector" Margin="0,0,0,8" SelectionChanged="OnToolChanged">
+                            <SelectorBarItem x:Name="Tool1Item" Text="Tool 1" Style="{StaticResource PageSelectorBarItemStyle}"/>
+                            <SelectorBarItem x:Name="Tool2Item" Text="Tool 2" Style="{StaticResource PageSelectorBarItemStyle}"/>
+                        </SelectorBar>
+
+                        <TextBlock x:Name="StepsLabelText" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="StepCombo" HorizontalAlignment="Stretch" MinHeight="40" Margin="0,0,0,10"
+                                  SelectionChanged="OnStepChanged"/>
+
+                        <Border Style="{StaticResource SectionDividerStyle}"/>
+
+                        <!-- ══ 6.4 Top CAM calib + check (dùng chung hai tay) ══ -->
+                        <StackPanel x:Name="StepPanelTop">
+                            <Expander Style="{StaticResource NoteExpanderStyle}">
+                                <Expander.Header>
+                                    <TextBlock x:Name="TopDownNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                </Expander.Header>
+                                <TextBlock x:Name="TopDownNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                            </Expander>
+                            <TextBlock x:Name="CenterText" Style="{StaticResource ClampedInfoLineStyle}" Height="30" MaxLines="2"
+                                       Margin="0,0,0,4"/>
+                            <Button x:Name="SaveCenterButton" Content="Save Center" Style="{StaticResource ColumnButtonStyle}"
+                                    Click="OnSaveCenterClick" Margin="0,0,0,8"/>
+                            <Grid Margin="0,0,0,6" RowSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Step X" Style="{StaticResource FieldLabelStyle}"/>
+                                <StackPanel x:Name="GridStepXHost" Grid.Column="1"/>
+                                <TextBlock Grid.Row="1" Text="Step Y" Style="{StaticResource FieldLabelStyle}"/>
+                                <StackPanel x:Name="GridStepYHost" Grid.Row="1" Grid.Column="1"/>
+                            </Grid>
+                            <!-- Numpad 7 8 9 / 4 5 6 / 1 2 3 — 5 = tâm đã lưu. Bấm đúp. Dựng trong code. -->
+                            <Grid x:Name="Numpad" Margin="0,0,0,6" ColumnSpacing="4" RowSpacing="4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                            </Grid>
+                            <Button x:Name="AutoCalibButton" Content="Auto Calib" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                            <Button x:Name="TopLoadHereButton" Content="Load Point" Style="{StaticResource ColumnButtonStyle}"
+                                    Click="OnTopLoadHereClick"/>
+                            <Grid Margin="0,4,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Test travel" Style="{StaticResource FieldLabelStyle}"/>
+                                <StackPanel x:Name="VerifyTravelHost" Grid.Column="1"/>
+                            </Grid>
+                            <Button x:Name="VerifyTopButton" Content="Verify Top" Style="{StaticResource ColumnButtonStyle}"/>
+                            <TextBlock x:Name="VerifyResultTopText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                        </StackPanel>
+
+                        <!-- ══ 6.5 Bottom CAM calib (Tool đang chọn) ══ -->
+                        <StackPanel x:Name="StepPanelBottom" Visibility="Collapsed">
+                            <Expander Style="{StaticResource NoteExpanderStyle}">
+                                <Expander.Header>
+                                    <TextBlock x:Name="BottomUpNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                </Expander.Header>
+                                <TextBlock x:Name="BottomUpNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                            </Expander>
+                            <TextBlock Text="X Ofs (mm)" FontSize="12" Margin="0,0,0,2"/>
+                            <TextBox x:Name="AlignXOffsetsBox" Margin="0,0,0,6" LostFocus="OnAlignListLostFocus"/>
+                            <TextBlock Text="A angles (°)" FontSize="12" Margin="0,0,0,2"/>
+                            <TextBox x:Name="AlignAnglesBox" Margin="0,0,0,8" LostFocus="OnAlignListLostFocus"/>
+                            <Button x:Name="RunAlignCalibButton" Content="Run Calib" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                            <Button x:Name="AlignLoadHereButton" Content="Load Point" Style="{StaticResource ColumnButtonStyle}"/>
+                            <Button x:Name="AxisAZeroButton" Content="A → 0°" Style="{StaticResource ColumnButtonStyle}"/>
+                        </StackPanel>
+
+                        <!-- ══ 6.6 Rotation test (Tool đang chọn) — nghiệm thu của bước bottom-up ══ -->
+                        <StackPanel x:Name="StepPanelRotation" Visibility="Collapsed">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Test angle" Style="{StaticResource FieldLabelStyle}"/>
+                                <StackPanel x:Name="TestAngleHost" Grid.Column="1"/>
+                            </Grid>
+                            <Button x:Name="RotationTestButton" Content="Run Test" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                            <TextBlock x:Name="AlignStatusText" Style="{StaticResource InfoLineStyle}"/>
+                            <!-- Cùng giá trị với VerifyResultTopText: kiểm tra top-down và phép thử vòng xoay cùng ghi vào đó -->
+                            <TextBlock x:Name="VerifyResultRotText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                        </StackPanel>
+
+                        <!-- ══ 6.7 Hand-eye (Tool đang chọn) ══ -->
+                        <StackPanel x:Name="StepPanelHandEye" Visibility="Collapsed">
+                            <Expander Style="{StaticResource NoteExpanderStyle}">
+                                <Expander.Header>
+                                    <TextBlock x:Name="HandEyeNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                </Expander.Header>
+                                <TextBlock x:Name="HandEyeNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                            </Expander>
+                            <TextBlock x:Name="HandEyeStatusText" Style="{StaticResource ClampedInfoLineStyle}" Height="30"
+                                       MaxLines="2"/>
+                            <Button x:Name="He1Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="He2Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="He3Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="He4Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="He5Button" Style="{StaticResource BadgeButtonStyle}" Margin="0,0,0,8"/>
+
+                            <Expander Style="{StaticResource NoteExpanderStyle}">
+                                <Expander.Header>
+                                    <TextBlock x:Name="HeRetestHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                </Expander.Header>
+                                <TextBlock x:Name="HeRetestNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                            </Expander>
+                            <Grid Margin="0,0,0,6" ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="He6Button" Style="{StaticResource BadgeButtonStyle}" Margin="0"/>
+                                <Button x:Name="HeCellButton" Grid.Column="1" Content="Cell…" MinWidth="64" Padding="8,4"
+                                        VerticalAlignment="Stretch" Click="OnHeCellClick"/>
+                            </Grid>
+                            <Button x:Name="He7Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="He8Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="He9Button" Style="{StaticResource BadgeButtonStyle}" Margin="0,0,0,8"/>
+                            <Button x:Name="HeReturnButton" Content="Return Can" Style="{StaticResource ColumnButtonStyle}"/>
+                            <TextBlock x:Name="HandEyeStepText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                        </StackPanel>
+
+                        <!-- ══ 6.8 Acceptance (dry run) ══ -->
+                        <StackPanel x:Name="StepPanelAccept" Visibility="Collapsed">
+                            <Expander Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
+                                <Expander.Header>
+                                    <TextBlock x:Name="AcceptHeaderText" Style="{StaticResource NoteHeaderStyle}"/>
+                                </Expander.Header>
+                                <TextBlock x:Name="AcceptNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                            </Expander>
+                            <Button x:Name="DryPlaceButton" Content="Dry Place" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                        </StackPanel>
+
+                        <!-- ══ 6.9 Step run (full cycle) — tay hút theo Tool đang chọn ══ -->
+                        <StackPanel x:Name="StepPanelSequence" Visibility="Collapsed">
+                            <Expander Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
+                                <Expander.Header>
+                                    <TextBlock x:Name="SeqHeaderText" Style="{StaticResource NoteHeaderStyle}"/>
+                                </Expander.Header>
+                                <TextBlock x:Name="SeqNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                            </Expander>
+                            <Grid Margin="0,0,0,6" ColumnSpacing="6" RowSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.ColumnSpan="4" Text="Assy cell" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="1" Text="row" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
+                                <NumberBox x:Name="SeqAssyRowBox" Grid.Row="1" Grid.Column="1"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="col" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
+                                <NumberBox x:Name="SeqAssyColBox" Grid.Row="1" Grid.Column="3"/>
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Text="Input cell" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="3" Text="row" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
+                                <NumberBox x:Name="SeqInputRowBox" Grid.Row="3" Grid.Column="1"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="col" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
+                                <NumberBox x:Name="SeqInputColBox" Grid.Row="3" Grid.Column="3"/>
+                            </Grid>
+                            <Button x:Name="Seq1Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="Seq2Button" Style="{StaticResource BadgeButtonStyle}" Click="OnSeq2Click"/>
+                            <Button x:Name="Seq3Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="Seq4Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="Seq5Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <Button x:Name="Seq6Button" Style="{StaticResource BadgeButtonStyle}"/>
+                            <TextBlock x:Name="StepResultText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ContentControl>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

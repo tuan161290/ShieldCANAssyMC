@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="ShieldCanAssy.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ShieldCanAssy"
+    Title="Shield CAN Assy MC — SO1C86-SCAM">
+
+    <!-- Lớp 0 = Acrylic Thin, KHÔNG tắt khi cửa sổ mất focus (UI-SPEC §1.1): máy lắp ráp là Windows 10 22H2, Mica không có.
+         Tắt hiệu ứng trong suốt / tiết kiệm pin / RDP thì tự về màu đặc #F3F3F3. Lớp phủ #99F3F3F3 trên Root (như WPF). -->
+    <Window.SystemBackdrop>
+        <local:AppBackdrop UseAcrylic="True"/>
+    </Window.SystemBackdrop>
+
+    <!-- ContentControl bọc ngoài chỉ để đặt font cho cả cây (Panel không có FontFamily). -->
+    <ContentControl x:Name="FontHost" FontFamily="Segoe UI" IsTabStop="False"
+                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <Grid x:Name="Root" Loaded="OnRootLoaded" Background="#99F3F3F3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>   <!-- SH-1 thanh tiêu đề 64 -->
+                <RowDefinition Height="Auto"/>   <!-- SH-9 điều hướng 48 -->
+                <RowDefinition Height="*"/>      <!-- SH-12 trang -->
+                <RowDefinition Height="Auto"/>   <!-- thanh trạng thái 28 -->
+            </Grid.RowDefinitions>
+
+            <!-- ══════════ SH-1 Thanh tiêu đề ══════════
+                 Cả dải là vùng kéo cửa sổ (SetTitleBar). Nền = màu đèn tháp nhạt (alpha 0x1C), vạch dưới 2 px = màu đèn tháp
+                 (Status.TowerLamp — nguồn sự thật). Ba nút cửa sổ do hệ thống vẽ ở góc phải, cột cuối chừa chỗ (đặt theo
+                 TitleBar.RightInset trong code). -->
+            <Grid x:Name="TitleBarArea" Grid.Row="0" Height="64" Background="Transparent"
+                  BorderBrush="#FF606060" BorderThickness="0,0,0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition x:Name="CaptionColumn" Width="144"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,16,0">
+                    <!-- DecodePixelHeight (Logical = DIP, tự nhân tỉ lệ màn hình): bộ giải mã thu nhỏ chất lượng cao. Để GPU
+                         thu nhỏ ~8 lần thì nét mảnh của logo mất (chữ O của HOYEON bạc trắng — Tuấn 2026-10-18); WPF dùng
+                         BitmapScalingMode="HighQuality". -->
+                    <Image Height="34" Margin="0,0,16,0">
+                        <Image.Source>
+                            <BitmapImage UriSource="ms-appx:///Assets/LogoActro.png" DecodePixelHeight="34" DecodePixelType="Logical"/>
+                        </Image.Source>
+                    </Image>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="MachineNameText" FontSize="20" FontWeight="Bold" Text="SHIELD CAN ASSY MC"/>
+                        <TextBlock x:Name="ModelText" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- SH-5 toạ độ 7 trục (AxisId::All) — ô rộng cố định 58, dựng trong code. Viewbox chỉ-thu-nhỏ: cửa sổ hẹp thì
+                     cả dải co lại thay vì cắt mất trục cuối. -->
+                <Viewbox Grid.Column="1" StretchDirection="DownOnly" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,1,0">
+                        <StackPanel x:Name="AxisPanel" Orientation="Horizontal"/>
+                    </Border>
+                </Viewbox>
+
+                <Image Grid.Column="2" Height="44" Margin="16,0,8,0" VerticalAlignment="Center">
+                    <Image.Source>
+                        <BitmapImage UriSource="ms-appx:///Assets/LogoHoyeon.png" DecodePixelHeight="44" DecodePixelType="Logical"/>
+                    </Image.Source>
+                </Image>
+            </Grid>
+
+            <!-- ══════════ SH-9 Điều hướng + SH-11 RESET ══════════
+                 Giống NavTabButtonStyle của WPF (Tuấn 2026-10-18: SelectorBar mặc định chữ mảnh, vạch chọn ngắn — không giống
+                 WPF): tab cao 56, chữ 15 SemiBold, đệm 24, gạch chân accent 3 px chạy hết tab, nền mờ khi rê/nhấn. Không vạch
+                 ngăn dưới; khối điều hướng + trang cách mép 8 như Grid Margin="8" của WPF. -->
+            <Grid Grid.Row="1" Margin="8,8,8,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="NavMain" Content="Main" IsChecked="True" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavManual" Content="Manual" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavTeaching" Content="Teaching" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavSetting" Content="Setting" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavVisionEdit" Content="Vision Edit" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <!-- SH-10 Alarm: có alarm thì nền RedOn + quầng #FF4D5E phủ cả tab, chữ và biểu tượng trắng. Nền đặt ở Border
+                         phía sau nút (như Border bọc ngoài của WPF). -->
+                    <Grid Margin="2,0">
+                        <Border x:Name="AlarmTabGlow" CornerRadius="5"/>
+                        <Border x:Name="AlarmTabFill" CornerRadius="5"/>
+                        <RadioButton x:Name="NavAlarm" Margin="0" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon x:Name="AlarmTabIcon" Glyph="&#xE7BA;" FontSize="15"
+                                          FontFamily="{StaticResource SegoeIcons}"/>
+                                <TextBlock x:Name="AlarmTabText" Text="Alarm" FontSize="15" FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+                </StackPanel>
+
+                <Button x:Name="ShellResetButton" Grid.Column="1" Content="RESET" VerticalAlignment="Center"
+                        Padding="16,8" FontWeight="SemiBold" Click="OnResetClick"/>
+            </Grid>
+
+            <!-- ══════════ SH-12 Trang ══════════ Thứ tự khớp enum Section trong MainWindow.xaml.h. -->
+            <Grid x:Name="PageHost" Grid.Row="2" Margin="8,0,8,8">
+                <local:MainPage x:Name="PageMain"/>
+                <local:ManualPage x:Name="PageManual" Visibility="Collapsed"/>
+                <local:TeachingPage x:Name="PageTeaching" Visibility="Collapsed"/>
+                <local:SettingPage x:Name="PageSetting" Visibility="Collapsed"/>
+                <local:VisionEditPage x:Name="PageVisionEdit" Visibility="Collapsed"/>
+                <local:AlarmPage x:Name="PageAlarm" Visibility="Collapsed"/>
+
+                <!-- Trong lúc McControl::Init kết nối thiết bị (luồng nền) — các trang chưa được đọc thiết bị. -->
+                <Border x:Name="StartupPanel" Background="#CCF3F3F3" CornerRadius="8">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                        <ProgressRing IsActive="True" Width="40" Height="40"/>
+                        <TextBlock Text="Connecting devices…" FontSize="14" HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ══════════ Thanh trạng thái (28) ══════════ -->
+            <Grid Grid.Row="3" Height="28" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0" Padding="12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- SH-13 -->
+                    <Border x:Name="SimBadge" Background="{StaticResource SimBadgeBrush}" CornerRadius="4" Padding="8,1"
+                            Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock Text="SIMULATION MODE" FontWeight="Bold" FontSize="11"
+                                   Foreground="{StaticResource SimBadgeTextBrush}"/>
+                    </Border>
+
+                    <!-- SH-14: bật #0F7B0F, tắt #5C5C5C (trung tính, không bao giờ đỏ) -->
+                    <Ellipse x:Name="MotionLamp" Width="12" Height="12" Margin="10,0,6,0" VerticalAlignment="Center"
+                             Fill="{StaticResource StatusOffBrush}" Stroke="#40000000" StrokeThickness="1"/>
+                    <TextBlock Text="Motion" FontSize="12" VerticalAlignment="Center"/>
+                    <Ellipse x:Name="IoLamp" Width="12" Height="12" Margin="14,0,6,0" VerticalAlignment="Center"
+                             Fill="{StaticResource StatusOffBrush}" Stroke="#40000000" StrokeThickness="1"/>
+                    <TextBlock Text="I/O" FontSize="12" VerticalAlignment="Center"/>
+                    <Ellipse x:Name="VisionLamp" Width="12" Height="12" Margin="14,0,6,0" VerticalAlignment="Center"
+                             Fill="{StaticResource StatusOffBrush}" Stroke="#40000000" StrokeThickness="1"/>
+                    <TextBlock Text="Vision" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- SH-15 -->
+                <TextBlock x:Name="DataRootText" Grid.Column="1" Margin="24,0,0,0" FontSize="11"
+                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"
+                           HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/>
+            </Grid>
+        </Grid>
+    </ContentControl>
+</Window>
