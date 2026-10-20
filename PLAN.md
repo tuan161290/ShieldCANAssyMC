@@ -892,7 +892,7 @@ hút: chu trình Auto, nút hút ở chạy từng bước, bước xác định
 | Hút hụt (không có tín hiệu vacuum sensor) | retry N lần (mặc định 2), Z hạ thêm `ΔZ_retry` |
 | Retry vẫn hụt | đánh dấu ô đầu vào là NG/trống, bỏ qua, sang ô kế |
 | Align fail (vision không tìm thấy / score thấp) | trả sản phẩm về **đúng ô cũ**, đánh dấu ô NG, sang ô kế |
-| Locate fail (top-down không thấy chi tiết đích) — ở S05 quét trước hoặc S30/S32 đo dự phòng | đánh dấu ô đó `Skipped`, bỏ qua; nếu đang giữ sản phẩm (S30/S32) thì chuyển sang ô đích kế tiếp; hết ô thì giữ trên tay, báo Warning, chờ đổi tray lắp ráp rồi chạy lại từ S00 |
+| Locate fail (top-down không thấy chi tiết đích) — ở S05 quét trước hoặc S30/S32 đo dự phòng | đánh dấu ô đó `Ng` (lưới trang Main tô đỏ — Tuấn 17/10; trước đó `Skipped`, màu xám), bỏ qua; nếu đang giữ sản phẩm (S30/S32) thì chuyển sang ô đích kế tiếp; hết ô thì giữ trên tay, báo Warning, chờ đổi tray lắp ráp rồi chạy lại từ S00 |
 | Rơi sản phẩm giữa chừng (mất vacuum) | dừng chu trình, alarm 5002, yêu cầu người kiểm tra |
 | NG liên tiếp > `MaxConsecutiveNg` (mặc định 5) | dừng chu trình, alarm 5010 — dấu hiệu hỏng cơ hoặc sai teach |
 | Alarm driver / EMG / rèm sáng bị cắt | dừng ngay, đèn đỏ, ghi log |

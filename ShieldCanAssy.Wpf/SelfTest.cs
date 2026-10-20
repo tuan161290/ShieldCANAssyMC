@@ -3111,9 +3111,11 @@ namespace ShieldCanAssy.Wpf
                 lock (pickY) { pickY.Clear(); zBad.Clear(); }
                 tray2PickBeforeTray1Done = false;
                 io.SimPress(IoMap.BtnGoB1);
-                // Tray 2 đầy hàng suốt lúc máy làm Tray 1 — thấy đủ n ô là đã nạp cả hai (Tray 1 đang vơi dần).
+                // Tray 2 đầy hàng suốt lúc máy làm Tray 1 — thấy đủ n ô là đã nạp cả hai (Tray 1 đang vơi dần). Chờ cả lúc
+                // máy rời CHỜ THAO TÁC: sổ đổi trước, trạng thái đổi sau một nhịp trên luồng chu trình — không chờ thì vòng
+                // dưới đọc phải trạng thái chờ của chính lần nạp này (self-test 2026-10-17 trượt một lần vì vậy).
                 Check("Cả hai tray có: Start nạp cả hai",
-                    WaitUntil(() => countIn(n, 2 * n) == n, 5000),
+                    WaitUntil(() => countIn(n, 2 * n) == n && !waitingOp(), 5000),
                     $"Tray 1 {countIn(0, n)}, Tray 2 {countIn(n, 2 * n)} ô có hàng");
                 bool sawWait = false;
                 bool reachedTray2 = WaitUntil(() =>
@@ -3314,19 +3316,24 @@ namespace ShieldCanAssy.Wpf
             McControl.RequestStart();
             WaitUntil(() => McControl.Status.State == EMcState.Running, 3000);
             Check("Máy chạy với tray lắp ráp còn ô trống thì đồng hồ thực tế của tray bắt đầu đếm",
-                WaitUntil(() => run.AssyTrayStartedAt != null || run.LastAssyTrayTimeSec > 0, 3000));
+                WaitUntil(() => run.AssyTrayStartedAt != null || run.AssyTrayDone, 3000));
 
             bool waiting = WaitUntil(() => McControl.Status.State == EMcState.WaitOperator, 120000);
             Check("Còn đúng 1 ô lắp ráp: đặt xong ô đó thì chờ đổi tray", waiting,
                 McControl.Status.StateText + " — " + McControl.Status.Message);
-            // Tray lắp ráp hết ô trống: chốt thời gian thực tế (tính cả chờ/dừng) và số ô đặt OK, bỏ mốc (Tuấn 2026-10-08).
-            Check("Tray lắp ráp đầy thì chốt thời gian thực tế của tray, chia cho đúng số ô đặt OK",
-                run.LastAssyTrayTimeSec > 0 && run.LastAssyTrayProducts == run.AssyTray.CellCount &&
+            // Tray lắp ráp hết ô trống: dừng đồng hồ, chốt thời gian thực tế (tính cả chờ/dừng) và số ô đặt OK vào số của tray
+            // đang làm (Tuấn 2026-10-08, 2026-10-17).
+            Check("Tray lắp ráp đầy thì dừng đồng hồ, chốt thời gian thực tế của tray, chia cho đúng số ô đặt OK",
+                run.AssyTrayDone && run.AssyTrayDoneSec > 0 && run.AssyTrayDoneProducts == run.AssyTray.CellCount &&
                 run.AssyTrayStartedAt == null &&
-                Math.Abs(run.LastAssyTrayPerProductSec - run.LastAssyTrayTimeSec / run.AssyTray.CellCount) < 1e-9,
-                $"{run.LastAssyTrayTimeSec:0.00} s / {run.LastAssyTrayProducts} sp, mốc {run.AssyTrayStartedAt}");
-            Check("Tray xong: hàng Cycle Time / Tack Time trang Main giữ số vừa chốt, chưa về \"—\" (Tuấn 2026-10-16)",
-                run.AssyTrayHoldLast);
+                Math.Abs(run.AssyTrayDonePerProductSec - run.AssyTrayDoneSec / run.AssyTray.CellCount) < 1e-9,
+                $"{run.AssyTrayDoneSec:0.00} s / {run.AssyTrayDoneProducts} sp, mốc {run.AssyTrayStartedAt}");
+            // ResetCounters ở đầu bài xoá Last — tray xong chưa được chép xuống Last, tới lúc Start với tray mới.
+            Check("Tray xong: Cycle Time / Tack Time giữ số vừa chốt, Last chưa đổi (Tuấn 2026-10-17)",
+                run.LastAssyTrayTimeSec == 0 && run.LastAssyTrayProducts == 0,
+                $"Last {run.LastAssyTrayTimeSec:0.00} s / {run.LastAssyTrayProducts} sp");
+            double doneSec = run.AssyTrayDoneSec;
+            int doneProducts = run.AssyTrayDoneProducts;
             Check("Chỉ đặt đúng 1 sản phẩm", run.CountOk == 1, "OK=" + run.CountOk + " NG=" + run.CountNg);
             // Soát trạng thái cuối thôi thì không phân biệt được "tay #2 không hút" với "tay #2 hút
             // rồi trả lại" — nhánh trả về ô nguồn che mất cổng ở S1x. Đếm số lần soi bottom-up.
@@ -3348,8 +3355,10 @@ namespace ShieldCanAssy.Wpf
             // Xác nhận đổi tray rồi dừng lại để dựng tình huống 2.
             McControl.RequestStart();
             WaitUntil(() => McControl.Status.State == EMcState.Running, 5000);
-            Check("Thay tray lắp ráp mới vào thì đồng hồ thực tế đếm lại cho tray mới, bỏ số giữ của tray trước",
-                WaitUntil(() => run.AssyTrayStartedAt != null, 3000) && !run.AssyTrayHoldLast);
+            Check("Start với tray lắp ráp mới: số tray vừa xong chuyển xuống Last, đồng hồ đếm lại cho tray mới",
+                WaitUntil(() => run.AssyTrayStartedAt != null, 3000) && !run.AssyTrayDone &&
+                run.LastAssyTrayTimeSec == doneSec && run.LastAssyTrayProducts == doneProducts,
+                $"Last {run.LastAssyTrayTimeSec:0.00} s / {run.LastAssyTrayProducts} sp, vừa xong {doneSec:0.00} s / {doneProducts} sp");
             McControl.RequestPause();
             WaitUntil(() => McControl.Status.State == EMcState.Paused, 60000);
 
@@ -3436,8 +3445,13 @@ namespace ShieldCanAssy.Wpf
             int aligned3 = (vision?.AlignBottomCount ?? 0) - alignBefore3;
             Check("Nạp lại tray giữa vòng: quét ô chưa quét trước khi quyết định hút",
                 vision != null && located3 == 1, "LocateTop +" + located3);
-            Check("Ô không thấy chi tiết đích thành Skipped",
-                run.AssyTray.Get(last) == ECellState.Skipped, run.AssyTray.Get(last).ToString());
+            // LocateTop Found = 0 → ô NG, lưới trang Main tô đỏ như ô NG (Tuấn 2026-10-17; trước đó Skipped).
+            var notFoundVm = new ViewModels.TrayGridViewModel("kiểm tra", "", null);
+            notFoundVm.Sync(run.AssyTray);
+            var notFoundCell = notFoundVm.Groups[0].Cells.FirstOrDefault(c => c.Index == last);
+            Check("Ô không thấy chi tiết đích thành NG, lưới tô màu NG (đỏ)",
+                run.AssyTray.Get(last) == ECellState.Ng && notFoundCell != null && notFoundCell.Look == Models.ETrayCellLook.Ng,
+                run.AssyTray.Get(last) + " / " + notFoundCell?.Look);
             Check("Không còn ô đặt thì đi đổi tray mà không tay nào hút",
                 waiting3 && aligned3 == 0 && !run.Nozzle1.HasProduct && !run.Nozzle2.HasProduct &&
                 McControl.Status.Message.Contains("lắp ráp"),
@@ -5092,8 +5106,9 @@ namespace ShieldCanAssy.Wpf
                 fv.TargetShiftTimes = 1;
                 Check("START (tình huống G)", VmStart(), VmState());
                 bool placedSkip = WaitUntil(() => run.CountOk >= 1, 120000);
-                int skipped = run.AssyTray.Cells.ToArray().Count(c => c == ECellState.Skipped);
-                Check("Đích lệch lưới 3 mm → bỏ đúng một ô, soi lại với ô kế, giữ sản phẩm",
+                // Ô bỏ vì lệch lưới thành NG — lưới tô đỏ (Tuấn 2026-10-17; trước đó Skipped).
+                int skipped = run.AssyTray.Cells.ToArray().Count(c => c == ECellState.Ng);
+                Check("Đích lệch lưới 3 mm → bỏ đúng một ô (thành NG, tô đỏ), soi lại với ô kế, giữ sản phẩm",
                     placedSkip && skipped == 1 && run.CountNg == 0, $"bỏ {skipped} ô, OK={run.CountOk}, NG={run.CountNg}");
                 AlarmManager.AlarmRaised -= onRaise;
                 Check("Lệch lưới một lần phát 5005 mức Warning (vào lịch sử alarm), không dừng máy",

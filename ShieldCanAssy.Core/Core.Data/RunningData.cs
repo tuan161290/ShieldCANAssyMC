@@ -277,23 +277,34 @@ namespace ShieldCanAssy.Core.Data
         //    hết ô trống — KHÁC cycle time ở trên, tính cả lúc chờ tray đầu vào và lúc STOP, để biết thật sự mất bao lâu
         //    mới xong một tray. Mở lại App thì sổ tray làm lại từ đầu (ResetCycleProgress) nên đồng hồ cũng bỏ. ──
 
-        /// <summary>Lúc bắt đầu tray lắp ráp đang làm; null = chưa chạy với tray này (hoặc tray đã đầy, chờ thay).</summary>
+        /// <summary>Lúc bắt đầu tray lắp ráp đang làm; null = không đếm (chưa chạy với tray này, hoặc tray đã xong, chờ thay).</summary>
         public DateTime? AssyTrayStartedAt { get; set; }
 
-        /// <summary>Thời gian thực tế của tray lắp ráp vừa xong (s).</summary>
-        public double LastAssyTrayTimeSec { get; set; }
+        /// <summary>
+        /// Tray lắp ráp đang làm đã xong, đồng hồ đã dừng, số chốt nằm ở <see cref="AssyTrayDoneSec"/> /
+        /// <see cref="AssyTrayDoneProducts"/> — hàng Cycle Time / Tack Time trang Main giữ số đó. Bấm Start với tray mới
+        /// (<see cref="RestartAssyTrayClock"/>) thì số chốt mới chuyển xuống hàng Last và đếm lại từ 0 (Tuấn 2026-10-17).
+        /// Trước đó tray xong là chép ngay vào Last nên hai hàng hiện cùng một số.
+        /// </summary>
+        public bool AssyTrayDone { get; set; }
 
-        /// <summary>Số ô đặt OK của tray lắp ráp vừa xong.</summary>
-        public int LastAssyTrayProducts { get; set; }
+        /// <summary>Thời gian thực tế của tray lắp ráp vừa xong mà chưa chuyển xuống Last (s) — xem <see cref="AssyTrayDone"/>.</summary>
+        public double AssyTrayDoneSec { get; set; }
+
+        /// <summary>Số ô đặt OK của tray lắp ráp vừa xong mà chưa chuyển xuống Last.</summary>
+        public int AssyTrayDoneProducts { get; set; }
 
         /// <summary>Thời gian thực tế trung bình một sản phẩm của tray vừa xong = thời gian tray ÷ số ô đặt OK.</summary>
-        public double LastAssyTrayPerProductSec => LastAssyTrayProducts > 0 ? LastAssyTrayTimeSec / LastAssyTrayProducts : 0;
+        public double AssyTrayDonePerProductSec => AssyTrayDoneProducts > 0 ? AssyTrayDoneSec / AssyTrayDoneProducts : 0;
 
-        /// <summary>
-        /// Tray lắp ráp vừa xong mà tray mới chưa bắt đầu đếm: hàng Cycle Time / Tack Time của trang Main giữ số của tray
-        /// vừa xong, tới khi tray mới bắt đầu mới xoá (Tuấn 2026-10-16) — trước đó hai hàng về "—" ngay lúc tray xong.
-        /// </summary>
-        public bool AssyTrayHoldLast { get; set; }
+        /// <summary>Thời gian thực tế của tray lắp ráp trước (s) — chuyển xuống đây lúc tray kế tiếp bắt đầu.</summary>
+        public double LastAssyTrayTimeSec { get; set; }
+
+        /// <summary>Số ô đặt OK của tray lắp ráp trước.</summary>
+        public int LastAssyTrayProducts { get; set; }
+
+        /// <summary>Thời gian thực tế trung bình một sản phẩm của tray trước = thời gian tray ÷ số ô đặt OK.</summary>
+        public double LastAssyTrayPerProductSec => LastAssyTrayProducts > 0 ? LastAssyTrayTimeSec / LastAssyTrayProducts : 0;
 
         /// <summary>Bắt đầu đếm nếu tray đang làm chưa có mốc — gọi khi máy bắt đầu chạy.</summary>
         public void StartAssyTrayClock(DateTime now)
@@ -301,22 +312,30 @@ namespace ShieldCanAssy.Core.Data
             if (AssyTrayStartedAt == null) RestartAssyTrayClock(now);
         }
 
-        /// <summary>Tray lắp ráp mới bắt đầu: đếm lại từ <paramref name="now"/>, bỏ số giữ lại của tray trước.</summary>
+        /// <summary>Tray lắp ráp mới bắt đầu: số chốt của tray vừa xong (nếu có) chuyển xuống Last, đếm lại từ
+        /// <paramref name="now"/>.</summary>
         public void RestartAssyTrayClock(DateTime now)
         {
+            if (AssyTrayDone)
+            {
+                LastAssyTrayTimeSec = AssyTrayDoneSec;
+                LastAssyTrayProducts = AssyTrayDoneProducts;
+                AssyTrayDone = false;
+                AssyTrayDoneSec = 0;
+                AssyTrayDoneProducts = 0;
+            }
             AssyTrayStartedAt = now;
-            AssyTrayHoldLast = false;
         }
 
-        /// <summary>Tray lắp ráp vừa hết ô trống: chốt thời gian thực tế và số sản phẩm, bỏ mốc — số chốt hiện ở cả hàng tray
-        /// đang làm tới khi tray mới bắt đầu (<see cref="AssyTrayHoldLast"/>). Chưa có mốc thì bỏ qua.</summary>
+        /// <summary>Tray lắp ráp vừa hết ô trống: dừng đồng hồ, chốt thời gian thực tế và số sản phẩm vào số của tray đang
+        /// làm (<see cref="AssyTrayDone"/>) — chưa đụng Last. Chưa có mốc thì bỏ qua.</summary>
         public void FinishAssyTray(DateTime now, int products)
         {
             if (AssyTrayStartedAt == null) return;
-            LastAssyTrayTimeSec = Math.Max(0, (now - AssyTrayStartedAt.Value).TotalSeconds);
-            LastAssyTrayProducts = products;
+            AssyTrayDoneSec = Math.Max(0, (now - AssyTrayStartedAt.Value).TotalSeconds);
+            AssyTrayDoneProducts = products;
             AssyTrayStartedAt = null;
-            AssyTrayHoldLast = true;
+            AssyTrayDone = true;
         }
 
         public double NgRatePercent => CountTotal > 0 ? CountNg * 100.0 / CountTotal : 0;
@@ -330,7 +349,9 @@ namespace ShieldCanAssy.Core.Data
             RecentProductTimes = new List<double>();
             LastAssyTrayTimeSec = 0;
             LastAssyTrayProducts = 0;
-            AssyTrayHoldLast = false;
+            AssyTrayDone = false;
+            AssyTrayDoneSec = 0;
+            AssyTrayDoneProducts = 0;
         }
 
         /// <summary>

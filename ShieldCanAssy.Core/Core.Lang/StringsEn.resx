@@ -917,7 +917,7 @@
     <value>(spare)</value>
   </data>
   <data name="Main.AssyTray" xml:space="preserve">
-    <value>ASSY TRAY</value>
+    <value>SUB1-HOUSING ASSY</value>
   </data>
   <data name="Main.CamTool1" xml:space="preserve">
     <value>BOTTOM CAM — #1</value>
@@ -935,7 +935,7 @@
     <value>Tack Time</value>
   </data>
   <data name="Main.CtAvgCurrentTip" xml:space="preserve">
-    <value>Cycle Time ÷ OK pcs. Kept when the tray is done until a new tray starts.</value>
+    <value>Cycle Time ÷ OK pcs. Held when the tray is done; moves to Last on Start with a new tray.</value>
   </data>
   <data name="Main.CtAvgPrevious" xml:space="preserve">
     <value>Last Tack Time</value>
@@ -947,13 +947,13 @@
     <value>Cycle Time</value>
   </data>
   <data name="Main.CtTrayCurrentTip" xml:space="preserve">
-    <value>Assy tray in progress. Wall-clock incl. waits/STOP. Kept when the tray is done, resets when a new tray starts.</value>
+    <value>Assy tray in progress. Wall-clock incl. waits/STOP. Stops and holds when the tray is done; moves to Last on Start with a new tray.</value>
   </data>
   <data name="Main.CtTrayPrevious" xml:space="preserve">
     <value>Last Cycle Time</value>
   </data>
   <data name="Main.CtTrayPreviousTip" xml:space="preserve">
-    <value>Last finished assy tray, wall-clock.</value>
+    <value>Previous assy tray, wall-clock. Updated on Start with a new tray.</value>
   </data>
   <data name="Main.DryRunBanner" xml:space="preserve">
     <value>DRY RUN — NO PRODUCT</value>
@@ -971,7 +971,7 @@
     <value>Dbl-click: Z to safe, all axes to standby, no Origin. Use after pause + manual ops. Reload trays with Start.</value>
   </data>
   <data name="Main.InputTray" xml:space="preserve">
-    <value>INPUT TRAY</value>
+    <value>SHIELD CAN TRAY</value>
   </data>
   <data name="Main.LastCompensation" xml:space="preserve">
     <value>Last comp: {0:+0.0;-0.0}°, {1:0.000} mm</value>
@@ -1016,10 +1016,10 @@
     <value>Click: Ofs/Tgt ↔ Teach + Vision + Common + Cell = Tgt</value>
   </data>
   <data name="Main.ReloadAssyTray" xml:space="preserve">
-    <value>Reload assy</value>
+    <value>CLEAR TRAY</value>
   </data>
   <data name="Main.ReloadInputTray" xml:space="preserve">
-    <value>Reload input</value>
+    <value>CLEAR TRAY</value>
   </data>
   <data name="Main.RenderToolbarTip" xml:space="preserve">
     <value>Show/hide image toolbar</value>

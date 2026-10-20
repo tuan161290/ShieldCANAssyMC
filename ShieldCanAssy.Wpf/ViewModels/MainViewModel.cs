@@ -111,8 +111,8 @@ namespace ShieldCanAssy.Wpf.ViewModels
 
         // Cycle time theo tray lắp ráp (Tuấn 2026-10-09, thay hàng CT theo lượt): CT tray = giờ thực từ lúc máy chạy với
         // tray tới lúc tray hết ô trống, tính cả lúc chờ tray đầu vào và lúc STOP; CT TB = CT tray ÷ số ô đặt OK của tray.
-        // Tray đang làm (đếm liên tục, phân giải 0.1 s) và tray vừa xong. Tray xong thì hàng tray đang làm giữ số vừa chốt
-        // tới khi tray mới bắt đầu (Tuấn 2026-10-16, RunningData.AssyTrayHoldLast).
+        // Tray đang làm (đếm liên tục, phân giải 0.1 s) và tray trước. Tray xong thì hàng tray đang làm dừng, giữ số vừa
+        // chốt; bấm Start với tray mới thì số đó mới chuyển xuống hàng Last (Tuấn 2026-10-17, RunningData.AssyTrayDone).
         private string _assyTrayElapsed = "—", _lastAssyTray = "—", _assyTrayAvg = "—", _lastAssyTrayAvg = "—";
         public string AssyTrayElapsed { get => _assyTrayElapsed; private set => SetProperty(ref _assyTrayElapsed, value); }
         public string LastAssyTray { get => _lastAssyTray; private set => SetProperty(ref _lastAssyTray, value); }
@@ -148,10 +148,10 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 AssyTrayElapsed = Clock(sec);
                 AssyTrayAvg = done > 0 ? Sec(currentAvg) : "—";
             }
-            else if (run.AssyTrayHoldLast && hasLast)
+            else if (run.AssyTrayDone)
             {
-                AssyTrayElapsed = LastAssyTray;
-                AssyTrayAvg = LastAssyTrayAvg;
+                AssyTrayElapsed = Clock(run.AssyTrayDoneSec);
+                AssyTrayAvg = run.AssyTrayDoneProducts > 0 ? Sec(run.AssyTrayDonePerProductSec) : "—";
             }
             else
             {
@@ -159,8 +159,9 @@ namespace ShieldCanAssy.Wpf.ViewModels
                 AssyTrayAvg = "—";
             }
 
-            // Năng suất theo CT TB của tray vừa xong — số đã trọn một tray; chưa có tray nào xong thì theo tray đang làm.
-            double avg = run.LastAssyTrayProducts > 0 ? run.LastAssyTrayPerProductSec : currentAvg;
+            // Năng suất theo CT TB của tray xong gần nhất — số đã trọn một tray; chưa có tray nào xong thì theo tray đang làm.
+            double avg = run.AssyTrayDone && run.AssyTrayDoneProducts > 0 ? run.AssyTrayDonePerProductSec
+                       : run.LastAssyTrayProducts > 0 ? run.LastAssyTrayPerProductSec : currentAvg;
             UphText = avg > 0 ? Loc.F("Main.Uph", 3600.0 / avg) : Loc.T("Main.UphNone");
         }
 

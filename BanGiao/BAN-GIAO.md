@@ -122,6 +122,9 @@ Bản đầy đủ nằm trong `BanGiao/memory/`. Tóm tắt những điều hay
 - **Đèn ba nút Start không nhấp nháy nữa** (Tuấn): sáng im khi đang chạy (RUNNING/PAUSING), mọi trạng thái khác
   tắt — kể cả ARMED, tạm dừng và chờ nạp tray. Trước đó ARMED/tạm dừng nháy 1 Hz, chờ tray nháy nhanh. Nút RUN trên
   trang Main vẫn nháy xanh lúc ARMED.
+- **Ô tray lắp ráp bị bỏ vì vision thành `Ng`, tô đỏ** (17/10, Tuấn): LocateTop không thấy chi tiết đích (Found = 0,
+  `Routine_Auto.SkipCellNotFound`) và đích lệch lưới quá ngưỡng (nhánh G của `S2x_Align`). Trước đó `Skipped`, màu
+  xám. Ô không được chọn (chọn ô) vẫn `Skipped`. Logic chạy không đổi: ô `Ng` cũng không được đặt hàng.
 - **Nút "Bỏ chọn (n)" không làm lưới tray co giãn:** style Button mặc định có `MinHeight=36` làm `Height=24` vô hiệu,
   thanh tiêu đề card cao thêm khi nút hiện. Đặt `MinHeight="0"`.
 
@@ -154,9 +157,13 @@ Khách hàng: ở AUTO chọn ô trên tray đầu vào / tray lắp ráp thì m
 ### 4.02 Bảng Cycle / Tack Time (16/10)
 
 Card Production trang Main tách thành 4 hàng: Cycle Time, Last Cycle Time, Tack Time, Last Tack Time. Cycle Time là giờ
-thực của cả tray lắp ráp (tính cả lúc chờ và lúc STOP), Tack Time là Cycle Time ÷ số sản phẩm OK; "Last" là tray vừa
-xong. Tray xong thì Cycle Time và Tack Time giữ số vừa chốt, tới khi tray mới bắt đầu mới đếm lại
-(`RunningData.AssyTrayHoldLast`). Trước đó hai hàng này về "—" ngay lúc tray xong.
+thực của cả tray lắp ráp (tính cả lúc chờ và lúc STOP), Tack Time là Cycle Time ÷ số sản phẩm OK; "Last" là tray
+trước.
+
+- **Tray xong** (17/10, Tuấn): Cycle Time và Tack Time dừng đếm, giữ số vừa chốt (`RunningData.AssyTrayDone`,
+  `AssyTrayDoneSec`, `AssyTrayDoneProducts`). Hàng Last chưa đổi.
+- **Bấm Start với tray mới** (`RestartAssyTrayClock`): số chốt mới chuyển xuống Last, Cycle Time đếm lại từ 0.
+- Bản 16/10 chép ngay vào Last lúc tray xong nên hai hàng hiện cùng một số; trước nữa hai hàng về "—".
 
 ### 4.0 Hai tray đầu vào (15/10)
 

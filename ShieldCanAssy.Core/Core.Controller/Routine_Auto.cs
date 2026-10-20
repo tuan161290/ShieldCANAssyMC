@@ -426,7 +426,8 @@ namespace ShieldCanAssy.Core.Controller
             if (!read.CallOk) return VmHalt(0, -1, Loc.F("Auto.ScanLocateTop", cellText, read.CallError));
             if (!read.EchoOk) return VmHalt(0, -1, Loc.F("Auto.ScanLocateTop", cellText, read.EchoIssue));
 
-            // Không thấy chi tiết đích ngay từ vòng quét: bỏ ô này luôn, không chờ tới lúc đặt mới phát hiện.
+            // Không thấy chi tiết đích ngay từ vòng quét: bỏ ô này luôn, không chờ tới lúc đặt mới phát hiện. Ô thành NG — lưới
+            // trang Main tô đỏ (Tuấn 2026-10-17; trước đó Skipped, cùng màu ô bỏ vì lệch lưới hay không được chọn).
             if (!read.Found) return SkipCellNotFound(tray, index, Loc.F("Auto.ScanLocateTop", cellText, Loc.T("Auto.SolutionNotFound")));
             if (!read.VmValid) return VmHalt(0, -1, Loc.F("Auto.ScanLocateTop", cellText, read.VmIssue));
 
@@ -439,7 +440,7 @@ namespace ShieldCanAssy.Core.Controller
         private bool SkipCellNotFound(TrayState tray, int index, string detail)
         {
             AlarmManager.Raise(AlarmCode.VisionNotFound, "Vision", detail);
-            tray.Set(index, ECellState.Skipped);
+            tray.Set(index, ECellState.Ng);
             Run.AssyCountNg++;
             AlarmManager.Dismiss(AlarmCode.VisionNotFound);
             Save();
@@ -824,8 +825,9 @@ namespace ShieldCanAssy.Core.Controller
                     return CheckConsecutiveNg();
 
                 case EVmRoute.Skip:
-                    // G — lỗi nằm ở ô đích chứ không ở sản phẩm: bỏ ô, soi lại với ô kế (tay vẫn đứng trên camera).
-                    tray.Set(index, ECellState.Skipped);
+                    // G — lỗi nằm ở ô đích chứ không ở sản phẩm: bỏ ô, soi lại với ô kế (tay vẫn đứng trên camera). Ô thành
+                    // NG, lưới trang Main tô đỏ như ô LocateTop không thấy (Tuấn 2026-10-17; trước đó Skipped, màu xám).
+                    tray.Set(index, ECellState.Ng);
                     Run.AssyCountNg++;
                     _guardSkipStreak++;
                     AlarmManager.Raise(AlarmCode.PlaceTargetGuard, "Auto", Loc.F("Auto.NozzleCellWhy", nozzle, cellText, cmd.Why));
@@ -1188,7 +1190,7 @@ namespace ShieldCanAssy.Core.Controller
                 Run.FinishAssyTray(DateTime.Now, ok);
                 LogWorker.Instance.RecordLog(string.Format(CultureInfo.InvariantCulture,
                     "Xong tray lắp ráp: {0} sản phẩm trong {1} (thực tế, tính cả lúc chờ/dừng) — trung bình {2:0.00} s/sp",
-                    ok, TimeSpan.FromSeconds(Math.Floor(Run.LastAssyTrayTimeSec * 10) / 10).ToString(@"h\:mm\:ss\.f"), Run.LastAssyTrayPerProductSec),
+                    ok, TimeSpan.FromSeconds(Math.Floor(Run.AssyTrayDoneSec * 10) / 10).ToString(@"h\:mm\:ss\.f"), Run.AssyTrayDonePerProductSec),
                     Utility.Log.LogLevel.Info, "Auto");
             }
 

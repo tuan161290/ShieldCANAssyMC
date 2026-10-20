@@ -917,7 +917,7 @@
     <value>(trống)</value>
   </data>
   <data name="Main.AssyTray" xml:space="preserve">
-    <value>TRAY LẮP RÁP</value>
+    <value>SUB1-HOUSING ASSY</value>
   </data>
   <data name="Main.CamTool1" xml:space="preserve">
     <value>CAM BOTTOM-UP — TAY #1</value>
@@ -935,25 +935,25 @@
     <value>Tack Time</value>
   </data>
   <data name="Main.CtAvgCurrentTip" xml:space="preserve">
-    <value>Thời gian TB một sản phẩm của tray đang làm = Cycle Time ÷ số sản phẩm đã đặt OK (tính cả lúc chờ và lúc dừng). Tray xong thì giữ số vừa chốt tới khi tray mới bắt đầu.</value>
+    <value>Thời gian TB một sản phẩm của tray đang làm = Cycle Time ÷ số sản phẩm đã đặt OK (tính cả lúc chờ và lúc dừng). Tray xong thì giữ số, bấm Start với tray mới thì chuyển xuống Last Tack Time.</value>
   </data>
   <data name="Main.CtAvgPrevious" xml:space="preserve">
     <value>Last Tack Time</value>
   </data>
   <data name="Main.CtAvgPreviousTip" xml:space="preserve">
-    <value>Thời gian TB một sản phẩm của tray vừa xong = Last Cycle Time ÷ số sản phẩm đặt OK của tray đó.</value>
+    <value>Thời gian TB một sản phẩm của tray trước = Last Cycle Time ÷ số sản phẩm đặt OK của tray đó.</value>
   </data>
   <data name="Main.CtTrayCurrent" xml:space="preserve">
     <value>Cycle Time</value>
   </data>
   <data name="Main.CtTrayCurrentTip" xml:space="preserve">
-    <value>Tray lắp ráp đang làm: giờ thực từ lúc máy chạy với tray này — tính cả lúc chờ tray đầu vào và lúc STOP. Tray xong thì giữ số vừa chốt, tray mới bắt đầu mới đếm lại từ 0.</value>
+    <value>Tray lắp ráp đang làm: giờ thực từ lúc máy chạy với tray này — tính cả lúc chờ tray đầu vào và lúc STOP. Tray xong thì dừng đếm, giữ số; bấm Start với tray mới thì số này chuyển xuống Last Cycle Time và đếm lại từ 0.</value>
   </data>
   <data name="Main.CtTrayPrevious" xml:space="preserve">
     <value>Last Cycle Time</value>
   </data>
   <data name="Main.CtTrayPreviousTip" xml:space="preserve">
-    <value>Tray lắp ráp vừa xong: giờ thực từ lúc bắt đầu tới lúc tray hết ô trống.</value>
+    <value>Tray lắp ráp trước: Cycle Time của tray đó, chuyển xuống đây lúc bấm Start với tray mới.</value>
   </data>
   <data name="Main.DryRunBanner" xml:space="preserve">
     <value>CHẠY RÀ — KHÔNG SẢN PHẨM</value>
@@ -971,7 +971,7 @@
     <value>Bấm đúp: nâng Z lên cao độ an toàn rồi đưa mọi trục về vị trí chờ, không về gốc lại. Bấm sau khi tạm dừng, chuyển MANUAL và thao tác tay — trước khi chạy tiếp. Hai tray ra vị trí chờ, nạp lại bằng nút Start.</value>
   </data>
   <data name="Main.InputTray" xml:space="preserve">
-    <value>TRAY ĐẦU VÀO</value>
+    <value>SHIELD CAN TRAY</value>
   </data>
   <data name="Main.LastCompensation" xml:space="preserve">
     <value>Lượng bù gần nhất: {0:+0.0;-0.0}°, {1:0.000} mm</value>
@@ -1016,10 +1016,10 @@
     <value>Bấm để đổi: Lệch/Đích ↔ Teaching + Vision + Bù chung + Bù riêng = Đích</value>
   </data>
   <data name="Main.ReloadAssyTray" xml:space="preserve">
-    <value>Nạp lại tray lắp ráp</value>
+    <value>CLEAR TRAY</value>
   </data>
   <data name="Main.ReloadInputTray" xml:space="preserve">
-    <value>Nạp lại tray đầu vào</value>
+    <value>CLEAR TRAY</value>
   </data>
   <data name="Main.RenderToolbarTip" xml:space="preserve">
     <value>Hiện/ẩn thanh công cụ của khung ảnh (chọn ảnh, phóng to, thu nhỏ)</value>
