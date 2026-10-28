@@ -97,14 +97,22 @@ namespace sca
     /// 2026-09-24: chạy rà thiếu hẳn chặng này). Đây là chặng gantry chạy nhiều nhất trong cả chu trình, bỏ nó ra thì
     /// chạy rà không rà đúng quãng đường máy thật đi.
     ///
-    /// Theo đúng tuỳ chọn của chu trình thật (SystemData::ScanAssyByRow): tắt thì quét cả tray MỘT LƯỢT ở đầu mỗi lượt
-    /// tray; bật thì quét một hàng ngay trước khi làm hàng đó. Hai cách đi cùng một quãng đường nhưng khác THỨ TỰ, mà thứ
-    /// tự mới là thứ Tuấn cần rà — tuỳ chọn ấy sinh ra chính vì nghi chạy Y2 hết chiều dài tray làm xê dịch tray.
+    /// Theo đúng tuỳ chọn của chu trình thật (SystemData::ScanAssy): cả tray thì quét MỘT LƯỢT ở đầu mỗi lượt tray; từng
+    /// hàng thì quét một hàng ngay trước khi làm hàng đó; từng cặp thì quét đúng hai ô của nhịp này. Các cách đi cùng một
+    /// quãng đường nhưng khác THỨ TỰ, mà thứ tự mới là thứ Tuấn cần rà — tuỳ chọn ấy sinh ra chính vì nghi chạy Y2 hết
+    /// chiều dài tray làm xê dịch tray.
     bool Routine_DryCycle::Scan(std::stop_token ct)
     {
         auto run = McDataManager::RunData()->AssyTray;
+        auto mode = m_sys()->ScanAssy();
 
-        if (m_sys()->ScanAssyByRow)
+        if (mode == SystemData::EScanAssy::Pair)
+        {
+            m_scannedRow = -1;
+            return SweepCells(*run, ScanOrder(*run, { m_assyIdx, m_assyIdx + 1 }), ct);
+        }
+
+        if (mode == SystemData::EScanAssy::Row)
         {
             int row, col;
             CellOf(*run, m_assyIdx, row, col);
@@ -123,18 +131,51 @@ namespace sca
     /// vẫn an toàn — mỗi lần tới ô đều kết thúc với Z ở cao độ an toàn — và chặng ngoài sẽ thấy cờ dừng ở checkpoint kế.
     bool Routine_DryCycle::Sweep(const TrayState& run, int onlyRow, std::stop_token ct)
     {
+        std::vector<int> cells;
+        for (int i = 0; i < run.CellCount(); i++)
+        {
+            int row, col;
+            CellOf(run, i, row, col);
+            if (onlyRow < 0 || row == onlyRow) cells.push_back(i);
+        }
+        // Một hàng: ô X lớn trước như chu trình thật; cả tray giữ thứ tự đi ô.
+        return SweepCells(run, onlyRow >= 0 ? ScanOrder(run, std::move(cells)) : cells, ct);
+    }
+
+    /// Thứ tự chụp của chu trình thật trong một cặp / hàng: S05 mỗi lần chọn Routine_Auto::FirstToScan trong các ô còn
+    /// chưa chụp, nên lặp đúng phép chọn đó trên phần còn lại.
+    std::vector<int> Routine_DryCycle::ScanOrder(const TrayState& run, std::vector<int> cells)
+    {
+        auto tray = McDataManager::Model()->AssyTray;
+        std::vector<int> order;
+        while (!cells.empty())
+        {
+            std::vector<double> camX;
+            for (int i : cells)
+            {
+                int row, col;
+                CellOf(run, i, row, col);
+                camX.push_back(tray->CamPosFor(row, col).X);
+            }
+            int k = Routine_Auto::FirstToScan(camX, tray->HalfColPitch());
+            order.push_back(cells[(size_t)k]);
+            cells.erase(cells.begin() + k);
+        }
+        return order;
+    }
+
+    bool Routine_DryCycle::SweepCells(const TrayState& run, const std::vector<int>& cells, std::stop_token ct)
+    {
         auto tray = McDataManager::Model()->AssyTray;
         m_sweeps++;
 
-        for (int i = 0; i < run.CellCount(); i++)
+        for (int i : cells)
         {
             if (ct.stop_requested()) return Stopped(Loc::T("Mc.Cancelled"));
             if (PauseRequested) return true;
 
             int row, col;
             CellOf(run, i, row, col);
-            if (onlyRow >= 0 && row != onlyRow) continue;
-
             TeachPoint cam = tray->CamPosFor(row, col);
             if (!m_func.MoveToCell(tray->AxisRow, cam.Y, cam.X, ct))
                 return Stopped(Loc::F("Dry.ScanCellFailed", row + 1, col + 1));

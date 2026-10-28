@@ -206,7 +206,11 @@
       <DependentUpon>AlarmPage.xaml</DependentUpon>
     </ClCompile>
     <!-- Mã giao diện không gắn với một file XAML: thêm file .cpp vào Ui\ là đủ. -->
-    <ClCompile Include="Ui\*.cpp" />
+    <ClCompile Include="Ui\*.cpp" Exclude="Ui\VmDotNet.cpp" />
+    <!-- #import (type library mscorlib) không chạy được với /MP (C2813). -->
+    <ClCompile Include="Ui\VmDotNet.cpp">
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+    </ClCompile>
     <ClCompile Include="AppBackdrop.cpp">
       <DependentUpon>AppBackdrop.idl</DependentUpon>
     </ClCompile>

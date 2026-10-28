@@ -111,7 +111,8 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="320"/>
+            <!-- 320 khi hiện, 0 khi ẩn (nút Hide Calib ở đầu card VisionMaster — ApplyCalibColumn) -->
+            <ColumnDefinition x:Name="CalibColumn" Width="320"/>
         </Grid.ColumnDefinitions>
 
         <!-- ══════════ 6.1 Thanh Jog (toàn bề ngang) ══════════
@@ -120,7 +121,7 @@
              Cột 1 gantry X/Y2, cột 2 tay #1 Z1/A1, cột 3 tay #2 Z2/A2 (Tuấn sắp 2026-09-26). Không hiện toạ độ: thanh tiêu đề
              đã có. -->
         <Border Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8" Padding="12,8">
-            <Grid HorizontalAlignment="Left">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -190,14 +191,25 @@
         </Border>
 
         <!-- ══════════ 6.2 VisionMaster (trái) ══════════ -->
-        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,8,0">
+        <Border x:Name="VmCard" Grid.Row="1" Grid.Column="0" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,8,0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border x:Name="GlobalToolHost" Height="40" Margin="2" HorizontalAlignment="Stretch"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="GlobalToolHost" Height="40" Margin="2" HorizontalAlignment="Stretch"/>
+                    <!-- Ẩn/hiện cột hiệu chuẩn — ẩn thì VisionMaster lấy cả bề ngang để sửa job (Tuấn 2026-10-28). Mép phải
+                         hàng thanh công cụ VM, sát cột nó điều khiển; ngoài cột nên ẩn rồi vẫn bấm lại được (thanh Jog
+                         không còn chỗ ở màn 1280). Không khoá theo Busy: chỉ đổi bố cục, chuỗi đang chạy vẫn chạy. -->
+                    <Button x:Name="CalibToggleButton" Grid.Column="1" MinWidth="110" Height="36" Margin="4,0,4,0"
+                            VerticalAlignment="Center" Click="OnCalibToggleClick"/>
+                </Grid>
                 <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
                 <Grid Grid.Row="2">
                     <Border x:Name="ConfigHost"/>
@@ -208,232 +220,237 @@
         </Border>
 
         <!-- ══════════ 6.3–6.9 Cột hiệu chuẩn (phải) — cả cột [Busy-off] qua ContentControl CalibPanel ══════════ -->
-        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorderStyle}" Padding="0">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ContentControl x:Name="CalibPanel" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                IsTabStop="False">
-                    <StackPanel Margin="12,4,16,12">
+        <Grid x:Name="CalibColumnHost" Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-                        <!-- ── luôn hiện: cổng Auto, dòng tiến trình, Tool, bước ── -->
-                        <Expander x:Name="HeaderExpander" Style="{StaticResource NoteExpanderStyle}">
-                            <Expander.Header>
-                                <TextBlock Text="VISION CALIB" Style="{StaticResource SectionHeaderStyle}"/>
-                            </Expander.Header>
-                            <TextBlock x:Name="HeaderNoteText" Style="{StaticResource NoteBodyStyle}"/>
-                        </Expander>
-                        <!-- Cổng Auto và kết quả Check Calib: 3 dòng cố định (câu "NOT ready" nhiều lý do dài hơn — xem tooltip). -->
-                        <TextBlock x:Name="ReadyText" Style="{StaticResource ClampedInfoLineStyle}" Height="45" MaxLines="3"
-                                   Foreground="{StaticResource TextSecondaryBrush}"/>
-                        <Button x:Name="CheckCalibButton" Content="Check Calib" Style="{StaticResource ColumnButtonStyle}"
-                                Click="OnCheckCalibClick"/>
-                        <TextBlock x:Name="GateText" Style="{StaticResource ClampedInfoLineStyle}" Height="45" MaxLines="3"
-                                   IsTextSelectionEnabled="True"/>
-                        <!-- Dòng tiến trình (VE-13): LUÔN giữ chỗ 2 dòng, hiện/ẩn bằng ui::ShowInPlace — trước 2026-10-20 nó
-                             Collapsed khi rảnh, bấm lệnh chạy trục là vòng quay bật ra và đẩy cả cột nút xuống (Tuấn). -->
-                        <Grid x:Name="SequenceRow" Height="30" Margin="0,0,0,8" Opacity="0" IsHitTestVisible="False">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <ProgressRing x:Name="BusyRing" Width="16" Height="16" IsActive="False" Opacity="0"
-                                          Margin="0,0,8,0" VerticalAlignment="Top"/>
-                            <TextBlock x:Name="SequenceText" Grid.Column="1" Style="{StaticResource ClampedInfoLineStyle}" Margin="0"
-                                       MaxLines="2" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </Grid>
+            <!-- Chọn Tool — nằm thẳng trên nền trang, ngoài card, ngay trên cột hiệu chuẩn mà nó điều khiển (Tuấn 2026-10-21,
+                 như trang Teaching). Nút kiểu Radio (ChoiceButtonStyle); khoá khi Busy (ApplyBusy) như cả cột. -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Tool" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <RadioButton x:Name="Tool1Radio" Content="Tool 1" GroupName="VisionTool" IsChecked="True" Width="120"
+                                 Style="{StaticResource ChoiceButtonStyle}" Checked="OnToolChecked"/>
+                    <RadioButton x:Name="Tool2Radio" Content="Tool 2" GroupName="VisionTool" Width="120"
+                                 Style="{StaticResource ChoiceButtonStyle}" Checked="OnToolChecked"/>
+                </StackPanel>
+            </StackPanel>
 
-                        <Border Style="{StaticResource SectionDividerStyle}"/>
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ContentControl x:Name="CalibPanel" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                    IsTabStop="False">
+                        <StackPanel Margin="12,4,16,12">
 
-                        <TextBlock Text="Tool (nozzle)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,2"/>
-                        <SelectorBar x:Name="ToolSelector" Margin="0,0,0,8" SelectionChanged="OnToolChanged">
-                            <SelectorBarItem x:Name="Tool1Item" Text="Tool 1" Style="{StaticResource PageSelectorBarItemStyle}"/>
-                            <SelectorBarItem x:Name="Tool2Item" Text="Tool 2" Style="{StaticResource PageSelectorBarItemStyle}"/>
-                        </SelectorBar>
-
-                        <TextBlock x:Name="StepsLabelText" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="StepCombo" HorizontalAlignment="Stretch" MinHeight="40" Margin="0,0,0,10"
-                                  SelectionChanged="OnStepChanged"/>
-
-                        <Border Style="{StaticResource SectionDividerStyle}"/>
-
-                        <!-- ══ 6.4 Top CAM calib + check (dùng chung hai tay) ══ -->
-                        <StackPanel x:Name="StepPanelTop">
-                            <Expander Style="{StaticResource NoteExpanderStyle}">
+                            <!-- ── luôn hiện: cổng Auto, dòng tiến trình, Tool, bước ── -->
+                            <Expander x:Name="HeaderExpander" Style="{StaticResource NoteExpanderStyle}">
                                 <Expander.Header>
-                                    <TextBlock x:Name="TopDownNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                    <TextBlock Text="VISION CALIB" Style="{StaticResource SectionHeaderStyle}"/>
                                 </Expander.Header>
-                                <TextBlock x:Name="TopDownNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                                <TextBlock x:Name="HeaderNoteText" Style="{StaticResource NoteBodyStyle}"/>
                             </Expander>
-                            <TextBlock x:Name="CenterText" Style="{StaticResource ClampedInfoLineStyle}" Height="30" MaxLines="2"
-                                       Margin="0,0,0,4"/>
-                            <Button x:Name="SaveCenterButton" Content="Save Center" Style="{StaticResource ColumnButtonStyle}"
-                                    Click="OnSaveCenterClick" Margin="0,0,0,8"/>
-                            <Grid Margin="0,0,0,6" RowSpacing="4">
+                            <!-- Cổng Auto: TỰ đánh giá lại mỗi nhịp (VmCycle::EvaluateCalib chỉ đọc model + system.json), nên bỏ
+                                 nút Check Calib và dòng kết quả trùng của nó (Tuấn 2026-10-21). Xanh = sẵn sàng, đỏ = Auto bị chặn.
+                                 3 dòng cố định (câu "NOT ready" nhiều lý do dài hơn — xem tooltip). -->
+                            <TextBlock x:Name="ReadyText" Style="{StaticResource ClampedInfoLineStyle}" Height="45" MaxLines="3"
+                                       IsTextSelectionEnabled="True"/>
+                            <!-- Dòng tiến trình (VE-13): LUÔN giữ chỗ 2 dòng, hiện/ẩn bằng ui::ShowInPlace — trước 2026-10-20 nó
+                                 Collapsed khi rảnh, bấm lệnh chạy trục là vòng quay bật ra và đẩy cả cột nút xuống (Tuấn). -->
+                            <Grid x:Name="SequenceRow" Height="30" Margin="0,0,0,8" Opacity="0" IsHitTestVisible="False">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Text="Step X" Style="{StaticResource FieldLabelStyle}"/>
-                                <StackPanel x:Name="GridStepXHost" Grid.Column="1"/>
-                                <TextBlock Grid.Row="1" Text="Step Y" Style="{StaticResource FieldLabelStyle}"/>
-                                <StackPanel x:Name="GridStepYHost" Grid.Row="1" Grid.Column="1"/>
+                                <ProgressRing x:Name="BusyRing" Width="16" Height="16" IsActive="False" Opacity="0"
+                                              Margin="0,0,8,0" VerticalAlignment="Top"/>
+                                <TextBlock x:Name="SequenceText" Grid.Column="1" Style="{StaticResource ClampedInfoLineStyle}" Margin="0"
+                                           MaxLines="2" Foreground="{StaticResource TextSecondaryBrush}"/>
                             </Grid>
-                            <!-- Numpad 7 8 9 / 4 5 6 / 1 2 3 — 5 = tâm đã lưu. Bấm đúp. Dựng trong code. -->
-                            <Grid x:Name="Numpad" Margin="0,0,0,6" ColumnSpacing="4" RowSpacing="4">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                            </Grid>
-                            <Button x:Name="AutoCalibButton" Content="Auto Calib" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
-                            <Button x:Name="TopLoadHereButton" Content="Load Point" Style="{StaticResource ColumnButtonStyle}"
-                                    Click="OnTopLoadHereClick"/>
-                            <Grid Margin="0,4,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Test travel" Style="{StaticResource FieldLabelStyle}"/>
-                                <StackPanel x:Name="VerifyTravelHost" Grid.Column="1"/>
-                            </Grid>
-                            <Button x:Name="VerifyTopButton" Content="Verify Top" Style="{StaticResource ColumnButtonStyle}"/>
-                            <TextBlock x:Name="VerifyResultTopText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
-                        </StackPanel>
 
-                        <!-- ══ 6.5 Bottom CAM calib (Tool đang chọn) ══ -->
-                        <StackPanel x:Name="StepPanelBottom" Visibility="Collapsed">
-                            <Expander Style="{StaticResource NoteExpanderStyle}">
-                                <Expander.Header>
-                                    <TextBlock x:Name="BottomUpNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
-                                </Expander.Header>
-                                <TextBlock x:Name="BottomUpNoteText" Style="{StaticResource NoteBodyStyle}"/>
-                            </Expander>
-                            <TextBlock Text="X Ofs (mm)" FontSize="12" Margin="0,0,0,2"/>
-                            <TextBox x:Name="AlignXOffsetsBox" Margin="0,0,0,6" LostFocus="OnAlignListLostFocus"/>
-                            <TextBlock Text="A angles (°)" FontSize="12" Margin="0,0,0,2"/>
-                            <TextBox x:Name="AlignAnglesBox" Margin="0,0,0,8" LostFocus="OnAlignListLostFocus"/>
-                            <Button x:Name="RunAlignCalibButton" Content="Run Calib" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
-                            <Button x:Name="AlignLoadHereButton" Content="Load Point" Style="{StaticResource ColumnButtonStyle}"/>
-                            <Button x:Name="AxisAZeroButton" Content="A → 0°" Style="{StaticResource ColumnButtonStyle}"/>
-                        </StackPanel>
+                            <Border Style="{StaticResource SectionDividerStyle}"/>
 
-                        <!-- ══ 6.6 Rotation test (Tool đang chọn) — nghiệm thu của bước bottom-up ══ -->
-                        <StackPanel x:Name="StepPanelRotation" Visibility="Collapsed">
-                            <Grid Margin="0,0,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Test angle" Style="{StaticResource FieldLabelStyle}"/>
-                                <StackPanel x:Name="TestAngleHost" Grid.Column="1"/>
-                            </Grid>
-                            <Button x:Name="RotationTestButton" Content="Run Test" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
-                            <TextBlock x:Name="AlignStatusText" Style="{StaticResource InfoLineStyle}"/>
-                            <!-- Cùng giá trị với VerifyResultTopText: kiểm tra top-down và phép thử vòng xoay cùng ghi vào đó -->
-                            <TextBlock x:Name="VerifyResultRotText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
-                        </StackPanel>
+                            <TextBlock x:Name="StepsLabelText" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                            <ComboBox x:Name="StepCombo" HorizontalAlignment="Stretch" MinHeight="40" Margin="0,0,0,10"
+                                      SelectionChanged="OnStepChanged"/>
 
-                        <!-- ══ 6.7 Hand-eye (Tool đang chọn) ══ -->
-                        <StackPanel x:Name="StepPanelHandEye" Visibility="Collapsed">
-                            <Expander Style="{StaticResource NoteExpanderStyle}">
-                                <Expander.Header>
-                                    <TextBlock x:Name="HandEyeNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
-                                </Expander.Header>
-                                <TextBlock x:Name="HandEyeNoteText" Style="{StaticResource NoteBodyStyle}"/>
-                            </Expander>
-                            <TextBlock x:Name="HandEyeStatusText" Style="{StaticResource ClampedInfoLineStyle}" Height="30"
-                                       MaxLines="2"/>
-                            <Button x:Name="He1Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="He2Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="He3Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="He4Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="He5Button" Style="{StaticResource BadgeButtonStyle}" Margin="0,0,0,8"/>
+                            <Border Style="{StaticResource SectionDividerStyle}"/>
 
-                            <Expander Style="{StaticResource NoteExpanderStyle}">
-                                <Expander.Header>
-                                    <TextBlock x:Name="HeRetestHeader" Style="{StaticResource NoteHeaderStyle}"/>
-                                </Expander.Header>
-                                <TextBlock x:Name="HeRetestNoteText" Style="{StaticResource NoteBodyStyle}"/>
-                            </Expander>
-                            <Grid Margin="0,0,0,6" ColumnSpacing="4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Button x:Name="He6Button" Style="{StaticResource BadgeButtonStyle}" Margin="0"/>
-                                <Button x:Name="HeCellButton" Grid.Column="1" Content="Cell…" MinWidth="64" Padding="8,4"
-                                        VerticalAlignment="Stretch" Click="OnHeCellClick"/>
-                            </Grid>
-                            <Button x:Name="He7Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="He8Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="He9Button" Style="{StaticResource BadgeButtonStyle}" Margin="0,0,0,8"/>
-                            <Button x:Name="HeReturnButton" Content="Return Can" Style="{StaticResource ColumnButtonStyle}"/>
-                            <TextBlock x:Name="HandEyeStepText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
-                        </StackPanel>
+                            <!-- ══ 6.4 Top CAM calib + check (dùng chung hai tay) ══ -->
+                            <StackPanel x:Name="StepPanelTop">
+                                <Expander Style="{StaticResource NoteExpanderStyle}">
+                                    <Expander.Header>
+                                        <TextBlock x:Name="TopDownNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                    </Expander.Header>
+                                    <TextBlock x:Name="TopDownNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                                </Expander>
+                                <!-- Tâm lưới = TOP CAM REF của tray lắp ráp, ô (1,1) — lấy thẳng từ model, bỏ nút Save Center
+                                     (Tuấn chốt 2026-10-21, PLAN.md §6.2). Step X/Y ghi system.json ngay khi đổi. -->
+                                <TextBlock x:Name="CenterText" Style="{StaticResource ClampedInfoLineStyle}" Height="30" MaxLines="2"
+                                           Margin="0,0,0,8"/>
+                                <Grid Margin="0,0,0,6" RowSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Step X" Style="{StaticResource FieldLabelStyle}"/>
+                                    <StackPanel x:Name="GridStepXHost" Grid.Column="1"/>
+                                    <TextBlock Grid.Row="1" Text="Step Y" Style="{StaticResource FieldLabelStyle}"/>
+                                    <StackPanel x:Name="GridStepYHost" Grid.Row="1" Grid.Column="1"/>
+                                </Grid>
+                                <!-- Numpad 7 8 9 / 4 5 6 / 1 2 3 — 5 = tâm (TOP CAM REF). Bấm đúp. Dựng trong code. -->
+                                <Grid x:Name="Numpad" Margin="0,0,0,6" ColumnSpacing="4" RowSpacing="4">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                </Grid>
+                                <Button x:Name="AutoCalibButton" Content="Auto Calib" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                                <Button x:Name="TopLoadHereButton" Content="Load Point" Style="{StaticResource ColumnButtonStyle}"
+                                        Click="OnTopLoadHereClick"/>
+                                <Grid Margin="0,4,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Test travel" Style="{StaticResource FieldLabelStyle}"/>
+                                    <StackPanel x:Name="VerifyTravelHost" Grid.Column="1"/>
+                                </Grid>
+                                <Button x:Name="VerifyTopButton" Content="Verify Top" Style="{StaticResource ColumnButtonStyle}"/>
+                                <TextBlock x:Name="VerifyResultTopText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                            </StackPanel>
 
-                        <!-- ══ 6.8 Acceptance (dry run) ══ -->
-                        <StackPanel x:Name="StepPanelAccept" Visibility="Collapsed">
-                            <Expander Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
-                                <Expander.Header>
-                                    <TextBlock x:Name="AcceptHeaderText" Style="{StaticResource NoteHeaderStyle}"/>
-                                </Expander.Header>
-                                <TextBlock x:Name="AcceptNoteText" Style="{StaticResource NoteBodyStyle}"/>
-                            </Expander>
-                            <Button x:Name="DryPlaceButton" Content="Dry Place" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
-                        </StackPanel>
+                            <!-- ══ 6.5 Bottom CAM calib (Tool đang chọn) ══ -->
+                            <StackPanel x:Name="StepPanelBottom" Visibility="Collapsed">
+                                <Expander Style="{StaticResource NoteExpanderStyle}">
+                                    <Expander.Header>
+                                        <TextBlock x:Name="BottomUpNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                    </Expander.Header>
+                                    <TextBlock x:Name="BottomUpNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                                </Expander>
+                                <TextBlock Text="X Ofs (mm)" FontSize="12" Margin="0,0,0,2"/>
+                                <TextBox x:Name="AlignXOffsetsBox" Margin="0,0,0,6" LostFocus="OnAlignListLostFocus"/>
+                                <TextBlock Text="A angles (°)" FontSize="12" Margin="0,0,0,2"/>
+                                <TextBox x:Name="AlignAnglesBox" Margin="0,0,0,8" LostFocus="OnAlignListLostFocus"/>
+                                <Button x:Name="RunAlignCalibButton" Content="Run Calib" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                                <Button x:Name="AlignLoadHereButton" Content="Load Point" Style="{StaticResource ColumnButtonStyle}"/>
+                                <Button x:Name="AxisAZeroButton" Content="A → 0°" Style="{StaticResource ColumnButtonStyle}"/>
+                            </StackPanel>
 
-                        <!-- ══ 6.9 Step run (full cycle) — tay hút theo Tool đang chọn ══ -->
-                        <StackPanel x:Name="StepPanelSequence" Visibility="Collapsed">
-                            <Expander Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
-                                <Expander.Header>
-                                    <TextBlock x:Name="SeqHeaderText" Style="{StaticResource NoteHeaderStyle}"/>
-                                </Expander.Header>
-                                <TextBlock x:Name="SeqNoteText" Style="{StaticResource NoteBodyStyle}"/>
-                            </Expander>
-                            <Grid Margin="0,0,0,6" ColumnSpacing="6" RowSpacing="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Grid.ColumnSpan="4" Text="Assy cell" FontSize="12" FontWeight="SemiBold"/>
-                                <TextBlock Grid.Row="1" Text="row" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
-                                <NumberBox x:Name="SeqAssyRowBox" Grid.Row="1" Grid.Column="1"/>
-                                <TextBlock Grid.Row="1" Grid.Column="2" Text="col" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
-                                <NumberBox x:Name="SeqAssyColBox" Grid.Row="1" Grid.Column="3"/>
-                                <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Text="Input cell" FontSize="12" FontWeight="SemiBold"/>
-                                <TextBlock Grid.Row="3" Text="row" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
-                                <NumberBox x:Name="SeqInputRowBox" Grid.Row="3" Grid.Column="1"/>
-                                <TextBlock Grid.Row="3" Grid.Column="2" Text="col" Style="{StaticResource FieldLabelStyle}" Margin="0"/>
-                                <NumberBox x:Name="SeqInputColBox" Grid.Row="3" Grid.Column="3"/>
-                            </Grid>
-                            <Button x:Name="Seq1Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="Seq2Button" Style="{StaticResource BadgeButtonStyle}" Click="OnSeq2Click"/>
-                            <Button x:Name="Seq3Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="Seq4Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="Seq5Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <Button x:Name="Seq6Button" Style="{StaticResource BadgeButtonStyle}"/>
-                            <TextBlock x:Name="StepResultText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                            <!-- ══ 6.6 Rotation test (Tool đang chọn) — nghiệm thu của bước bottom-up ══ -->
+                            <StackPanel x:Name="StepPanelRotation" Visibility="Collapsed">
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Test angle" Style="{StaticResource FieldLabelStyle}"/>
+                                    <StackPanel x:Name="TestAngleHost" Grid.Column="1"/>
+                                </Grid>
+                                <Button x:Name="RotationTestButton" Content="Run Test" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                                <TextBlock x:Name="AlignStatusText" Style="{StaticResource InfoLineStyle}"/>
+                                <!-- Cùng giá trị với VerifyResultTopText: kiểm tra top-down và phép thử vòng xoay cùng ghi vào đó -->
+                                <TextBlock x:Name="VerifyResultRotText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                            </StackPanel>
+
+                            <!-- ══ 6.7 Hand-eye (Tool đang chọn) ══ -->
+                            <StackPanel x:Name="StepPanelHandEye" Visibility="Collapsed">
+                                <Expander Style="{StaticResource NoteExpanderStyle}">
+                                    <Expander.Header>
+                                        <TextBlock x:Name="HandEyeNoteHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                    </Expander.Header>
+                                    <TextBlock x:Name="HandEyeNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                                </Expander>
+                                <TextBlock x:Name="HandEyeStatusText" Style="{StaticResource ClampedInfoLineStyle}" Height="30"
+                                           MaxLines="2"/>
+                                <Button x:Name="He1Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="He2Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="He3Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="He4Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="He5Button" Style="{StaticResource BadgeButtonStyle}" Margin="0,0,0,8"/>
+
+                                <Expander Style="{StaticResource NoteExpanderStyle}">
+                                    <Expander.Header>
+                                        <TextBlock x:Name="HeRetestHeader" Style="{StaticResource NoteHeaderStyle}"/>
+                                    </Expander.Header>
+                                    <TextBlock x:Name="HeRetestNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                                </Expander>
+                                <Grid Margin="0,0,0,6" ColumnSpacing="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="He6Button" Style="{StaticResource BadgeButtonStyle}" Margin="0"/>
+                                    <Button x:Name="HeCellButton" Grid.Column="1" Content="Cell…" MinWidth="64" Padding="8,4"
+                                            VerticalAlignment="Stretch" Click="OnHeCellClick"/>
+                                </Grid>
+                                <Button x:Name="He7Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="He8Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="He9Button" Style="{StaticResource BadgeButtonStyle}" Margin="0,0,0,8"/>
+                                <Button x:Name="HeReturnButton" Content="Return Can" Style="{StaticResource ColumnButtonStyle}"/>
+                                <TextBlock x:Name="HandEyeStepText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                            </StackPanel>
+
+                            <!-- ══ 6.8 Acceptance (dry run) ══ -->
+                            <StackPanel x:Name="StepPanelAccept" Visibility="Collapsed">
+                                <Expander Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
+                                    <Expander.Header>
+                                        <TextBlock x:Name="AcceptHeaderText" Style="{StaticResource NoteHeaderStyle}"/>
+                                    </Expander.Header>
+                                    <TextBlock x:Name="AcceptNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                                </Expander>
+                                <Button x:Name="DryPlaceButton" Content="Dry Place" Style="{StaticResource ColumnPrimaryButtonStyle}"/>
+                            </StackPanel>
+
+                            <!-- ══ 6.9 Step run (full cycle) — tay hút theo Tool đang chọn ══ -->
+                            <StackPanel x:Name="StepPanelSequence" Visibility="Collapsed">
+                                <Expander Style="{StaticResource NoteExpanderStyle}" Margin="0,0,0,6">
+                                    <Expander.Header>
+                                        <TextBlock x:Name="SeqHeaderText" Style="{StaticResource NoteHeaderStyle}"/>
+                                    </Expander.Header>
+                                    <TextBlock x:Name="SeqNoteText" Style="{StaticResource NoteBodyStyle}"/>
+                                </Expander>
+                                <!-- Ô chạy kiểm: bấm nút → lưới ô của tray, chọn như nút 6 của hand-eye (Tuấn 2026-10-21) thay
+                                     cho gõ số hàng/cột. Ô tray đầu vào là của Tray 1 (Routine_Calib::StepPick hút ở Tray 1). -->
+                                <Grid Margin="0,0,0,8" ColumnSpacing="8" RowSpacing="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Assy cell" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <Button x:Name="SeqAssyCellButton" Grid.Column="1" HorizontalAlignment="Stretch"
+                                            Click="OnSeqAssyCellClick"/>
+                                    <TextBlock Grid.Row="1" Text="Input cell" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <Button x:Name="SeqInputCellButton" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
+                                            Click="OnSeqInputCellClick"/>
+                                </Grid>
+                                <Button x:Name="Seq1Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="Seq2Button" Style="{StaticResource BadgeButtonStyle}" Click="OnSeq2Click"/>
+                                <Button x:Name="Seq3Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="Seq4Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="Seq5Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <Button x:Name="Seq6Button" Style="{StaticResource BadgeButtonStyle}"/>
+                                <TextBlock x:Name="StepResultText" Style="{StaticResource InfoLineStyle}" IsTextSelectionEnabled="True"/>
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                </ContentControl>
-            </ScrollViewer>
-        </Border>
+                    </ContentControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

@@ -77,11 +77,16 @@ namespace sca
 
     private:
         // ───────────── bốn chặng ─────────────
-        /// <summary>Chặng quét trước tray lắp ráp — đi đúng đường CAM top-down của S05, theo tuỳ chọn ScanAssyByRow.</summary>
+        /// <summary>Chặng quét trước tray lắp ráp — đi đúng đường CAM top-down của S05, theo tuỳ chọn SystemData::ScanAssy.</summary>
         bool Scan(std::stop_token ct);
-        /// <summary>Đưa CAM top-down qua từng ô — cả tray (<paramref name="onlyRow"/> &lt; 0) hoặc một hàng; xét yêu cầu
-        /// dừng NGAY TRONG vòng quét.</summary>
+        /// <summary>Đưa CAM top-down qua từng ô — cả tray (<paramref name="onlyRow"/> &lt; 0) hoặc một hàng.</summary>
         bool Sweep(const TrayState& run, int onlyRow, std::stop_token ct);
+        /// <summary>Đưa CAM top-down qua các ô <paramref name="cells"/> (chỉ số đi ô, xem CellOf) — một lượt quét; xét yêu
+        /// cầu dừng NGAY TRONG vòng quét.</summary>
+        bool SweepCells(const TrayState& run, const std::vector<int>& cells, std::stop_token ct);
+        /// <summary>Các ô của một cặp / hàng theo thứ tự chụp của chu trình thật — X chỗ đứng chụp lớn trước
+        /// (Routine_Auto::FirstToScan).</summary>
+        static std::vector<int> ScanOrder(const TrayState& run, std::vector<int> cells);
         /// <summary>Tới ô tray đầu vào, hạ xuống cao độ hút rồi nâng lên — không đụng van hút.</summary>
         bool Pick(int nozzle, std::stop_token ct);
         /// <summary>X ra vị trí soi CAM bottom-up của đúng tay — chạy rà không kích Flow.</summary>

@@ -33,23 +33,27 @@ namespace winrt::ShieldCanAssy::implementation
 
         void OnRootLoaded(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
+        /// <summary>Đang chạy một việc dài (chuỗi hiệu chuẩn, chạy kiểm…) — MainWindow hoãn tự đăng xuất tới khi xong.</summary>
+        bool IsBusy() const { return m_busy; }
+
         // ── thanh Jog ──
         void OnVac1Click(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnVac2Click(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnJogSlowClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnJogFastClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnStopAllClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnCalibToggleClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
         // ── cột hiệu chuẩn: luôn hiện ──
-        void OnCheckCalibClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
-        void OnToolChanged(Microsoft::UI::Xaml::Controls::SelectorBar const&, Microsoft::UI::Xaml::Controls::SelectorBarSelectionChangedEventArgs const&);
+        void OnToolChecked(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnStepChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const&);
 
         // ── nút bấm một lần ──
-        void OnSaveCenterClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnTopLoadHereClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnAlignListLostFocus(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnHeCellClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnSeqAssyCellClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnSeqInputCellClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnSeq2Click(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
         // ── ui::IPage ──
@@ -59,8 +63,8 @@ namespace winrt::ShieldCanAssy::implementation
         void OnWindowMoved() override;
         void OnModalChanged(bool modalOpen) override;
         void OnClosing() override;
-        /// <summary>--shot chụp cả 6 bước của cột hiệu chuẩn.</summary>
-        int ShotVariants() const override { return 6; }
+        /// <summary>--shot chụp cả 6 bước của cột hiệu chuẩn, thêm một ảnh cột ẩn.</summary>
+        int ShotVariants() const override { return 7; }
         void ShowShotVariant(int index) override;
 
     private:
@@ -85,14 +89,16 @@ namespace winrt::ShieldCanAssy::implementation
         void SelectStep(int step);
         void SetBusy(bool busy);
         void ApplyBusy();
+        /// <summary>Hiện/ẩn cột hiệu chuẩn theo m_calibHidden (nút Hide Calib / Show Calib).</summary>
+        void ApplyCalibColumn();
         void SetSequenceStatus(std::string text);
         void SetVerifyResult(std::string text);
         void SetHandEyeStep(std::string text);
         void SetStepResult(std::string text);
-        void SetGate(std::string text);
-        /// <summary>RefreshGate của view-model: chạy lại cổng hiệu chuẩn (chỉ đọc model) rồi hiện kết quả.</summary>
+        /// <summary>RefreshGate của view-model: chạy lại cổng hiệu chuẩn (chỉ đọc model) rồi vẽ lại các dòng chữ.</summary>
         void RefreshGate();
-        /// <summary>Các dòng chữ tính từ model/SystemData (cổng gần nhất, Align, hand-eye, tâm lưới) — mỗi nhịp, chỉ khi đổi.</summary>
+        /// <summary>Các dòng chữ tính từ model/SystemData (cổng Auto đánh giá lại mỗi nhịp, Align, hand-eye, tâm lưới) — mỗi
+        /// nhịp, chỉ ghi khi đổi.</summary>
         void UpdateCalibTexts();
         std::string HandEyeLocateLabel() const;
         bool OrgOk() const;
@@ -137,12 +143,20 @@ namespace winrt::ShieldCanAssy::implementation
         winrt::fire_and_forget StepPick();
         void StepAlignBottom();
         winrt::fire_and_forget StepMoveToCommand();
-        int SeqValue(Microsoft::UI::Xaml::Controls::NumberBox const& box, int& field);
+        /// <summary>Mở lưới chọn ô cho khu chạy kiểm — <paramref name="assy"/>: tray lắp ráp (nút 1, 2), không thì Tray 1 đầu
+        /// vào (nút 3).</summary>
+        void ShowSeqCellPicker(bool assy);
+        /// <summary>Chữ trên hai nút chọn ô của khu chạy kiểm = ô đang chọn "(r,c)".</summary>
+        void UpdateSeqCellButtons();
+        /// <summary>Flyout chọn ô dùng chung (hand-eye + chạy kiểm) — tạo lần đầu dùng; mỗi lần mở thay nội dung.</summary>
+        Microsoft::UI::Xaml::Controls::Flyout CellFlyout();
 
         // ── VisionMaster ──
         void QueueVmWork();
         void EnsureVmPanes();
         void BindProcedures();
+        /// <summary>Cho nút Save của thanh công cụ VisionMaster biết file .solw đang nạp (ui::SetVmDotNetSolutionPath).</summary>
+        void SyncToolbarSavePath();
 
         bool m_loaded{ false };
         bool m_coreReady{ false };
@@ -151,6 +165,7 @@ namespace winrt::ShieldCanAssy::implementation
         bool m_busy{ false };
         bool m_appliedBusy{ true };   // ≠ m_busy lúc đầu để ApplyBusy lần đầu luôn ghi
         bool m_syncing{ false };      // đang đặt control bằng code — bỏ qua sự kiện đổi giá trị
+        bool m_calibHidden{ false };  // cột hiệu chuẩn đang ẩn — giữ suốt phiên (trang sống tới khi tắt App)
         int m_tool{ 1 };
         int m_step{ 0 };
 
@@ -171,7 +186,10 @@ namespace winrt::ShieldCanAssy::implementation
         std::optional<std::string> m_verifyResult;
         std::optional<std::string> m_handEyeStep;
         std::optional<std::string> m_stepResult;
-        std::optional<std::string> m_gate;
+        /// <summary>Màu dòng cổng Auto đang hiện: 1 = sẵn sàng (xanh), 0 = bị chặn (đỏ), -1 = chưa tô.</summary>
+        int m_readyShown{ -1 };
+        /// <summary>Dòng tâm lưới đang tô cam vì model chưa teach TOP CAM REF: 1 = có, 0 = không, -1 = chưa tô.</summary>
+        int m_centerMissingShown{ -1 };
 
         // Ô đang chọn cho nút 6 của hand-eye (0-based); −1 = tại chỗ.
         int m_heCellRow{ -1 };
@@ -188,6 +206,8 @@ namespace winrt::ShieldCanAssy::implementation
         bool m_vmQueued{ false };
         bool m_vmBusy{ false };
         bool m_bindOnShow{ false };
+        /// <summary>Kết quả ghi đường dẫn cho nút Save của thanh công cụ đã log lần gần nhất (file|lỗi).</summary>
+        std::string m_toolbarSaveLogged;
     };
 }
 

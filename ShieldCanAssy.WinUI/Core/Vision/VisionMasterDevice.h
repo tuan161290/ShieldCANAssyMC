@@ -141,6 +141,11 @@ namespace sca
         /// danh sách đọc được lần gần nhất.</summary>
         std::vector<std::string> FlowNames();
 
+        /// <summary>Đường dẫn tuyệt đối (UTF-8) của file .solw đang nạp; rỗng khi chưa nạp. Không chạm SDK, không chờ
+        /// khoá SDK — gọi được từ luồng UI. Trang Vision Edit đưa nó cho phía .NET của control VisionMaster
+        /// (ui::SetVmDotNetSolutionPath) để nút Save lưu thẳng thay vì mở Save As.</summary>
+        std::string SolutionFile() const;
+
         /// <summary>Chuỗi build của SDK (<c>IMVS_PF_GetBuildVersion</c>); rỗng nếu máy không có SDK.</summary>
         std::string SdkVersion();
 

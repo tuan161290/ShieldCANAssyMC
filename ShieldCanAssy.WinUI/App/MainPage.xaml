@@ -381,16 +381,16 @@
         </Grid>
 
         <!-- ═══ Cột phải: log trực tiếp (§2.5), ẩn/hiện được. LogHost co về 0 còn LogCard giữ nguyên bề rộng (phần thừa bị cắt)
-             để chữ trong log không xuống dòng lại từng khung hình. ═══ -->
+             để chữ trong log không xuống dòng lại từng khung hình. Mở app là ẨN (Tuấn 2026-10-21): chỉ còn thẻ dọc. ═══ -->
         <Grid Grid.Column="2">
             <Button x:Name="LogShowButton" Width="24" Height="56" MinHeight="0" Padding="0"
-                    HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed" Opacity="0"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
                     Click="OnToggleLogClick">
                 <FontIcon Glyph="&#xE76B;" FontSize="12" FontFamily="{StaticResource SegoeIcons}"/>
             </Button>
-            <Border x:Name="LogHost" Width="290" HorizontalAlignment="Right">
+            <Border x:Name="LogHost" Width="0" HorizontalAlignment="Right">
                 <Border x:Name="LogCard" Width="290" HorizontalAlignment="Left" Style="{StaticResource CardBorderStyle}"
-                        Padding="0">
+                        Padding="0" Opacity="0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

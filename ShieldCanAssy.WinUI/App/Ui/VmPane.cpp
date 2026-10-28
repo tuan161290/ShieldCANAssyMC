@@ -164,6 +164,17 @@ namespace ui
             }
         }
 
+        // Popup là cửa sổ cấp cao nhất, không bị cửa sổ chủ cắt: thu nhỏ cửa sổ thì ô giữ chỗ ra ngoài vùng client (XAML
+        // cắt) nhưng popup vẫn hiện nguyên chỗ cũ (Tuấn 2026-10-25). Cắt popup theo vùng client; không còn phần nào
+        // nhìn thấy thì ẩn.
+        RECT clip{};
+        if (show)
+        {
+            RECT client{};
+            GetClientRect(g_mainHwnd, &client);
+            if (!IntersectRect(&clip, &r, &client)) show = false;
+        }
+
         if (!show)
         {
             if (m_lastShown)
@@ -175,14 +186,16 @@ namespace ui
         }
 
         // Toạ độ popup là toạ độ MÀN HÌNH, nên cửa sổ chính di chuyển cũng phải đặt lại dù khung trong
-        // cửa sổ không đổi: so cả gốc client của cửa sổ chủ.
+        // cửa sổ không đổi: so cả gốc client của cửa sổ chủ. So thêm khung đầy đủ r: cùng phần hiện nhưng control
+        // lệch khác bên trong popup thì vẫn phải đặt lại.
         POINT origin{ 0, 0 };
         ClientToScreen(g_mainHwnd, &origin);
-        RECT screen{ r.left + origin.x, r.top + origin.y, r.right + origin.x, r.bottom + origin.y };
-        if (m_lastShown && EqualRect(&screen, &m_lastRect)) return;
+        RECT screen{ clip.left + origin.x, clip.top + origin.y, clip.right + origin.x, clip.bottom + origin.y };
+        if (m_lastShown && EqualRect(&screen, &m_lastRect) && EqualRect(&r, &m_lastFull)) return;
 
-        m_host.MoveInOwnerClient(r);   // ClientToScreen(owner) + SetWindowPos(popup, …, SWP_NOACTIVATE | SWP_SHOWWINDOW)
+        m_host.MoveInOwnerClient(r, clip);   // ClientToScreen(owner) + SetWindowPos(popup, …, SWP_NOACTIVATE | SWP_SHOWWINDOW)
         m_lastRect = screen;
+        m_lastFull = r;
         m_lastShown = true;
     }
 

@@ -1237,6 +1237,81 @@ namespace sca
         return s.manualCts->Token();
     }
 
+    // ───────────────────────── popup Origin trang Main ─────────────────────────
+
+    std::string McControl::OriginBlockReason()
+    {
+        State& s = St();
+        std::shared_ptr<SafetyMonitor> safety;
+        std::shared_ptr<Routine_Origin> origin;
+        {
+            std::lock_guard<std::mutex> l(s.devMutex);
+            safety = s.safety;
+            origin = s.origin;
+        }
+        if (!safety || !origin) return Loc::T("Mc.BlockNotInit");
+        if (RoutineBusy()) return Loc::T("Mc.CycleBusy");
+        if (!safety->SafeToMove()) return safety->BlockReason();
+        return origin->BlockReason(false);
+    }
+
+    bool McControl::OriginBrakesReady()
+    {
+        auto func = Func();
+        return func && func->BrakeReady(AxisId::Z1) && func->BrakeReady(AxisId::Z2);
+    }
+
+    std::string McControl::ServoOnAndReleaseBrakes(std::stop_token ct)
+    {
+        auto func = Func();
+        if (!func) return Loc::T("Mc.BlockNotInit");
+        MotionConnect& motion = Motion();
+        auto servoOff = [&motion] {
+            std::vector<std::string> names;
+            for (const auto& axis : motion.AxisList())
+                if (axis && !axis->ServoOn()) names.push_back(axis->Name());
+            return base::Join(names, ", ");
+        };
+
+        try
+        {
+            // Như "Servo On (all)" trang Manual: song song, bỏ qua trục ALM (OriginBlockReason đã chặn trước popup).
+            std::vector<std::function<bool()>> jobs;
+            for (const auto& axis : motion.AxisList())
+                if (axis && !axis->ServoOn() && !axis->Alarm()) jobs.push_back([axis] { return axis->SetServoOn(true); });
+            if (!jobs.empty() && !base::WhenAll(std::move(jobs))) return Loc::F("Origin.PrepServoFailed", servoOff());
+
+            // Chờ driver báo ServoOn thật (như Routine_Origin::ServoOnAll): "Mở phanh" bấm lúc trục chưa ServoOn bị vòng quét
+            // xoá ngay (McFunction::UpdateBrakeOutput).
+            base::Stopwatch sw;
+            while (!motion.AllServoOn())
+            {
+                if (sw.ElapsedMilliseconds() > 5000) return Loc::F("Origin.PrepServoFailed", servoOff());
+                base::Delay(20, ct);
+            }
+
+            func->RequestBrakeRelease(AxisId::Z1);
+            func->RequestBrakeRelease(AxisId::Z2);
+            sw.Restart();
+            while (!OriginBrakesReady())
+            {
+                if (sw.ElapsedMilliseconds() > 2000) return Loc::T("Origin.PrepBrakeFailed");
+                base::Delay(20, ct);
+            }
+        }
+        catch (const base::OperationCanceled&)
+        {
+            return Loc::T("Mc.Cancelled");
+        }
+        catch (const std::exception& ex)
+        {
+            return Loc::F("Mc.Unexpected", ex.what());
+        }
+
+        Log("Origin popup: all axes SVO on, Z1/Z2 brake released", LogLevel::Info);
+        return {};
+    }
+
     // ───────────────────────── chọn tay / chạy rà / tray ─────────────────────────
 
     void McControl::SetOnlyNozzle(int nozzle)

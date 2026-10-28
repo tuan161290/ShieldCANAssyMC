@@ -10,6 +10,8 @@ namespace ui::teaching
     /// <summary>Một ô trong bảng toạ độ tính ra — TeachCellRow của bản WPF (thuần dữ liệu).</summary>
     struct CellInfo
     {
+        /// <summary>0 = Tray đầu vào 1, 1 = Tray đầu vào 2, 2 = Tray lắp ráp (TeachingPage::AssyTraySel).</summary>
+        int Tray = 0;
         int Row = 0;
         int Col = 0;
         double X = 0;
@@ -38,7 +40,9 @@ namespace ui::teaching
     {
     public:
         void Attach(winrt::Microsoft::UI::Xaml::Controls::Grid const& grid);
-        void Update(std::vector<CellInfo> const& cells, int rows, int cols, int selRow, int selCol);
+        /// <summary>Chỉ vẽ các ô thuộc <paramref name="tray"/> — trang Teaching giữ ô của cả hai tray đầu vào trong một
+        /// danh sách, mỗi tray một lưới. selRow/selCol = -1 khi ô đang chọn nằm ở tray khác.</summary>
+        void Update(std::vector<CellInfo> const& cells, int tray, int rows, int cols, int selRow, int selCol);
         /// <summary>Bề ngang khung cuộn đổi: lưới giãn đầy bề ngang, nhưng mỗi cột không hẹp hơn 44 px (nút 40 + lề) — hẹp
         /// hơn thì cuộn ngang.</summary>
         void FitWidth(double viewportWidth);

@@ -367,10 +367,10 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
-| TE-9 | 3 buttons `SelectInputCommand/SelectInput2Command/SelectAssyCommand` (accent = selected) | `SelectorBar` · `TraySelector` (`TrayInput1Item`, `TrayInput2Item`, `TrayAssyItem`) | Input 1 · Input 2 · Assy | `Layout = UseInputTray ? Model.InputLayout(sel) : Model.AssyTray` | Change → reload Rows/Cols boxes, scan order, all cards, recompute cells. |
+| TE-9 | 3 buttons `SelectInputCommand/SelectInput2Command/SelectAssyCommand` (accent = selected) | `RadioButton` ×2 · `TrayInputRadio`, `TrayAssyRadio` (`ChoiceButtonStyle`, W 110) on the **page background** above CELL COORDS (2026-10-21) | Input · Assy | Input = BOTH input trays at once (two 3-point rows, two Z columns, two cell grids; single-tray commands follow the tray of the selected cell); Assy = `Model.AssyTray` | Label "Tray". Change → reload Rows/Cols boxes, scan order, all cards, recompute cells. |
 | TE-10 | `TrayTitle` | `TextBlock` · `TrayTitleText` | Input tray 1 / Input tray 2 / Assy tray | — | 16 Bold. |
 | TE-11 | Shared-size note | `TextBlock` · `SharedSizeText` | `Teach.InputSizeShared` | — | Visible for input trays. 11 Secondary. |
-| TE-12 | Tool buttons `SelectNozzle1/2Command` | `SelectorBar` · `ToolSelector` (`Tool1Item`, `Tool2Item`) | Tool 1 · Tool 2 | `CurrentZAxis = Tool1 ? Z1 : Z2`; `CurrentGeometry = Layout.GeometryFor(z)` | Header "Select Tool". Change → recompute. |
+| TE-12 | Tool buttons `SelectNozzle1/2Command` | `RadioButton` ×2 · `Tool1Radio`, `Tool2Radio` (`ChoiceButtonStyle`) next to TE-9 on the page background | Tool 1 · Tool 2 | `CurrentZAxis = Tool1 ? Z1 : Z2`; `CurrentGeometry = Layout.GeometryFor(z)` | Label "Tool". Change → recompute. |
 | TE-13 | Radio `IsRowMajorMode/IsZigZagMode` | `RadioButtons` · `ScanOrderRadios` (MaxColumns 2) | Sequential · Zig zag | `SetScanOrder`: `InvalidateVisionCache`; write on `Model.InputTray` (input) or `Layout`; `McDataManager.SyncRunTrays()` | Header "Scan order". Only RowMajor/Serpentine (ColMajor not exposed). Guard programmatic selection. |
 | TE-14 | `Canvas TraversalCanvas` | `Canvas` · `TraversalCanvas` H 80 | — | `TrayState.VisitIndex(r,c,4,order)` | Fixed 2×4 preview: grey cell rects, numbers 1–8, SteelBlue arrows (trimmed ends, head 7 px). Redraw on order change and SizeChanged. |
 
@@ -410,9 +410,9 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | TE-31 | Title/hint by tray | `ZPickTitleText`, `ZPickHintText` | `Teach.ZPickTitle`/`ZPlaceTitle`; `ZPickHint`/`ZPlaceHint` | — | Input = PICK, Assy = PLACE. |
-| TE-32 | Z1 / Z2 height | `ZPickZ1Text`, `ZPickZ2Text` + `TeachZPickZ1Button`, `TeachZPickZ2Button` | "Z1: 12.345 mm" · Teach Z1 / Teach Z2 | `Layout.Z_PickZ1/Z2`; [Confirm] what `Teach.WhatZPick/WhatZPlace` | Refresh TE-35. |
+| TE-32 | Z1 / Z2 height | `NumberBox` `ZPickZ1Box`, `ZPickZ2Box` (+ `T2…` Tray 2) + `TeachZPickZ1Button`, `TeachZPickZ2Button` | "Z1: [12.345]" · Teach | `Layout.Z_PickZ1/Z2`; [Confirm] what `Teach.WhatZPick/WhatZPlace` | Type mm + Enter (or leave box) = same Old/New confirm as Teach; must be > 0 and inside Z soft limit (`Teach.ZTypeNotPositive` / `ZTypeOutOfRange`), else box reverts. Tip `Teach.ZTypeTip`. OnTick never overwrites a focused box. Refresh TE-35. (Tuấn 2026-10-27) |
 | TE-33 | Slow-pt title/hint | `ZSlowTitleText`, `ZSlowHintText` | `Teach.ZSlowPickTitle`/`ZSlowPlaceTitle`; `Loc::F("Teach.ZSlowHint", pick/place word)` | — | Inset divider above. |
-| TE-34 | Z1 / Z2 slow pt | `ZSlowZ1Text`, `ZSlowZ2Text` + `TeachZSlowZ1Button`, `TeachZSlowZ2Button` | Teach Z1 / Teach Z2 | `Layout.Z_SlowZ1/Z2`; [Confirm] `Teach.WhatZSlow` | — |
+| TE-34 | Z1 / Z2 slow pt | `NumberBox` `ZSlowZ1Box`, `ZSlowZ2Box` (+ `T2…` Tray 2) + `TeachZSlowZ1Button`, `TeachZSlowZ2Button` | Teach | `Layout.Z_SlowZ1/Z2`; [Confirm] `Teach.WhatZSlow` | Typed like TE-32; 0 allowed (= off), range [max(0, soft −), soft +]. |
 | TE-35 | `ZSlowText` | `TextBlock` · `ZSlowStatusText` | per Z: `Teach.ZSlowNotTaught` / `ZSlowWrongSide` / `ZSlowOk` | `Layout.ZSlowFor/ZPickFor` | 11 Secondary, 2 lines. Informs, never blocks. |
 
 ### 4.7 BOTTOM CAM POS. card
@@ -526,7 +526,7 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 | SE-17 | Re-Origin after EMG | `RequireHomeSwitch` | Re-Origin after EMG | `SysData.RequireHomeAfterEmg` | — |
 | SE-18 | Origin A1/A2 in sequence | `HomeSeqSwitch` | Origin A1/A2 in sequence | `SysData.HomeRotateSequential` | — |
 | SE-19 | Curtain fitted (DI13) | `CurtainSwitch` | Curtain fitted (DI13) | `SysData.HasLightCurtain` | Tip `Setting.HasLightCurtainTip` (important). |
-| SE-20 | Scan Assy tray by row | `ScanByRowSwitch` | Scan Assy tray by row | `SysData.ScanAssyByRow` | Tip `Setting.ScanAssyByRowTip`. |
+| SE-20 | Scan Assy tray by row (toggle) | `ComboBox` · `ScanAssyCombo` W 160 (WinUI 2026-10-28: toggle → 3 choices) | Scan Assy tray: Whole tray · By row · By pair | `SysData.ScanAssy()` / `SetScanAssy()` over `ScanAssyByRow` + `ScanAssyByPair` (WinUI-only JSON key; pair wins if both set) | By pair: S05 captures only the 2 cells of this round, then picks and places. Tooltip literal in XAML explains all three. |
 
 ### 5.3 Vision section (3 cards as WPF)
 
@@ -576,15 +576,14 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 │ VISION EDIT │ X [−][+]  Z1 [−][+]  Z2 [−][+] │ [Z1 Safe][Z2 Safe] │ ‹Slow|Fast› │ [  STOP  ]     │
 │             │ Y2[−][+]  A1 [−][+]  A2 [−][+] │ [Vac #1 ][Vac #2 ] │             │ [ 96×76  ]     │
 ├──────────────────────────────────────────────────────────────┬────────────────────────────────────┤
-│ [VmGlobalToolControl popup — camera, comm, vars, script…]    │ ▸ VISION CALIB (note)        320  │
-│ ──────────────────────────────────────────────────────────── │ <ReadyStatusText>                 │
-│                                                              │ [Check Calib]                     │
-│        VmMainViewConfigControl popup (Flow editor)           │ <VmStatusText>                    │
+│                                                              │ Tool [Tool 1][Tool 2]  (layer 0)  │
+│ [VmGlobalToolControl popup — camera, vars…]   [Hide Calib]   ├────────────────────────────────────┤
+│ ──────────────────────────────────────────────────────────── │ ▸ VISION CALIB (note)        320  │
+│        VmMainViewConfigControl popup (Flow editor)           │ <ReadyStatusText> (live, color)   │
 │                                                              │ (ring) <SequenceStatusText>       │
-│                                                              │ Tool (nozzle) ‹Tool 1|Tool 2›     │
 │                                                              │ Calib steps (in order) [▼ combo]  │
 │                                                              │ ── selected step panel ──         │
-│                                                              │ e.g. Top CAM: center, steps,      │
+│                                                              │ e.g. Top CAM: center = ref, steps,│
 │                                                              │  [7][8][9] / [4][5][6] / [1][2][3]│
 │                                                              │  [Auto Calib] [Load Point]        │
 │                                                              │  Test travel [ ] [Verify Top]     │
@@ -613,6 +612,7 @@ failure → Warn `Loc::F("Vision.StepStopped", title, reason)`.
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | VE-7 | `VmGlobalToolControl` | `Border` · `GlobalToolHost` H 40 + `ui::VmPane(GlobalTool)` | — | VisionMaster SDK | Created via queued VM work on first `OnShown(true)`. |
+| VE-62 | — (WinUI only, 2026-10-28) | `Button` · `CalibToggleButton` MinW 110 × H 36, right end of the VE-7 row (jog bar has no room at 1280) | Hide Calib · Show Calib | layout only | Hides the calibration column (`CalibColumn` W 0, `CalibColumnHost` Collapsed, `VmCard` right margin 0) so the VisionMaster pane gets full width for job editing; VM popups follow via `ui::VmPane` layout tracking. Never disabled; a running calib keeps running. State lives for the session (shown on start). Tips `Vision.CalibHideTip` / `Vision.CalibShowTip`. `--shot` variant 6 = hidden. |
 | VE-8 | `VmMainViewConfigControl ConfigControl` + `BindMultiProcedure()` | `Border` · `ConfigHost` + `ui::VmPane(MainView)` | — | `ProcBindMultiProcedure` (DISPID `0x3`) when solution loaded | Bind on each `OnShown(true)`; failure → log Warning "Vision Edit: solution not bound — …", page stays usable. Placeholder `TextBlock` · `VmPlaceholderText` shows the reason when ActiveX is unavailable. Hide on `OnShown(false)`, disable on `OnModalChanged(true)`. |
 
 ### 6.3 Calibration column — always visible part
@@ -620,11 +620,11 @@ failure → Warn `Loc::F("Vision.StepStopped", title, reason)`.
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | VE-9 | Header Expander | `Expander` (lightweight style: transparent, no border) · `HeaderExpander` | VISION CALIB / body `Vision.HeaderNote` | — | Collapsed by default. |
-| VE-10 | `ReadyStatusText` | `TextBlock` · `ReadyText` | `Calib.LastCalibGate.Describe()` or `Vision.ReadyHint` | `McControl.Calib.LastCalibGate` | 11 Secondary. |
-| VE-11 | Check calib `CheckCalibCommand` | `Button` · `CheckCalibButton` | Check Calib | `Calib.CheckCalib().Describe()` → VE-12 | Single tap (read-only). |
-| VE-12 | `VmStatusText` | `TextBlock` · `GateText` | default `Vision.NotCalibChecked` | — | 11. |
+| VE-10 | `ReadyStatusText` | `TextBlock` · `ReadyText` | `VmCycle::EvaluateCalib(model, sys).Describe()` | read-only, model + system.json | **Live**: re-evaluated every tick (2026-10-21). 11, 3 fixed lines; Success brush when ready, Critical when Auto is blocked. Selectable. |
+| VE-11 | Check calib `CheckCalibCommand` | — removed 2026-10-21 | — | — | VE-10 is live, nothing to press. |
+| VE-12 | `VmStatusText` | — removed 2026-10-21 (duplicate of VE-10) | — | — | — |
 | VE-13 | `SequenceStatusText` | `TextBlock` · `SequenceText` + `ProgressRing` · `BusyRing` | — | progress callbacks | Ring active while Busy (visual only). |
-| VE-14 | Tool radio `IsTool1/IsTool2` | `SelectorBar` · `ToolSelector` | Tool 1 · Tool 2 | `SelectedTool` (1/2) | Header "Tool (nozzle)". Change → refresh align/hand-eye status texts. |
+| VE-14 | Tool radio `IsTool1/IsTool2` | `RadioButton` ×2 · `Tool1Radio`, `Tool2Radio` (`ChoiceButtonStyle`, W 120) on the **page background** above the calibration card | Tool 1 · Tool 2 | `SelectedTool` (1/2) | Label "Tool". [Busy-off] (outside `CalibPanel`, disabled in `ApplyBusy`). Change → refresh align/hand-eye status texts. |
 | VE-15 | Steps `ComboBox CalibSteps`, `StepIndex` | `ComboBox` · `StepCombo` (items wrap) | Top CAM calib + check (shared) · Bottom CAM calib (per Tool) · Rotation test (per Tool) · Hand-eye (per Tool) · Acceptance (dry run) · Step run (full cycle) | — | Header `Vision.StepsLabel`, tip `Vision.StepsTip`. Shows one step panel (VE-16…VE-61). No step numbers in names (rule 15/09). Items keep index when tool changes. |
 
 ### 6.4 Step: Top CAM calib + check (shared) — `StepPanelTop`
@@ -632,10 +632,10 @@ failure → Warn `Loc::F("Vision.StepStopped", title, reason)`.
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | VE-16 | Note Expander | `Expander` | `Vision.TopDownNoteHeader` / `TopDownNote` | — | Collapsed. |
-| VE-17 | Center point text | `TextBlock` · `CenterText` | "Calibration Center Point: X=… Y=… (saved)/(not saved)" | `SysData.TopDownCalibCenterX/Y/Set` | 11. |
-| VE-18 | Save (system.json) `SaveCalibrationCenterCommand` | `Button` · `SaveCenterButton` | Save Center | `!OrgOk` → Warn `Vision.NoOriginCoords`; center = X, Y2 pos; `Set=true`; `McDataManager.SaveSystemData()` → Info `CenterSavedOk` / `CenterSavedDiskFail` | Writes disk immediately (page has no Save). Tip `Vision.SaveCenterTip`. |
-| VE-19 | Step X / Step Y (mm) | `NumberBox` · `GridStepXBox`, `GridStepYBox` + "mm" | Step X · Step Y | `SysData.TopDownCalibStepXMm/YMm` | Written on commit. |
-| VE-20 | Numpad 7 8 9 / 4 5 6 / 1 2 3 | `Grid` 3×3 · `Numpad` (buttons H 48) | 1 … 9 | point n → offset (row = (n−1)/3 − 1, col = (n−1)%3 − 1) × step from center; `Calib.MoveAndTriggerTopDownCalibAsync(x, y, ManualToken)`; fail → Warn `Vision.GridPointFail` | **[2×]**. Pre-check: `!OrgOk` → Warn `NoOriginCalib`; center not set → Warn `NoCenter`. Tips `Vision.GridPointTip`; 5: `GridPoint5Tip`. |
+| VE-17 | Center point text | `TextBlock` · `CenterText` | `Vision.CenterIsRef` "Calibration Center Point = Top CAM ref (1,1): X=… Y2=…" / `Vision.CenterNoRef` | `Model.AssyTray.CamTopDownAnchorX/Y/Taught` | 11. Center **is** the assy tray TOP CAM REF (2026-10-21, PLAN.md §6.2); not taught → Caution brush. |
+| VE-18 | Save (system.json) `SaveCalibrationCenterCommand` | — removed 2026-10-21 | — | — | Center comes from the model; `SysData.TopDownCalibCenterX/Y/Set` kept untouched for the WPF build. |
+| VE-19 | Step X / Step Y (mm) | `NumberBox` · `GridStepXBox`, `GridStepYBox` + "mm" | Step X · Step Y | `SysData.TopDownCalibStepXMm/YMm` | Written on commit **and saved to system.json at once** (same for Verify travel, Test angle, bottom-up lists). |
+| VE-20 | Numpad 7 8 9 / 4 5 6 / 1 2 3 | `Grid` 3×3 · `Numpad` (buttons H 48) | 1 … 9 | point n → offset (row = (n−1)/3 − 1, col = (n−1)%3 − 1) × step from center; `Calib.MoveAndTriggerTopDownCalibAsync(x, y, ManualToken)`; fail → Warn `Vision.GridPointFail` | **[2×]**. Pre-check: `!OrgOk` → Warn `NoOriginCalib`; TOP CAM REF not taught → Warn `NoCenter`. Tips `Vision.GridPointTip`; 5: `GridPoint5Tip`. |
 | VE-21 | Auto Calib (S order) | `Button` (Primary) · `AutoCalibButton` | Auto Calib | pre-check as VE-20; **[Confirm]** `Vision.AutoCalibConfirm`; `Calib.ClearCalibPointsAsync(TopDownCalib)` (error → Warn `ClearFail`, status `ClearFailStatus`); for `Routine_Calib.TopDownGridSOrder`: status `AutoCalibPoint`, move+trigger, stop at first failure (Warn `AutoCalibStop`); done → `AutoCalibLoaded`, InvalidateVisionCache, Info `AutoCalibDone` | **[2×]**. Tip `Vision.AutoCalibTip`. |
 | VE-22 | Trigger LocateTop (calib) | `Button` · `TopLoadHereButton` | Load Point | `Calib.TriggerTopDownCalibFlowAsync(ManualToken)` → Info `TriggerTopOk` / `TriggerTopNotFound` | Single tap. Tip `Vision.TriggerTopCalibTip` (warns: adds a calib point). |
 | VE-23 | Test travel (mm) | `NumberBox` · `VerifyTravelBox` + "mm" | Test travel | `SysData.TopDownVerifyStepMm` | — |
@@ -697,7 +697,7 @@ with step run).
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | VE-53 | Note Expander | `Expander` | `Vision.SeqHeader` / `SeqNote` | — | — |
-| VE-54 | Assy row/col, Input row/col (1-based) | `NumberBox` (int, min 1) · `SeqAssyRowBox`, `SeqAssyColBox`, `SeqInputRowBox`, `SeqInputColBox` | Assy cell — row · col · Input cell — row · col | page fields (default 1) | — |
+| VE-54 | Assy cell, Input cell (1-based) | `Button` · `SeqAssyCellButton`, `SeqInputCellButton` + the VE-44 `Flyout` (2026-10-21, replaces four row/col `NumberBox`es) | Assy cell "(r,c)" · Input cell "(r,c)" | page fields (default 1); grid rebuilt on open from `Model.AssyTray` / `Model.InputTray` (Tray 1 — `StepPick` picks there); cell outside the new grid → (1,1) | Single tap. Flyout titles `Vision.SeqAssyPickerTitle` / `SeqInputPickerTitle`, no In Place. Tips `SeqAssyCellTip` / `SeqInputCellTip`. |
 | VE-55 | 1 · CAM to Assy cell | `Button` · `Seq1Button` | ① Go CAM | `Calib.StepMoveCamToCellAsync(r−1, c−1, ManualToken)` | **[2×]**. Tip `Vision.SeqMoveCamTip`. |
 | VE-56 | 2 · Trigger LocateTop | `Seq2Button` | ② Locate Top | `Calib.StepLocateTopAsync(r−1, c−1)` | Single tap (no axis move). Tip `SeqLocateTopTip`. |
 | VE-57 | 3 · Pick from input cell | `Seq3Button` | ③ Pick | **[Confirm]** `SeqPickConfirm`; `Calib.StepPickAsync(tool, r−1, c−1)` | **[2×]**. Tip `SeqPickTip`. |
@@ -773,8 +773,8 @@ with step run).
 | Manual | ALM / Offline (sim faults) | ALM / Offline | — |
 | Teaching | Load / Save / Delete | Load / Save / Delete | CommandBar |
 | Teaching | New / Copy selected | New / Copy | — |
-| Teaching | Input tray 1 / Input tray 2 / Assy tray | Input 1 / Input 2 / Assy | SelectorBar |
-| Teaching | Tool 1 / Tool 2 | Tool 1 / Tool 2 | SelectorBar |
+| Teaching | Input tray 1 / Input tray 2 / Assy tray | Input / Assy | `ChoiceButtonStyle`; Input shows both input trays |
+| Teaching | Tool 1 / Tool 2 | Tool 1 / Tool 2 | `ChoiceButtonStyle` |
 | Teaching | Sequential / Zig zag (radio) | Sequential / Zig zag | RadioButtons |
 | Teaching | Teach (CAM ref, verify, jig ×3) | Teach | — |
 | Teaching | Go top CAM ref | Go Ref | — |
@@ -810,9 +810,9 @@ with step run).
 | Vision | Vac #1 / Vac #2 | same | — |
 | Vision | Slow / Fast | Slow / Fast | — |
 | Vision | STOP | STOP | — |
-| Vision | Check calib | Check Calib | — |
-| Vision | Tool 1 / Tool 2 (radio) | Tool 1 / Tool 2 | SelectorBar |
-| Vision | Save (system.json) | Save Center | — |
+| Vision | Check calib | — (removed 2026-10-21) | status line is live |
+| Vision | Tool 1 / Tool 2 (radio) | Tool 1 / Tool 2 | `ChoiceButtonStyle`, page background |
+| Vision | Save (system.json) | — (removed 2026-10-21) | center = TOP CAM REF |
 | Vision | 1 … 9 (numpad) | 1 … 9 | — |
 | Vision | Auto Calib (S order) | Auto Calib | — |
 | Vision | Trigger LocateTop (calib) | Load Point | tooltip keeps warning |

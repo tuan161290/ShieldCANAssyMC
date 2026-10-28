@@ -21,6 +21,7 @@
 #include "Infor/AlarmManager.h"
 #include "Lang/Loc.h"
 #include "Ui/AppHost.h"
+#include "Ui/Dialogs.h"
 #include "Ui/JogControl.h"
 #include "Ui/UiUtil.h"
 #include "Utility/Log/LogWorker.h"
@@ -724,9 +725,46 @@ namespace winrt::ShieldCanAssy::implementation
     // Nút mềm CỐ Ý chỉ đưa máy vào Armed — máy chạy thật chỉ nhận từ nút Start cứng (2026-08-20).
     void MainPage::OnRunClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestArm(); }
     void MainPage::OnStopClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestStop(); }
-    void MainPage::OnOriginClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestOrigin(); }
     void MainPage::OnResetClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestReset(); }
     void MainPage::OnMuteClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestMuteBuzzer(); }
+
+    // MA-4. Z1/Z2 chưa nhả phanh thì hỏi một lần rồi làm hộ nghi thức của trang Manual — Servo On mọi trục, "Mở phanh"
+    // Z1/Z2 — rồi mới về gốc (Tuấn 2026-10-21). Còn lý do chặn khác (EMG, ALM, đang chạy…) thì gửi thẳng như cũ: Core báo
+    // lý do ở dòng thông báo, không hỏi một câu vô ích. Sau co_await không đụng tới this.
+    winrt::fire_and_forget MainPage::OnOriginClick(WF::IInspectable const&, RoutedEventArgs const&)
+    {
+        auto busy = m_originPrep;
+        if (busy->load()) co_return;
+        if (!m_coreReady || sca::McControl::OriginBrakesReady() || !sca::McControl::OriginBlockReason().empty())
+        {
+            sca::McControl::RequestOrigin();
+            co_return;
+        }
+
+        std::vector<std::string> servoOff;
+        for (const auto& axis : sca::McControl::Motion().AxisList())
+            if (axis && !axis->ServoOn()) servoOff.push_back(axis->Name());
+        std::string message = sca::Loc::T("Main.OriginPrepConfirm");
+        if (!servoOff.empty()) message += "\n" + sca::Loc::F("Main.OriginPrepServoOff", ::base::Join(servoOff, ", "));
+
+        busy->store(true);
+        bool yes = co_await ui::Dialogs::ConfirmAsync(std::move(message), sca::Loc::T("Main.OriginPrepTitle"));
+        if (!yes)
+        {
+            busy->store(false);
+            co_return;
+        }
+
+        sca::McControl::Status().SetMessage(sca::Loc::T("Main.OriginPrepRunning"));
+        ui::RunBackgroundThenUi(
+            [] {
+                // Token chạy tay: STOP (mềm hoặc cứng), EMG, alarm huỷ được lúc đang chờ servo/phanh.
+                std::string why = sca::McControl::ServoOnAndReleaseBrakes(sca::McControl::ManualToken());
+                if (why.empty()) sca::McControl::RequestOrigin();
+                else sca::McControl::Status().SetMessage(sca::Loc::F("Mc.CannotHome", why));
+            },
+            [busy] { busy->store(false); });
+    }
 
     // MA-12: không hỏi xác nhận (như WPF).
     void MainPage::OnClearCountersClick(WF::IInspectable const&, RoutedEventArgs const&)

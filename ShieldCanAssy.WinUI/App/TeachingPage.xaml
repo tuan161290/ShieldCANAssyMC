@@ -77,6 +77,13 @@
             <Setter Property="MinHeight" Value="36"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+        <!-- Cao độ hút/đặt + điểm giảm tốc: gõ số (mm) rồi Enter, hoặc Teach (Tuấn 2026-10-27). Cột co giãn (*) nên ô giãn theo. -->
+        <Style x:Key="ZValueBoxStyle" TargetType="NumberBox">
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
         <Style x:Key="TrimAxisLabelStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Margin" Value="10,0,3,0"/>
@@ -143,7 +150,8 @@
                     </Grid>
                 </Border>
 
-                <!-- ══ 4.2 SELECT TRAY ══ -->
+                <!-- ══ 4.2 TRAY — bộ chọn Tray / Tool nằm trên nền trang, phía trên card CELL COORDS (Tuấn 2026-10-21); ở
+                     đây chỉ còn tên tray + Tool đang làm và thứ tự quét. ══ -->
                 <Border Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,0,8">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -152,29 +160,13 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Border Style="{StaticResource CardHeaderStyle}">
-                            <TextBlock Text="SELECT TRAY" Style="{StaticResource SectionHeaderStyle}"/>
+                            <TextBlock Text="TRAY" Style="{StaticResource SectionHeaderStyle}"/>
                         </Border>
                         <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
                         <StackPanel Grid.Row="2" Margin="12">
-                            <!-- TE-9 -->
-                            <SelectorBar x:Name="TraySelector" Margin="-4,0,0,8">
-                                <SelectorBarItem x:Name="TrayInput1Item" Text="Input 1" IsSelected="True"
-                                                 Style="{StaticResource PageSelectorBarItemStyle}"/>
-                                <SelectorBarItem x:Name="TrayInput2Item" Text="Input 2" Style="{StaticResource PageSelectorBarItemStyle}"/>
-                                <SelectorBarItem x:Name="TrayAssyItem" Text="Assy" Style="{StaticResource PageSelectorBarItemStyle}"/>
-                            </SelectorBar>
                             <!-- TE-10, TE-11 -->
                             <TextBlock x:Name="TrayTitleText" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
                             <TextBlock x:Name="SharedSizeText" Style="{StaticResource TeachHintStyle}"/>
-
-                            <Border Style="{StaticResource InsetDividerStyle}"/>
-                            <!-- TE-12 -->
-                            <TextBlock Text="Select Tool" Style="{StaticResource SmallCaptionStyle}"/>
-                            <SelectorBar x:Name="ToolSelector" Margin="-4,0,0,0">
-                                <SelectorBarItem x:Name="Tool1Item" Text="Tool 1" IsSelected="True"
-                                                 Style="{StaticResource PageSelectorBarItemStyle}"/>
-                                <SelectorBarItem x:Name="Tool2Item" Text="Tool 2" Style="{StaticResource PageSelectorBarItemStyle}"/>
-                            </SelectorBar>
 
                             <Border Style="{StaticResource InsetDividerStyle}"/>
                             <!-- TE-13 -->
@@ -239,6 +231,8 @@
                             <!-- TE-19 -->
                             <TextBlock x:Name="ThreePointHintText" Style="{StaticResource TeachHintStyle}"/>
 
+                            <!-- Tray 1 (hoặc Assy). Chú thích tray chỉ hiện ở chế độ Input. -->
+                            <TextBlock x:Name="Tray1PointsCaption" Style="{StaticResource SmallCaptionStyle}"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -298,9 +292,8 @@
                                         Padding="6,4" VerticalAlignment="Center"/>
                             </Grid>
 
-                            <Border Style="{StaticResource InsetDividerStyle}"/>
                             <!-- TE-26 -->
-                            <Grid>
+                            <Grid Margin="0,8,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="*"/>
@@ -313,8 +306,75 @@
                                 <Button x:Name="TeachVerifyButton" Grid.Column="3" Content="Teach" Width="86"/>
                             </Grid>
                             <!-- TE-27 -->
-                            <TextBlock x:Name="VerifyText" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"
+                            <TextBlock x:Name="VerifyText" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"
                                        Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                            <!-- Tray 2 (chỉ chế độ Input): P1/P2/P3 + điểm kiểm chứng RIÊNG; số hàng/cột chỉ đọc — theo Tray 1.
+                                 Cột 1/3/5 cùng bề rộng với hàng Tray 1 (64 + lề 4, 66 + lề 6) để ba nút P thẳng hàng. -->
+                            <StackPanel x:Name="Tray2PointsBlock">
+                                <Border Style="{StaticResource InsetDividerStyle}"/>
+                                <TextBlock x:Name="Tray2PointsCaption" Style="{StaticResource SmallCaptionStyle}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button x:Name="T2P1Button" Grid.Column="0" Style="{StaticResource TeachStepButtonStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="P1" Style="{StaticResource StepTitleStyle}"/>
+                                            <TextBlock Text="cell (1,1)" Style="{StaticResource StepSubStyle}"/>
+                                            <TextBlock x:Name="T2P1XText" Style="{StaticResource StepCoordStyle}"/>
+                                            <TextBlock x:Name="T2P1YText" Style="{StaticResource StepCoordStyle}"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <StackPanel Grid.Column="1" Width="64" VerticalAlignment="Center" Margin="4,0">
+                                        <TextBlock Text="→" FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Cols" FontSize="10" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock x:Name="T2ColsText" FontSize="14" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <Button x:Name="T2P2Button" Grid.Column="2" Style="{StaticResource TeachStepButtonStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="P2" Style="{StaticResource StepTitleStyle}"/>
+                                            <TextBlock Text="end of row 1" Style="{StaticResource StepSubStyle}"/>
+                                            <TextBlock x:Name="T2P2XText" Style="{StaticResource StepCoordStyle}"/>
+                                            <TextBlock x:Name="T2P2YText" Style="{StaticResource StepCoordStyle}"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <StackPanel Grid.Column="3" Width="64" VerticalAlignment="Center" Margin="4,0">
+                                        <TextBlock Text="→" FontSize="16" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Rows" FontSize="10" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock x:Name="T2RowsText" FontSize="14" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <Button x:Name="T2P3Button" Grid.Column="4" Style="{StaticResource TeachStepButtonStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="P3" Style="{StaticResource StepTitleStyle}"/>
+                                            <TextBlock Text="end of col. 1" Style="{StaticResource StepSubStyle}"/>
+                                            <TextBlock x:Name="T2P3XText" Style="{StaticResource StepCoordStyle}"/>
+                                            <TextBlock x:Name="T2P3YText" Style="{StaticResource StepCoordStyle}"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Border Grid.Column="5" Width="66" Margin="6,0,0,0"/>
+                                </Grid>
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Verify (optional)" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="T2VerifyXText" Grid.Column="1" Margin="2" VerticalAlignment="Center" FontFamily="Consolas"/>
+                                    <TextBlock x:Name="T2VerifyYText" Grid.Column="2" Margin="2" VerticalAlignment="Center" FontFamily="Consolas"/>
+                                    <Button x:Name="T2TeachVerifyButton" Grid.Column="3" Content="Teach" Width="86"/>
+                                </Grid>
+                                <TextBlock x:Name="T2VerifyText" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -377,28 +437,35 @@
                         <StackPanel Grid.Row="2" Margin="12">
                             <!-- TE-31 -->
                             <TextBlock x:Name="ZPickHintText" Style="{StaticResource TeachHintStyle}"/>
-                            <!-- TE-32 -->
-                            <Grid Margin="0,0,0,6">
+                            <!-- TE-32: cột Tray 1 (hoặc Assy) | cột Tray 2 — Tray 2 teach Z RIÊNG. Chế độ Assy: code đặt bề rộng cột
+                                 3, 4 về 0 (ZPickGrid / ZSlowGrid) và ẩn hàng tiêu đề. -->
+                            <Grid x:Name="ZPickGrid" RowSpacing="6">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Z1:" Style="{StaticResource ValueLabelStyle}"/>
-                                    <TextBlock x:Name="ZPickZ1Text" Style="{StaticResource ValueTextStyle}"/>
-                                </StackPanel>
-                                <Button x:Name="TeachZPickZ1Button" Grid.Column="1" Content="Teach Z1" Width="110"/>
-                            </Grid>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Z2:" Style="{StaticResource ValueLabelStyle}"/>
-                                    <TextBlock x:Name="ZPickZ2Text" Style="{StaticResource ValueTextStyle}"/>
-                                </StackPanel>
-                                <Button x:Name="TeachZPickZ2Button" Grid.Column="1" Content="Teach Z2" Width="110"/>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="ZPickHead1Text" Grid.Column="1" Text="Tray 1" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock x:Name="ZPickHead2Text" Margin="12,0,0,0" Grid.Column="3" Text="Tray 2" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Grid.Row="1" Text="Z1:" Style="{StaticResource ValueLabelStyle}"/>
+                                <NumberBox x:Name="ZPickZ1Box" Grid.Row="1" Grid.Column="1" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="TeachZPickZ1Button" Margin="6,0,0,0" Grid.Row="1" Grid.Column="2" Content="Teach" Width="76"/>
+                                <NumberBox x:Name="T2ZPickZ1Box" Margin="12,0,0,0" Grid.Row="1" Grid.Column="3" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="T2TeachZPickZ1Button" Margin="6,0,0,0" Grid.Row="1" Grid.Column="4" Content="Teach" Width="76"/>
+                                <TextBlock Grid.Row="2" Text="Z2:" Style="{StaticResource ValueLabelStyle}"/>
+                                <NumberBox x:Name="ZPickZ2Box" Grid.Row="2" Grid.Column="1" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="TeachZPickZ2Button" Margin="6,0,0,0" Grid.Row="2" Grid.Column="2" Content="Teach" Width="76"/>
+                                <NumberBox x:Name="T2ZPickZ2Box" Margin="12,0,0,0" Grid.Row="2" Grid.Column="3" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="T2TeachZPickZ2Button" Margin="6,0,0,0" Grid.Row="2" Grid.Column="4" Content="Teach" Width="76"/>
                             </Grid>
 
                             <Border Style="{StaticResource InsetDividerStyle}"/>
@@ -406,27 +473,33 @@
                             <TextBlock x:Name="ZSlowTitleText" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,2"/>
                             <TextBlock x:Name="ZSlowHintText" Style="{StaticResource TeachHintStyle}"/>
                             <!-- TE-34 -->
-                            <Grid Margin="0,0,0,6">
+                            <Grid x:Name="ZSlowGrid" RowSpacing="6">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Z1:" Style="{StaticResource ValueLabelStyle}"/>
-                                    <TextBlock x:Name="ZSlowZ1Text" Style="{StaticResource ValueTextStyle}"/>
-                                </StackPanel>
-                                <Button x:Name="TeachZSlowZ1Button" Grid.Column="1" Content="Teach Z1" Width="110"/>
-                            </Grid>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Z2:" Style="{StaticResource ValueLabelStyle}"/>
-                                    <TextBlock x:Name="ZSlowZ2Text" Style="{StaticResource ValueTextStyle}"/>
-                                </StackPanel>
-                                <Button x:Name="TeachZSlowZ2Button" Grid.Column="1" Content="Teach Z2" Width="110"/>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="ZSlowHead1Text" Grid.Column="1" Text="Tray 1" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock x:Name="ZSlowHead2Text" Margin="12,0,0,0" Grid.Column="3" Text="Tray 2" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Grid.Row="1" Text="Z1:" Style="{StaticResource ValueLabelStyle}"/>
+                                <NumberBox x:Name="ZSlowZ1Box" Grid.Row="1" Grid.Column="1" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="TeachZSlowZ1Button" Margin="6,0,0,0" Grid.Row="1" Grid.Column="2" Content="Teach" Width="76"/>
+                                <NumberBox x:Name="T2ZSlowZ1Box" Margin="12,0,0,0" Grid.Row="1" Grid.Column="3" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="T2TeachZSlowZ1Button" Margin="6,0,0,0" Grid.Row="1" Grid.Column="4" Content="Teach" Width="76"/>
+                                <TextBlock Grid.Row="2" Text="Z2:" Style="{StaticResource ValueLabelStyle}"/>
+                                <NumberBox x:Name="ZSlowZ2Box" Grid.Row="2" Grid.Column="1" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="TeachZSlowZ2Button" Margin="6,0,0,0" Grid.Row="2" Grid.Column="2" Content="Teach" Width="76"/>
+                                <NumberBox x:Name="T2ZSlowZ2Box" Margin="12,0,0,0" Grid.Row="2" Grid.Column="3" Style="{StaticResource ZValueBoxStyle}"/>
+                                <Button x:Name="T2TeachZSlowZ2Button" Margin="6,0,0,0" Grid.Row="2" Grid.Column="4" Content="Teach" Width="76"/>
                             </Grid>
                             <!-- TE-35 -->
                             <TextBlock x:Name="ZSlowStatusText" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
@@ -543,15 +616,36 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- ══════════ Cột phải: lưới ô (phần còn lại) + Jog & khí nén (Auto) ══════════ -->
+        <!-- ══════════ Cột phải: chọn Tray / Tool + lưới ô (phần còn lại) + Jog & khí nén (Auto) ══════════ -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            <!-- TE-9, TE-12: chọn Tray / Tool — nằm thẳng trên nền trang (lớp 0), ngoài mọi card, để luôn thấy đang làm tray
+                 nào, Tool nào (Tuấn 2026-10-21). Nút kiểu Radio (ChoiceButtonStyle): mỗi nhóm chọn đúng một.
+                 Input = CẢ HAI tray đầu vào (lưới ô, 3 điểm, cao độ Z hiện Tray 1 và Tray 2 cùng lúc). -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Tray" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <RadioButton x:Name="TrayInputRadio" Content="Input" GroupName="TeachTray" IsChecked="True" Width="110"
+                                 Style="{StaticResource ChoiceButtonStyle}"/>
+                    <RadioButton x:Name="TrayAssyRadio" Content="Assy" GroupName="TeachTray" Width="110"
+                                 Style="{StaticResource ChoiceButtonStyle}"/>
+                </StackPanel>
+                <TextBlock Text="Tool" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="32,0,10,0"/>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <RadioButton x:Name="Tool1Radio" Content="Tool 1" GroupName="TeachTool" IsChecked="True" Width="110"
+                                 Style="{StaticResource ChoiceButtonStyle}"/>
+                    <RadioButton x:Name="Tool2Radio" Content="Tool 2" GroupName="TeachTool" Width="110"
+                                 Style="{StaticResource ChoiceButtonStyle}"/>
+                </StackPanel>
+            </StackPanel>
+
             <!-- ══ 4.9 CELL COORDS ══ -->
-            <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Padding="0">
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -568,11 +662,21 @@
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
 
-                    <!-- TE-43: lưới nút ô dựng trong code (ui::teaching::CellGrid) — [Busy-off] -->
+                    <!-- TE-43: lưới nút ô dựng trong code (ui::teaching::CellGrid) — [Busy-off]. Chế độ Input: lưới Tray 1 rồi
+                         lưới Tray 2 bên dưới, số thứ tự nối tiếp theo sổ (Tray 2 bắt đầu từ R×C + 1); chế độ Assy: một lưới. -->
                     <ScrollViewer x:Name="CellScroll" Grid.Row="2" Margin="8"
                                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                                   HorizontalScrollMode="Auto">
-                        <Grid x:Name="CellGrid" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <TextBlock x:Name="CellTray1Text" FontSize="12" Margin="2,0,0,2"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Grid x:Name="CellGrid" HorizontalAlignment="Left"/>
+                            <StackPanel x:Name="CellTray2Block" Margin="0,12,0,0">
+                                <TextBlock x:Name="CellTray2Text" FontSize="12" Margin="2,0,0,2"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <Grid x:Name="CellGrid2" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </StackPanel>
                     </ScrollViewer>
 
                     <!-- Khu nút của ô đang chọn + bù đặt — [Busy-off] cả khối (ContentControl truyền IsEnabled xuống) -->
@@ -658,7 +762,7 @@
             </Border>
 
             <!-- ══ 4.10 JOG & PNEUMATICS ══ -->
-            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,0" Padding="0">
+            <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,0" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

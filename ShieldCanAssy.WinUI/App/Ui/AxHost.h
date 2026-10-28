@@ -13,7 +13,10 @@ class AxHost
 public:
     HRESULT Create(HWND parent, const wchar_t* clsid);
     void    ConvertToPopup();                       // move the control into an owned top-level popup
-    void    MoveInOwnerClient(const RECT& r);       // r = pixels relative to the owner's client area
+    // r = control rect in pixels relative to the owner's client area; clip = the part of r that may show (popup mode:
+    // the popup takes clip's size, the control is offset inside it so the hidden part lies outside the popup).
+    void    MoveInOwnerClient(const RECT& r, const RECT& clip);
+    void    MoveInOwnerClient(const RECT& r) { MoveInOwnerClient(r, r); }
     void    SetBleed(int px) { m_bleed = px; }      // popup mode: control overflows the popup by px on each side (clipped)
     void    Show(bool visible);
     void    Enable(bool enabled);                   // block input (modal dialogs) without hiding

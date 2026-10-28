@@ -296,6 +296,8 @@ namespace sca
         unsigned loadGen{ 0 };
 
         mutable std::mutex cacheMutex;
+        /// Đường dẫn tuyệt đối (UTF-8) của file .solw đang nạp — rỗng khi chưa nạp. (cacheMutex)
+        std::string solutionFile;
         std::vector<std::string> flowNames;
         std::shared_ptr<const ImageData> top, bottom1, bottom2;
         std::vector<std::string> lastCleared;
@@ -653,6 +655,7 @@ namespace sca
             connected = false;
             std::lock_guard<std::mutex> l(cacheMutex);
             flowNames.clear();
+            solutionFile.clear();
         }
     };
 
@@ -743,8 +746,21 @@ namespace sca
         // của Flow, không cần callback (mẫu GetResultControl làm y hệt ngay sau LoadSolution).
         try { sol->DisableModulesCallback(); } catch (...) {}
         m->RefreshFlowNames();
+        {
+            // Đường dẫn tuyệt đối theo thư mục làm việc lúc nạp — như SDK hiểu đường dẫn tương đối.
+            std::error_code ec;
+            std::filesystem::path abs = std::filesystem::absolute(base::U8Path(solutionPath), ec);
+            std::lock_guard<std::mutex> l(m->cacheMutex);
+            m->solutionFile = ec ? solutionPath : base::PathToU8(abs.lexically_normal());
+        }
         m->loaded = true;
         return true;
+    }
+
+    std::string VisionMasterDevice::SolutionFile() const
+    {
+        std::lock_guard<std::mutex> l(m->cacheMutex);
+        return m->solutionFile;
     }
 
     VisionPose VisionMasterDevice::TriggerCalib(EVisionProcedure procedure, const AxisSnapshot& axes, std::stop_token ct)

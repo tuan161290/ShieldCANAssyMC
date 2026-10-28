@@ -178,6 +178,14 @@ namespace sca
                                               double secondAtNozzle1, double secondAtNozzle2,
                                               double sameColumnMm = 0);
 
+        /// <summary>
+        /// Ô CHỤP TRƯỚC trong một nhóm ô sắp chụp (cặp, hàng) — ô có X chỗ đứng chụp LỚN nhất (Tuấn 2026-10-28), gương của
+        /// luật hút ô X nhỏ trước: gantry vừa đặt ở tray lắp ráp (X lớn), chụp xong về tray đầu vào (X nhỏ), nên chụp từ X
+        /// lớn xuống X nhỏ là đi một chiều. Ô cùng cột (lệch X dưới <paramref name="sameColumnMm"/>) giữ thứ tự ghé. Trả chỉ
+        /// số TRONG <paramref name="camX"/>, −1 khi rỗng. Hàm thuần (Routine_AutoStatics.cpp).
+        /// </summary>
+        static int FirstToScan(const std::vector<double>& camX, double sameColumnMm = 0);
+
     private:
         // ───────────── kiểu riêng ─────────────
 
@@ -206,6 +214,8 @@ namespace sca
         bool SkipCellNotFound(TrayState& tray, int index, const std::string& detail);
         int NextScanCell(const TrayState& tray);
         int NextUnscannedCell(const TrayState& tray);
+        /// <summary>Ô của <paramref name="cells"/> chụp trước theo <see cref="FirstToScan"/>; −1 khi rỗng.</summary>
+        int FirstScanCell(const TrayState& tray, const std::vector<int>& cells);
 
         // ───────────── cổng ─────────────
         bool CanRun(std::string& why);
@@ -234,10 +244,10 @@ namespace sca
         // ───────────── S40 / S50 / tray ─────────────
         bool S40_Index();
         bool S50_TrayCheck(std::stop_token ct);
-        static void CloseSelection(TrayState& tray, ECellState open, const std::string& what);
+        /// <summary>Kết thúc một tray: mọi ô còn việc (<paramref name="open"/>) thành Skipped, bỏ ô chọn. Trả số ô đã
+        /// đánh dấu.</summary>
+        static int FinishTray(TrayState& tray, ECellState open, const std::string& what);
         void ReloadTrays(int inputMask, bool assy);
-        /// <summary>RỖNG khi không có tray nào (C#: null).</summary>
-        static std::string TrayWhat(bool input, bool assy);
         std::string TrayWaitText();
         bool NeedAssyTray();
         /// <summary>C# WaitTrayAsync.</summary>
@@ -263,6 +273,7 @@ namespace sca
         /// quả" rỗng (thay bằng VmCallResult::Fail).</summary>
         VmCallResult CallVm(const VmCallRequest& req, std::stop_token ct);
         static int LampFor(EAutoState state);
+        void LightCamLamp(int lampBit);
         void TurnCamLampOn(int lampBit, std::stop_token ct);
         void UpdateCamLamp();
         void TurnCamLampOff();
@@ -361,8 +372,13 @@ namespace sca
         /// <summary>Thông báo của lần chờ tray đang diễn ra, rỗng khi không chờ. (m_waitingMutex)</summary>
         mutable std::mutex m_waitingMutex;
         std::string m_waiting;
+        /// <summary>Thông báo "Cycle complete …" của lượt vừa xong (S50), rỗng khi không có — giữ tới lúc Start nạp
+        /// tray hoặc về gốc. (m_waitingMutex)</summary>
+        std::string m_cycleDone;
 
         /// <summary>Đèn CAM đang sáng — IoMap::DoLampCam1 hoặc DoLampCam2, −1 khi cả hai đang tắt. Chỉ luồng chu trình.</summary>
         int m_lampOn{ -1 };
+        /// <summary>Đặt lại lúc bật <c>m_lampOn</c> — WaitLamp chỉ chờ phần thời gian đèn lên còn thiếu. Chỉ luồng chu trình.</summary>
+        base::Stopwatch m_lampSince;
     };
 }

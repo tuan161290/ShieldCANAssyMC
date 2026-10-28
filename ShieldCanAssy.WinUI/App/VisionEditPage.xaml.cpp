@@ -21,6 +21,9 @@
 #include "Ui/JogControl.h"
 #include "Ui/UiUtil.h"
 #include "Ui/VisionEditPageParts.h"
+#include "Ui/VmDotNet.h"
+#include "Communication/VisionConnect.h"
+#include "Vision/VisionMasterDevice.h"
 #include "Utility/Log/LogWorker.h"
 
 using namespace winrt;
@@ -72,17 +75,17 @@ namespace winrt::ShieldCanAssy::implementation
         LoadInputs();
 
         m_syncing = true;
-        ToolSelector().SelectedItem(Tool1Item());
+        Tool1Radio().IsChecked(true);
         m_syncing = false;
         SelectTool(1);
         SelectStep(0);
 
-        SetGate({});
         SetVerifyResult({});
         SetHandEyeStep({});
         SetStepResult({});
         SetSequenceStatus({});
         ApplyBusy();
+        ApplyCalibColumn();
 
         if (m_coreReady) OnTick();
         if (m_visible) QueueVmWork();   // OnShown(true) tới trước Loaded thì EnsureVmPanes đã bỏ qua
@@ -101,7 +104,7 @@ namespace winrt::ShieldCanAssy::implementation
         }
     }
 
-    // Numpad 7 8 9 / 4 5 6 / 1 2 3 khớp hình minh hoạ người dùng gửi; 5 = Calibration Center Point. Bấm đúp.
+    // Numpad 7 8 9 / 4 5 6 / 1 2 3 khớp hình minh hoạ người dùng gửi; 5 = tâm = TOP CAM REF của tray lắp ráp. Bấm đúp.
     void VisionEditPage::BuildNumpad()
     {
         for (int n = 1; n <= 9; ++n)
@@ -128,7 +131,9 @@ namespace winrt::ShieldCanAssy::implementation
             NumberBox box;
             ui::ConfigureNumberBox(box, decimals);
             box.Width(120);
-            // Ghi khi xác nhận (Enter / rời ô) — như binding TextBox của WPF. Ô trống: trả lại số cũ.
+            // Ghi khi xác nhận (Enter / rời ô) — như binding TextBox của WPF — và ghi luôn system.json: trang này không có
+            // nút Lưu (trước 2026-10-21 nút Save Center lưu hộ). Ô trống: trả lại số cũ. Lỗi ghi đĩa: SaveSystemData tự
+            // phát alarm.
             box.ValueChanged([weak = get_weak(), field](NumberBox const& s, NumberBoxValueChangedEventArgs const&) {
                 auto self = weak.get();
                 if (!self || self->m_syncing) return;
@@ -142,7 +147,9 @@ namespace winrt::ShieldCanAssy::implementation
                     self->m_syncing = false;
                     return;
                 }
+                if ((*sys).*field == v) return;
                 (*sys).*field = v;
+                ui::RunBackground([] { McDataManager::SaveSystemData(); });
             });
             host.Children().Append(ui::UnitNumber(box, unit));
             return box;
@@ -151,14 +158,6 @@ namespace winrt::ShieldCanAssy::implementation
         m_gridStepYBox = make(GridStepYHost(), 3, L"mm", &sca::SystemData::TopDownCalibStepYMm);
         m_verifyTravelBox = make(VerifyTravelHost(), 3, L"mm", &sca::SystemData::TopDownVerifyStepMm);
         m_testAngleBox = make(TestAngleHost(), 2, L"°", &sca::SystemData::AlignVerifyAngleDeg);
-
-        // Ô của khu chạy kiểm từng bước: số nguyên ≥ 1, giữ trong trang (mặc định 1, như view-model).
-        for (auto box : { SeqAssyRowBox(), SeqAssyColBox(), SeqInputRowBox(), SeqInputColBox() })
-        {
-            ui::ConfigureNumberBox(box, 0);
-            box.Minimum(1);
-            box.HorizontalAlignment(HorizontalAlignment::Stretch);
-        }
     }
 
     // Tên bước KHÔNG mang số thứ tự (luật Tuấn 15/09); thứ tự nằm ở thứ tự danh sách. Không ghép số Tool vào tên: đổi Tool
@@ -206,7 +205,6 @@ namespace winrt::ShieldCanAssy::implementation
             { Vac2Button(), "Vision.Vacuum2Tip" },
             { StopAllButton(), "Vision.StopTip" },
             { StepCombo(), "Vision.StepsTip" },
-            { SaveCenterButton(), "Vision.SaveCenterTip" },
             { AutoCalibButton(), "Vision.AutoCalibTip" },
             { TopLoadHereButton(), "Vision.TriggerTopCalibTip" },
             { VerifyTopButton(), "Vision.VerifyTopDownTip" },
@@ -221,6 +219,8 @@ namespace winrt::ShieldCanAssy::implementation
             { He5Button(), "Vision.HeCommitTip" },
             { He6Button(), "Vision.HeLocateHereTip" },
             { HeCellButton(), "Vision.HeCellPickerTip" },
+            { SeqAssyCellButton(), "Vision.SeqAssyCellTip" },
+            { SeqInputCellButton(), "Vision.SeqInputCellTip" },
             { He7Button(), "Vision.HeGoToAlign7Tip" },
             { He8Button(), "Vision.HeCheckTargetTip" },
             { He9Button(), "Vision.HeGoToTargetTip" },
@@ -306,8 +306,8 @@ namespace winrt::ShieldCanAssy::implementation
         dbl(DryPlaceButton(), [](VisionEditPage& p) { p.DryRunPlaceAlign(); });
 
         dbl(Seq1Button(), [](VisionEditPage& p) {
-            int r = p.SeqValue(p.SeqAssyRowBox(), p.m_stepAssyRow) - 1;
-            int c = p.SeqValue(p.SeqAssyColBox(), p.m_stepAssyCol) - 1;
+            int r = p.m_stepAssyRow - 1;
+            int c = p.m_stepAssyCol - 1;
             p.StepRun(Loc::T("Vision.SeqMoveCamTitle"),
                       [r, c](CR& cal, int, std::stop_token ct) { return cal.StepMoveCamToCell(r, c, ct); }, Report::Step, p.m_tool);
         });
@@ -332,11 +332,8 @@ namespace winrt::ShieldCanAssy::implementation
         m_testAngleBox.Value(sys->AlignVerifyAngleDeg);
         AlignXOffsetsBox().Text(ui::H(sys->AlignCalibXOffsetsMm));
         AlignAnglesBox().Text(ui::H(sys->AlignCalibAnglesDeg));
-        SeqAssyRowBox().Value(m_stepAssyRow);
-        SeqAssyColBox().Value(m_stepAssyCol);
-        SeqInputRowBox().Value(m_stepInputRow);
-        SeqInputColBox().Value(m_stepInputCol);
         m_syncing = false;
+        UpdateSeqCellButtons();
     }
 
     void VisionEditPage::CommitAlignLists()
@@ -346,8 +343,11 @@ namespace winrt::ShieldCanAssy::implementation
         if (!sys) return;
         std::string x = ui::U8(AlignXOffsetsBox().Text());
         std::string a = ui::U8(AlignAnglesBox().Text());
-        if (x != sys->AlignCalibXOffsetsMm) sys->AlignCalibXOffsetsMm = x;
-        if (a != sys->AlignCalibAnglesDeg) sys->AlignCalibAnglesDeg = a;
+        if (x == sys->AlignCalibXOffsetsMm && a == sys->AlignCalibAnglesDeg) return;
+        sys->AlignCalibXOffsetsMm = x;
+        sys->AlignCalibAnglesDeg = a;
+        // Ghi system.json ngay, như các ô số của trang (không còn nút Save Center lưu hộ — 2026-10-21).
+        ui::RunBackground([] { McDataManager::SaveSystemData(); });
     }
 
     void VisionEditPage::OnAlignListLostFocus(WF::IInspectable const&, RoutedEventArgs const&)
@@ -355,18 +355,6 @@ namespace winrt::ShieldCanAssy::implementation
         CommitAlignLists();
     }
 
-    int VisionEditPage::SeqValue(NumberBox const& box, int& field)
-    {
-        double v = box.Value();
-        if (std::isnan(v) || v < 1)
-        {
-            m_syncing = true;
-            box.Value(field);
-            m_syncing = false;
-        }
-        else field = static_cast<int>(std::lround(v));
-        return field;
-    }
 
     // ═════════════════════════ trạng thái ═════════════════════════
 
@@ -408,17 +396,34 @@ namespace winrt::ShieldCanAssy::implementation
     {
         auto sys = McDataManager::SysData();
         auto model = McDataManager::Model();
-        auto cal = McControl::Calib();
 
-        // Cổng Auto, gom một dòng: lần kiểm tra hiệu chuẩn gần nhất.
-        std::optional<sca::VmCalibGate> last = cal ? cal->LastCalibGate() : std::nullopt;
-        ui::SetClampedText(ReadyText(), last ? last->Describe() : Loc::T("Vision.ReadyHint"));
-
-        if (sys)
+        // Cổng Auto, gom một dòng — đánh giá lại MỖI NHỊP thay cho nút Check Calib (Tuấn 2026-10-21): EvaluateCalib chỉ đọc
+        // model + system.json (ngày đo, ngưỡng, vị trí soi), nên vừa đo xong một bước hay đổi ngưỡng ở Setting là dòng này
+        // đổi theo. Chỉ tô lại màu khi trạng thái đổi.
+        sca::VmCalibGate gate = sca::VmCycle::EvaluateCalib(model.get(), sys.get());
+        ui::SetClampedText(ReadyText(), gate.Describe());
+        int ready = gate.Ready() ? 1 : 0;
+        if (ready != m_readyShown)
         {
-            ui::SetClampedText(CenterText(), std::format("Calibration Center Point: X={} Y={} {}",
-                Loc::FormatValue(sys->TopDownCalibCenterX, "0.000"), Loc::FormatValue(sys->TopDownCalibCenterY, "0.000"),
-                Loc::T(sys->TopDownCalibCenterSet ? "Vision.CenterSaved" : "Vision.CenterNotSaved")));
+            m_readyShown = ready;
+            ReadyText().Foreground(ui::Res(ready ? L"SuccessBrush" : L"CriticalBrush"));
+        }
+
+        if (model)
+        {
+            // Tâm lưới 9 điểm = TOP CAM REF của tray lắp ráp, ô (1,1) (Tuấn chốt 2026-10-21, PLAN.md §6.2): hiện toạ độ đang
+            // dùng; chưa teach thì chữ màu cam chỉ chỗ teach.
+            auto const& assy = *model->AssyTray;
+            bool taught = assy.CamTopDownAnchorTaught;
+            ui::SetClampedText(CenterText(), taught ? Loc::F("Vision.CenterIsRef", assy.CamTopDownAnchorX, assy.CamTopDownAnchorY)
+                                                    : Loc::T("Vision.CenterNoRef"));
+            int missing = taught ? 0 : 1;
+            if (missing != m_centerMissingShown)
+            {
+                m_centerMissingShown = missing;
+                if (missing) CenterText().Foreground(ui::Res(L"CautionBrush"));
+                else CenterText().ClearValue(TextBlock::ForegroundProperty());
+            }
         }
 
         if (model && sys)
@@ -470,15 +475,18 @@ namespace winrt::ShieldCanAssy::implementation
 
     void VisionEditPage::ShowShotVariant(int index)
     {
-        SelectStep(index);
+        // 0…5 = 6 bước; 6 = cột hiệu chuẩn ẩn.
+        m_calibHidden = index >= 6;
+        ApplyCalibColumn();
+        if (!m_calibHidden) SelectStep(index);
     }
 
-    void VisionEditPage::OnToolChanged(SelectorBar const& sender, SelectorBarSelectionChangedEventArgs const&)
+    // Nút kiểu Radio: Checked chỉ bắn ở nút vừa được chọn. Lúc dựng XAML (IsChecked="True") thì bỏ qua — OnRootLoaded tự
+    // SelectTool(1).
+    void VisionEditPage::OnToolChecked(WF::IInspectable const& sender, RoutedEventArgs const&)
     {
-        if (m_syncing) return;
-        auto sel = sender.SelectedItem();
-        if (!sel) return;
-        SelectTool(sel == Tool2Item() ? 2 : 1);
+        if (m_syncing || !m_loaded) return;
+        SelectTool(sender.as<RadioButton>() == Tool2Radio() ? 2 : 1);
     }
 
     void VisionEditPage::OnStepChanged(WF::IInspectable const&, SelectionChangedEventArgs const&)
@@ -501,6 +509,9 @@ namespace winrt::ShieldCanAssy::implementation
         m_appliedBusy = m_busy;
         bool en = !m_busy;
         CalibPanel().IsEnabled(en);
+        // Chọn Tool nằm ngoài CalibPanel (trên nền trang) — khoá riêng, đổi Tool giữa chuỗi hiệu chuẩn là lệch chữ / lệnh.
+        Tool1Radio().IsEnabled(en);
+        Tool2Radio().IsEnabled(en);
         for (auto& b : m_jogButtons) b.IsEnabled(en);
         for (auto b : { Z1SafeButton(), Z2SafeButton(), Vac1Button(), Vac2Button() }) b.IsEnabled(en);
         BusyRing().IsActive(m_busy);
@@ -540,15 +551,9 @@ namespace winrt::ShieldCanAssy::implementation
         if (m_loaded) ui::SetText(StepResultText(), m_stepResult ? *m_stepResult : Loc::T("Vision.NotRunYet"));
     }
 
-    void VisionEditPage::SetGate(std::string text)
-    {
-        if (!text.empty()) m_gate = std::move(text);
-        if (m_loaded) ui::SetClampedText(GateText(), m_gate ? *m_gate : Loc::T("Vision.NotCalibChecked"));
-    }
-
     void VisionEditPage::RefreshGate()
     {
-        if (auto cal = McControl::Calib()) SetGate(cal->CheckCalib().Describe());
+        if (auto cal = McControl::Calib()) cal->CheckCalib();   // giữ LastCalibGate của Routine_Calib đúng
         if (m_coreReady) UpdateCalibTexts();
     }
 
@@ -664,40 +669,36 @@ namespace winrt::ShieldCanAssy::implementation
         McControl::RequestStop();
     }
 
-    // ═════════════════════════ 6.3 luôn hiện ═════════════════════════
-
-    void VisionEditPage::OnCheckCalibClick(WF::IInspectable const&, RoutedEventArgs const&)
+    void VisionEditPage::OnCalibToggleClick(WF::IInspectable const&, RoutedEventArgs const&)
     {
-        RefreshGate();
+        m_calibHidden = !m_calibHidden;
+        ApplyCalibColumn();
+    }
+
+    // Cột lưới về 0 và card VisionMaster bỏ khe 8 px: hai popup ActiveX theo LayoutUpdated/SizeChanged của khung giữ chỗ
+    // (ui::VmPane) nên tự giãn theo, không phải gọi gì thêm.
+    void VisionEditPage::ApplyCalibColumn()
+    {
+        CalibColumn().Width(GridLengthHelper::FromPixels(m_calibHidden ? 0 : 320));
+        CalibColumnHost().Visibility(m_calibHidden ? Visibility::Collapsed : Visibility::Visible);
+        VmCard().Margin(ThicknessHelper::FromLengths(0, 0, m_calibHidden ? 0 : 8, 0));
+        CalibToggleButton().Content(box_value(m_calibHidden ? L"Show Calib" : L"Hide Calib"));
+        Tip(CalibToggleButton(), m_calibHidden ? "Vision.CalibShowTip" : "Vision.CalibHideTip");
     }
 
     // ═════════════════════════ 6.4 top-down ═════════════════════════
 
-    // Đọc (X, Y2) hiện tại làm Calibration Center Point và ghi thẳng system.json: trang này không có nút Lưu riêng —
-    // trước đây tắt app là mất.
-    void VisionEditPage::OnSaveCenterClick(WF::IInspectable const&, RoutedEventArgs const&)
-    {
-        if (!OrgOk()) { ui::Dialogs::Warn(Loc::T("Vision.NoOriginCoords")); return; }
-        auto sys = McDataManager::SysData();
-        if (!sys) return;
-        auto ax = McControl::Motion()[sca::AxisId::X];
-        auto ay = McControl::Motion()[sca::AxisId::Y2];
-        double x = ax ? ax->CurrentPos() : 0, y = ay ? ay->CurrentPos() : 0;
-        sys->TopDownCalibCenterX = x;
-        sys->TopDownCalibCenterY = y;
-        sys->TopDownCalibCenterSet = true;
-        UpdateCalibTexts();
-        ui::RunBackground([x, y] {
-            bool saved = McDataManager::SaveSystemData();
-            ui::Dialogs::Info(Loc::F(saved ? "Vision.CenterSavedOk" : "Vision.CenterSavedDiskFail", x, y));
-        });
-    }
-
+    // Tâm lưới 9 điểm = TOP CAM REF của tray lắp ráp (Tuấn chốt 2026-10-21, PLAN.md §6.2) — lấy thẳng từ model, nên
+    // không còn nút Save Center; chưa teach TOP CAM REF thì không chạy lưới.
     bool VisionEditPage::CheckReadyForGrid()
     {
         if (!OrgOk()) { ui::Dialogs::Warn(Loc::T("Vision.NoOriginCalib")); return false; }
-        auto sys = McDataManager::SysData();
-        if (!sys || !sys->TopDownCalibCenterSet) { ui::Dialogs::Warn(Loc::T("Vision.NoCenter")); return false; }
+        auto model = McDataManager::Model();
+        if (!model || !model->AssyTray->CamTopDownAnchorTaught || !McDataManager::SysData())
+        {
+            ui::Dialogs::Warn(Loc::T("Vision.NoCenter"));
+            return false;
+        }
         return true;
     }
 
@@ -706,9 +707,10 @@ namespace winrt::ShieldCanAssy::implementation
         /// Số numpad 1-9 → toạ độ (X, Y2): hệ số hàng/cột quanh tâm (1,2,3 hàng dưới; 7,8,9 hàng trên) × bước lưới.
         struct GridFrame { double CenterX{ 0 }, CenterY{ 0 }, StepX{ 0 }, StepY{ 0 }; };
 
-        GridFrame GridFrameOf(sca::SystemData const& s)
+        /// Tâm = TOP CAM REF của tray lắp ráp (model), bước lưới = system.json.
+        GridFrame GridFrameOf(sca::ModelData const& m, sca::SystemData const& s)
         {
-            return { s.TopDownCalibCenterX, s.TopDownCalibCenterY, s.TopDownCalibStepXMm, s.TopDownCalibStepYMm };
+            return { m.AssyTray->CamTopDownAnchorX, m.AssyTray->CamTopDownAnchorY, s.TopDownCalibStepXMm, s.TopDownCalibStepYMm };
         }
 
         void GridPointXY(GridFrame const& g, int number, double& x, double& y)
@@ -725,7 +727,7 @@ namespace winrt::ShieldCanAssy::implementation
     {
         if (m_busy || !CheckReadyForGrid()) return;
         double x = 0, y = 0;
-        GridPointXY(GridFrameOf(*McDataManager::SysData()), number, x, y);
+        GridPointXY(GridFrameOf(*McDataManager::Model(), *McDataManager::SysData()), number, x, y);
         auto ok = std::make_shared<bool>(false);
         RunJob([x, y, ok](sca::Routine_Calib& cal) { *ok = cal.MoveAndTriggerTopDownCalib(x, y, MT()); },
                [number, ok](VisionEditPage&, std::string const&) {
@@ -745,7 +747,7 @@ namespace winrt::ShieldCanAssy::implementation
         if (!co_await ui::Dialogs::ConfirmAsync(Loc::T("Vision.AutoCalibConfirm"))) co_return;
         if (m_busy || m_closing) co_return;
 
-        GridFrame sys = GridFrameOf(*McDataManager::SysData());   // bản chụp tâm + bước lưới lúc bấm
+        GridFrame sys = GridFrameOf(*McDataManager::Model(), *McDataManager::SysData());   // bản chụp tâm + bước lưới lúc bấm
         auto weak = get_weak();
         auto status = [weak](std::string s) {
             ui::PostUi([weak, s = std::move(s)] { if (auto p = weak.get()) p->SetSequenceStatus(s); });
@@ -1029,14 +1031,8 @@ namespace winrt::ShieldCanAssy::implementation
         int rows = (std::max)(1, tray->Rows()), cols = (std::max)(1, tray->Cols());
         if (m_heCellRow >= tray->Rows() || m_heCellCol >= tray->Cols()) { m_heCellRow = -1; m_heCellCol = -1; }
 
-        if (!m_cellFlyout)
-        {
-            m_cellFlyout = Flyout();
-            m_cellFlyout.ShouldConstrainToRootBounds(false);   // cửa sổ riêng — nổi trên popup VisionMaster
-            m_cellFlyout.Placement(Primitives::FlyoutPlacementMode::BottomEdgeAlignedRight);
-        }
-        m_cellFlyout.Content(ui::visionedit::BuildCellPicker(rows, cols, m_heCellRow, m_heCellCol,
-            [weak = get_weak()](int r, int c) {
+        CellFlyout().Content(ui::visionedit::BuildCellPicker(ui::T("Vision.HeCellPickerTitle"), rows, cols, m_heCellRow, m_heCellCol,
+            true, [weak = get_weak()](int r, int c) {
                 auto self = weak.get();
                 if (!self) return;
                 self->m_heCellRow = r;
@@ -1049,6 +1045,17 @@ namespace winrt::ShieldCanAssy::implementation
         ui::SetText(m_he6Caption, m_heCellRow < 0 ? std::string("(in place)") : "cell " + CellLabel(m_heCellRow, m_heCellCol));
         HeCellButton().Content(box_value(m_heCellRow < 0 ? ui::T("Vision.HeCellButton") : ui::H(CellLabel(m_heCellRow, m_heCellCol))));
         m_cellFlyout.ShowAt(HeCellButton());
+    }
+
+    Flyout VisionEditPage::CellFlyout()
+    {
+        if (!m_cellFlyout)
+        {
+            m_cellFlyout = Flyout();
+            m_cellFlyout.ShouldConstrainToRootBounds(false);   // cửa sổ riêng — nổi trên popup VisionMaster
+            m_cellFlyout.Placement(Primitives::FlyoutPlacementMode::BottomEdgeAlignedRight);
+        }
+        return m_cellFlyout;
     }
 
     // ═════════════════════════ 6.8 nghiệm thu ═════════════════════════
@@ -1066,8 +1073,6 @@ namespace winrt::ShieldCanAssy::implementation
         auto r = std::make_shared<sca::DryRunPlaceResult>();
         RunJob([tool, r](sca::Routine_Calib& cal) { *r = cal.DryRunPlaceAlign(tool, MT()); },
                [tool, r](VisionEditPage& p, std::string const&) {
-                   if (auto cal = McControl::Calib())
-                       if (auto gate = cal->LastCalibGate()) p.SetGate(gate->Describe());
                    if (p.m_coreReady) p.UpdateCalibTexts();
                    if (r->Ok)
                        ui::Dialogs::Info(Loc::F("Vision.DryRunDone", tool, r->CamX, r->CamY, r->CmdX, r->CmdY2) +
@@ -1082,10 +1087,47 @@ namespace winrt::ShieldCanAssy::implementation
     // Sáu nút đúng trình tự Auto, dừng giữa từng bước để đọc số (Tuấn 2026-09-14). Tay hút = Tool đang chọn ở trên — không
     // có ô chọn tay riêng ("bấm nút của tay này, xem số của tay kia").
 
+    // Ô của khu chạy kiểm: chọn trên lưới tray như nút 6 của hand-eye (Tuấn 2026-10-21), không gõ số hàng/cột. Ô tray đầu
+    // vào là của Tray 1 (Routine_Calib::StepPick hút ở Tray 1). Lưới dựng lại mỗi lần mở — đổi model thì kích thước đổi
+    // theo; ô cũ nằm ngoài lưới mới thì về (1,1).
+    void VisionEditPage::ShowSeqCellPicker(bool assy)
+    {
+        auto model = McDataManager::Model();
+        auto tray = model ? (assy ? model->AssyTray : model->InputTray) : nullptr;
+        if (!tray) { ui::Dialogs::Warn(Loc::T("Vision.NoModel")); return; }
+
+        int rows = (std::max)(1, tray->Rows()), cols = (std::max)(1, tray->Cols());
+        int& row = assy ? m_stepAssyRow : m_stepInputRow;
+        int& col = assy ? m_stepAssyCol : m_stepInputCol;
+        if (row > rows || col > cols) { row = 1; col = 1; }
+
+        CellFlyout().Content(ui::visionedit::BuildCellPicker(ui::T(assy ? "Vision.SeqAssyPickerTitle" : "Vision.SeqInputPickerTitle"),
+            rows, cols, row - 1, col - 1, false, [weak = get_weak(), assy](int r, int c) {
+                auto self = weak.get();
+                if (!self || r < 0) return;
+                (assy ? self->m_stepAssyRow : self->m_stepInputRow) = r + 1;
+                (assy ? self->m_stepAssyCol : self->m_stepInputCol) = c + 1;
+                self->UpdateSeqCellButtons();
+                if (self->m_cellFlyout) self->m_cellFlyout.Hide();
+            }));
+        UpdateSeqCellButtons();
+        m_cellFlyout.ShowAt(assy ? SeqAssyCellButton() : SeqInputCellButton());
+    }
+
+    void VisionEditPage::UpdateSeqCellButtons()
+    {
+        if (!m_loaded) return;
+        ui::SetContent(SeqAssyCellButton(), ui::H(CellLabel(m_stepAssyRow - 1, m_stepAssyCol - 1)));
+        ui::SetContent(SeqInputCellButton(), ui::H(CellLabel(m_stepInputRow - 1, m_stepInputCol - 1)));
+    }
+
+    void VisionEditPage::OnSeqAssyCellClick(WF::IInspectable const&, RoutedEventArgs const&) { ShowSeqCellPicker(true); }
+    void VisionEditPage::OnSeqInputCellClick(WF::IInspectable const&, RoutedEventArgs const&) { ShowSeqCellPicker(false); }
+
     void VisionEditPage::OnSeq2Click(WF::IInspectable const&, RoutedEventArgs const&)
     {
-        int r = SeqValue(SeqAssyRowBox(), m_stepAssyRow) - 1;
-        int c = SeqValue(SeqAssyColBox(), m_stepAssyCol) - 1;
+        int r = m_stepAssyRow - 1;
+        int c = m_stepAssyCol - 1;
         StepRun("Trigger LocateTop",
                 [r, c](sca::Routine_Calib& cal, int, std::stop_token ct) { return cal.StepLocateTop(r, c, ct); }, Report::Step, m_tool);
     }
@@ -1095,8 +1137,8 @@ namespace winrt::ShieldCanAssy::implementation
         auto strong = get_strong();
         if (m_busy) co_return;
         int tool = m_tool;
-        int row = SeqValue(SeqInputRowBox(), m_stepInputRow);
-        int col = SeqValue(SeqInputColBox(), m_stepInputCol);
+        int row = m_stepInputRow;
+        int col = m_stepInputCol;
         if (!co_await ui::Dialogs::ConfirmAsync(Loc::F("Vision.SeqPickConfirm", tool, row, col))) co_return;
         if (m_closing) co_return;
         StepRun(Loc::T("Vision.SeqPickTitle"),
@@ -1205,6 +1247,30 @@ namespace winrt::ShieldCanAssy::implementation
         HRESULT hr = m_config.Host().CallVoid(ui::vmdisp::ProcBindMultiProcedure);
         if (FAILED(hr))
             sca::LogWorker::Instance().RecordLog("Vision Edit: solution not bound — " + ::base::Narrow(m_config.Host().LastError()),
+                                                 sca::LogLevel::Warning, "VisionEdit");
+        SyncToolbarSavePath();
+    }
+
+    // Nút Save của thanh công cụ VisionMaster lưu vào VmSolution.SolutionPath phía .NET — rỗng vì App nạp solution bằng SDK
+    // C++, nên nó mở Save As (Tuấn 2026-10-28). Ghi đường dẫn file đang nạp vào đó mỗi lần gắn solution: Save lại lưu thẳng
+    // như bản WPF. Lỗi chỉ ghi log — Save As vẫn dùng được.
+    void VisionEditPage::SyncToolbarSavePath()
+    {
+        auto vc = std::dynamic_pointer_cast<sca::VisionConnect>(McControl::Vision());
+        auto device = vc ? std::dynamic_pointer_cast<sca::VisionMasterDevice>(vc->Device()) : nullptr;
+        const std::string file = device ? device->SolutionFile() : std::string();
+        if (file.empty()) return;
+
+        int updated = 0;
+        const std::string error = ui::SetVmDotNetSolutionPath(file, updated);
+        const std::string key = error.empty() ? file : file + "|" + error;
+        if (key == m_toolbarSaveLogged) return;   // log một lần cho mỗi kết quả, không rác log mỗi lần vào trang
+        m_toolbarSaveLogged = key;
+        if (error.empty())
+            sca::LogWorker::Instance().RecordLog(std::format("Vision Edit: toolbar Save now saves to {} ({} VM.Core)", file, updated),
+                                                 sca::LogLevel::Info, "VisionEdit");
+        else
+            sca::LogWorker::Instance().RecordLog("Vision Edit: can't set toolbar Save path (Save opens Save As) — " + error,
                                                  sca::LogLevel::Warning, "VisionEdit");
     }
 

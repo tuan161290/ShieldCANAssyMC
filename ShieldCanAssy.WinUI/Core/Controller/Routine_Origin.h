@@ -40,6 +40,11 @@ namespace sca
         /// </summary>
         bool Init(std::stop_token ct);
 
+        /// <summary>Lý do PreCheck (O0) sẽ từ chối, rỗng = qua. <paramref name="checkBrakes"/> = false bỏ qua riêng điều
+        /// kiện phanh Z1/Z2 — popup Origin ở trang Main dùng để biết có phải CHỈ thiếu nghi thức Servo On + nhả phanh.
+        /// Gọi được từ mọi luồng (chỉ đọc trạng thái).</summary>
+        std::string BlockReason(bool checkBrakes) const;
+
     private:
         // O0
         bool PreCheck();

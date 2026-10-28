@@ -87,13 +87,14 @@ namespace ui::visionedit
         button.Content(root);
     }
 
-    FrameworkElement BuildCellPicker(int rows, int cols, int selRow, int selCol, std::function<void(int, int)> onPick)
+    FrameworkElement BuildCellPicker(winrt::hstring const& titleText, int rows, int cols, int selRow, int selCol,
+                                     bool allowInPlace, std::function<void(int, int)> onPick)
     {
         StackPanel root;
         root.Padding(ThicknessHelper::FromUniformLength(4));
 
         TextBlock title;
-        title.Text(ui::T("Vision.HeCellPickerTitle"));
+        title.Text(titleText);
         title.FontSize(12);
         title.FontWeight(winrt::Windows::UI::Text::FontWeights::SemiBold());
         title.Margin(ThicknessHelper::FromLengths(0, 0, 0, 6));
@@ -134,12 +135,15 @@ namespace ui::visionedit
             }
         root.Children().Append(grid);
 
-        Button inPlace;
-        inPlace.Content(box_value(L"In Place"));
-        inPlace.HorizontalAlignment(HorizontalAlignment::Stretch);
-        inPlace.Margin(ThicknessHelper::FromLengths(0, 6, 0, 0));
-        inPlace.Click([pick](auto&&, auto&&) { if (*pick) (*pick)(-1, -1); });
-        root.Children().Append(inPlace);
+        if (allowInPlace)
+        {
+            Button inPlace;
+            inPlace.Content(box_value(L"In Place"));
+            inPlace.HorizontalAlignment(HorizontalAlignment::Stretch);
+            inPlace.Margin(ThicknessHelper::FromLengths(0, 6, 0, 0));
+            inPlace.Click([pick](auto&&, auto&&) { if (*pick) (*pick)(-1, -1); });
+            root.Children().Append(inPlace);
+        }
 
         // Tray lớn: lưới cuộn được, không tràn khỏi màn hình.
         ScrollViewer sv;

@@ -361,6 +361,7 @@ namespace sca
         j["PickRetryDeltaZ"] = Num(PickRetryDeltaZ);
         j["MaxConsecutiveNg"] = MaxConsecutiveNg;
         j["ScanAssyByRow"] = ScanAssyByRow;
+        j["ScanAssyByPair"] = ScanAssyByPair;   // chỉ bản WinUI (2026-10-28)
         j["VacuumTimeoutMs"] = VacuumTimeoutMs;
         j["VacuumSettleMs"] = VacuumSettleMs;
         j["BlowTimeMs"] = BlowTimeMs;
@@ -433,6 +434,7 @@ namespace sca
         GetNum(j, "PickRetryDeltaZ", s->PickRetryDeltaZ);
         Get(j, "MaxConsecutiveNg", s->MaxConsecutiveNg);
         Get(j, "ScanAssyByRow", s->ScanAssyByRow);
+        Get(j, "ScanAssyByPair", s->ScanAssyByPair);
         Get(j, "VacuumTimeoutMs", s->VacuumTimeoutMs);
         Get(j, "VacuumSettleMs", s->VacuumSettleMs);
         Get(j, "BlowTimeMs", s->BlowTimeMs);

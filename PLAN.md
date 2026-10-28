@@ -984,6 +984,13 @@ App (trang Vision Edit): lưu *Calibration Center Point* → chạy 9 điểm qu
 hình S** `1,2,3,6,5,4,7,8,9` (`Routine_Calib.TopDownGridSOrder`), mỗi điểm kích nhánh hiệu chuẩn của Flow
 `LocateTop` (`IsTriggerLocate = 0`, §6.8) một lần.
 
+**Calibration Center Point = TOP CAM REF của tray lắp ráp** (Tuấn chốt 2026-10-21): tâm lưới 9 điểm (điểm 5) lấy đúng
+điểm đầu tiên của camera trên tray lắp ráp — vị trí gantry (X, Y2) khi CAM top-down nằm đúng tâm ô (1,1), teach ở
+Teaching → Assy → TOP CAM REF (`TrayLayout::CamTopDownAnchorX/Y`). Bản WinUI lấy **thẳng** toạ độ đó từ model, nên bỏ nút
+Save Center: muốn dời lưới thì teach lại TOP CAM REF; chưa teach thì không chạy được lưới. Bước lưới Step X/Y ghi
+`system.json` ngay khi đổi. Bản WPF vẫn lưu tâm bằng nút Save (`TopDownCalibCenterX/Y` trong `system.json`, bản WinUI chỉ
+giữ nguyên giá trị đó để hai bản dùng chung file).
+
 Thứ tự hình S chỉ bắt buộc khi để **VisionMaster tự sinh** toạ độ vật lý theo quỹ đạo (Movement
 First + Commutation Number) — chạy theo dòng 1→9 thì điểm 4 và 6 lệch chỗ, ma trận vẫn fit ra nhưng
 méo và **không có thông báo lỗi nào**. Từ 2026-09-12 App **gửi kèm toạ độ encoder** qua biến toàn

@@ -216,6 +216,26 @@ namespace sca
         /// </summary>
         bool ScanAssyByRow = false;
 
+        /// <summary>
+        /// Quét tray lắp ráp <b>từng cặp</b> (chỉ bản WinUI, Tuấn 2026-10-28): S05 chỉ soi HAI ô trống đầu tiên — đúng hai
+        /// ô vòng này sẽ đặt — rồi đi hút, đặt xong mới soi hai ô kế. Khoảng cách từ lúc đo tới lúc đặt ngắn nhất, vòng
+        /// đầu hút sớm; tổng số lần chụp không đổi. Bật thì thắng <see cref="ScanAssyByRow"/> (xem <see cref="ScanAssy"/>).
+        /// Khoá JSON riêng: bản WPF đọc file này bỏ qua khoá lạ, <c>ScanAssyByRow</c> giữ nguyên nghĩa với nó.
+        /// </summary>
+        bool ScanAssyByPair = false;
+
+        /// <summary>Cách quét trước tray lắp ráp — gộp hai cờ trên.</summary>
+        enum class EScanAssy { Tray, Row, Pair };
+        EScanAssy ScanAssy() const
+        {
+            return ScanAssyByPair ? EScanAssy::Pair : ScanAssyByRow ? EScanAssy::Row : EScanAssy::Tray;
+        }
+        void SetScanAssy(EScanAssy mode)
+        {
+            ScanAssyByRow = mode == EScanAssy::Row;
+            ScanAssyByPair = mode == EScanAssy::Pair;
+        }
+
         /// <summary>Thời gian chờ cảm biến chân không đổi trạng thái sau khi đóng/mở van. Hết thời gian
         /// mà chưa đổi là hút hụt (lúc hút) hoặc sản phẩm dính đầu hút (lúc nhả).</summary>
         int VacuumTimeoutMs = 800;
@@ -338,7 +358,10 @@ namespace sca
         /// khi jog máy tới đó qua trang Manual. Lưới 9 điểm/Auto Calib tính offset từ đây — tách
         /// lưu và dùng thành 2 bước để không phải jog lại tâm mỗi lần mở app hay bấm từng điểm.
         /// <see cref="TopDownCalibCenterSet"/> phân biệt "chưa từng Save" với "đã Save đúng tại
-        /// (0,0)" — hai giá trị double mặc định 0 không tự nói lên được điều đó.</summary>
+        /// (0,0)" — hai giá trị double mặc định 0 không tự nói lên được điều đó.
+        /// <para><b>Bản WinUI KHÔNG còn dùng ba trường này</b> (Tuấn chốt 2026-10-21, PLAN.md §6.2): tâm lưới 9 điểm lấy
+        /// thẳng TOP CAM REF của tray lắp ráp, ô (1,1) (<c>AssyTray-&gt;CamTopDownAnchorX/Y</c>), nút Save Center đã bỏ.
+        /// Chỉ còn đọc/ghi lại nguyên giá trị để system.json vẫn khớp bản WPF (vẫn dùng nút Save).</para></summary>
         double TopDownCalibCenterX = 0;
         double TopDownCalibCenterY = 0;
         bool TopDownCalibCenterSet = false;

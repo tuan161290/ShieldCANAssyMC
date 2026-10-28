@@ -282,11 +282,44 @@
                                     <ToggleSwitch x:Name="CurtainSwitch" Style="{StaticResource RowToggleStyle}"/>
                                 </Grid>
                                 <Border Style="{StaticResource RowDividerStyle}"/>
+                                <!-- 3 cách quét trước tray lắp ráp (Tuấn thêm By pair 2026-10-28) — SystemData::ScanAssy. -->
                                 <Grid Style="{StaticResource SettingRowStyle}"
-                                      ToolTipService.ToolTip="On: Top CAM inspects empty cells of CURRENT ROW, places them, then next row. Off (default): whole tray first. Use if Y2 travel shifts Assy tray.">
-                                    <TextBlock Text="Scan Assy tray by row" Style="{StaticResource RowTitleStyle}"/>
-                                    <ToggleSwitch x:Name="ScanByRowSwitch" Style="{StaticResource RowToggleStyle}"/>
+                                      ToolTipService.ToolTip="Top CAM captures empty Assy cells before picking. Whole tray (default): all cells first. By row: cells of CURRENT ROW, places them, then next row. By pair: only the 2 cells of this round, picks and places, then next 2. Row / pair: use if Y2 travel shifts Assy tray.">
+                                    <TextBlock Text="Scan Assy tray" Style="{StaticResource RowTitleStyle}"/>
+                                    <ComboBox x:Name="ScanAssyCombo" Width="160" MinHeight="36" FontSize="13"
+                                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- USER ACCESS (Tuấn 2026-10-21): mật khẩu theo cấp, chỉ Vision Edit đòi Engineer. Đăng nhập / đăng xuất ở
+                             nút góc phải thanh điều hướng. Card này chỉ Engineer sửa được và ghi thẳng Config\users.json — không
+                             qua Save System. -->
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="USER ACCESS" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Engineer password" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}" Spacing="12">
+                                        <TextBlock x:Name="PasswordStateText" VerticalAlignment="Center" Style="{StaticResource CaptionStyle}"/>
+                                        <Button x:Name="ChangePasswordButton" Content="Change" Width="160"
+                                                Style="{StaticResource ModeButtonStyle}" Click="OnChangePasswordClick"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Auto logout" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <NumberBox x:Name="IdleLogoutBox" Style="{StaticResource ValueNumberStyle}"/>
+                                        <TextBlock Text="min" Style="{StaticResource UnitTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <TextBlock Style="{StaticResource GroupNoteStyle}" Margin="16,8,16,12" TextWrapping="Wrap"
+                                           Text="Vision Edit needs Engineer: Login at top right. Only Engineer edits this card; changes save at once to Config\users.json."/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

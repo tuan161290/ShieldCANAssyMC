@@ -110,13 +110,14 @@ namespace ui::teaching
         FitWidth(m_viewport);
     }
 
-    void CellGridView::Update(std::vector<CellInfo> const& cells, int rows, int cols, int selRow, int selCol)
+    void CellGridView::Update(std::vector<CellInfo> const& cells, int tray, int rows, int cols, int selRow, int selCol)
     {
         if (!m_grid) return;
         if (rows != m_rows || cols != m_cols) Rebuild(rows, cols);
 
         for (CellInfo const& cell : cells)
         {
+            if (cell.Tray != tray) continue;
             if (cell.Row < 0 || cell.Row >= rows || cell.Col < 0 || cell.Col >= cols) continue;
             CellView& v = m_views[(size_t)(cell.Row * cols + cell.Col)];
 

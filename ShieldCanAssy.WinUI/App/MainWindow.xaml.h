@@ -24,9 +24,18 @@ namespace winrt::ShieldCanAssy::implementation
         void OnRootLoaded(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnNavChecked(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnResetClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnUserClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
     private:
         void ShowSection(Section section);
+        /// <summary>Cấp đang đăng nhập đủ mở trang này không (chỉ Vision Edit đòi Engineer — Tuấn 2026-10-21).</summary>
+        static bool CanOpen(Section section);
+        /// <summary>Vừa xuống cấp (đăng xuất, tự đăng xuất): đang ở trang không còn quyền thì về Main.</summary>
+        void LeaveLockedSection();
+        /// <summary>Nút Login/Logout và khoá trên tab Vision Edit theo cấp hiện tại.</summary>
+        void UpdateUserState();
+        /// <summary>Tự đăng xuất khi không thao tác đủ số phút (UserAccess::LogoutIfIdle).</summary>
+        void CheckIdleLogout();
         void OnCoreReady();
         void UpdateShell();
         void BuildAxisCells();
@@ -65,6 +74,7 @@ namespace winrt::ShieldCanAssy::implementation
         int m_lastTowerLamp{ -1 };
         int m_alarmTabState{ -1 };
         int m_lastSim{ -1 };
+        uint64_t m_userVersion{ 0 };
 
         int m_modalToken{ 0 };
         int m_alarmRaisedToken{ 0 };

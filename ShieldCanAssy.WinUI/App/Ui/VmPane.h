@@ -116,7 +116,8 @@ namespace ui
         VmControlKind m_kind{};
         bool m_created{ false };
         bool m_visible{ true };
-        RECT m_lastRect{ -1, -1, -1, -1 };
+        RECT m_lastRect{ -1, -1, -1, -1 };   // phần popup đang hiện, toạ độ màn hình (đã cắt theo client cửa sổ chủ)
+        RECT m_lastFull{ -1, -1, -1, -1 };   // khung ô giữ chỗ đầy đủ, toạ độ client (chưa cắt)
         bool m_lastShown{ false };
         winrt::Microsoft::UI::Xaml::FrameworkElement m_placeholder{ nullptr };
         winrt::event_token m_layoutToken{};

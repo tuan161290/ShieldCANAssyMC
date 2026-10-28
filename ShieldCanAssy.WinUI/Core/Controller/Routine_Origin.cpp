@@ -145,27 +145,33 @@ namespace sca
     bool Routine_Origin::PreCheck()
     {
         Step(EOriginState::O0_PreCheck);
+        std::string reason = BlockReason(true);
+        return reason.empty() ? true : Fail(reason);
+    }
 
-        if (!m_motion.AllConnected()) return Fail(Loc::T("Origin.AxisNotConnected"));
-        if (m_motion.AnyAlarm()) return Fail(Loc::T("Origin.AxisAlarm"));
-        if (!m_status.EmgOk()) return Fail(Loc::T("Mc.BlockEmg"));
-        if (!m_status.LightCurtainOk()) return Fail(Loc::T("Mc.BlockCurtain"));
-        if (!m_status.AirOk()) return Fail(Loc::T("Mc.BlockAir"));
+    std::string Routine_Origin::BlockReason(bool checkBrakes) const
+    {
+        if (!m_motion.AllConnected()) return Loc::T("Origin.AxisNotConnected");
+        if (m_motion.AnyAlarm()) return Loc::T("Origin.AxisAlarm");
+        if (!m_status.EmgOk()) return Loc::T("Mc.BlockEmg");
+        if (!m_status.LightCurtainOk()) return Loc::T("Mc.BlockCurtain");
+        if (!m_status.AirOk()) return Loc::T("Mc.BlockAir");
 
-        // Z1/Z2 phải đã qua nghi thức thao tác tay TRƯỚC khi được phép về gốc: vào trang
-        // Manual, bật servo, rồi bấm "Mở phanh" — Về gốc KHÔNG được tự bật servo/nhả phanh
-        // hộ operator (Tuấn yêu cầu, 2026-09-04). O1 (ServoOnAll) vẫn bật servo cho các
-        // trục còn lại như cũ; với Z1/Z2 thì tới đây phải đã bật sẵn rồi.
-        if (!m_func.BrakeReady(AxisId::Z1) || !m_func.BrakeReady(AxisId::Z2))
-            return Fail(Loc::T("Origin.BrakeNotReleased"));
+        // Z1/Z2 phải đã qua nghi thức thao tác tay TRƯỚC khi được phép về gốc: bật servo rồi
+        // bấm "Mở phanh" (trang Manual, hoặc xác nhận trên popup Origin của trang Main — Tuấn
+        // 2026-10-21) — chuỗi Về gốc KHÔNG được tự bật servo/nhả phanh hộ operator (Tuấn yêu
+        // cầu, 2026-09-04). O1 (ServoOnAll) vẫn bật servo cho các trục còn lại như cũ; với
+        // Z1/Z2 thì tới đây phải đã bật sẵn rồi.
+        if (checkBrakes && (!m_func.BrakeReady(AxisId::Z1) || !m_func.BrakeReady(AxisId::Z2)))
+            return Loc::T("Origin.BrakeNotReleased");
 
         // KHÔNG chặn khi tay hút còn sản phẩm (Tuấn bỏ 2026-09-26): về gốc nâng Z lên trước rồi mới chạy
         // ngang, sản phẩm đi theo tay hút như lúc chạy Auto. Hàng còn trên tay vẫn bị chặn ở START/Arm
         // (ResumeIntegrityOk, NozzleClearPending) cho tới khi xử lý xong.
 
-        if (m_status.State() == EMcState::Running) return Fail(Loc::T("Origin.AutoRunning"));
+        if (m_status.State() == EMcState::Running) return Loc::T("Origin.AutoRunning");
 
-        return true;
+        return {};
     }
 
     bool Routine_Origin::Fail(const std::string& reason)

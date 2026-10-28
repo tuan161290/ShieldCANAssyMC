@@ -26,4 +26,16 @@ namespace sca
         if (std::fabs(firstAtNozzle1 - secondAtNozzle1) < sameColumnMm) return true;
         return std::min(firstAtNozzle1, secondAtNozzle2) >= std::min(secondAtNozzle1, firstAtNozzle2);
     }
+
+    int Routine_Auto::FirstToScan(const std::vector<double>& camX, double sameColumnMm)
+    {
+        int best = -1;
+        for (int i = 0; i < (int)camX.size(); i++)
+        {
+            if (best < 0) { best = i; continue; }
+            double d = camX[(size_t)i] - camX[(size_t)best];
+            if (d > 0 && d >= sameColumnMm) best = i;
+        }
+        return best;
+    }
 }

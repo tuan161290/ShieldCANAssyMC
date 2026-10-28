@@ -20,8 +20,10 @@
 #include "Infor/AxisId.h"
 #include "Lang/Loc.h"
 #include "SysConfig/AppPaths.h"
+#include "SysConfig/UserAccess.h"
 #include "Ui/AppHost.h"
 #include "Ui/JogControl.h"
+#include "Ui/LoginDialog.h"
 #include "Ui/StatusColors.h"
 #include "Ui/UiUtil.h"
 #include "Ui/VmPane.h"
@@ -255,18 +257,88 @@ namespace winrt::ShieldCanAssy::implementation
         if (!checkedItem) return;
         for (int i = 0; i < (int)Section::Count; ++i)
         {
-            if (NavOf((Section)i) == checkedItem)
+            Section target = (Section)i;
+            if (NavOf(target) != checkedItem) continue;
+            if (target == m_section) return;
+            if (!CanOpen(target))
             {
-                if ((Section)i != m_section) ShowSection((Section)i);
+                // Chưa đủ quyền: tab quay về trang đang mở, hỏi mật khẩu; đúng mới chuyển.
+                if (auto current = NavOf(m_section))
+                {
+                    m_navSync = true;
+                    current.IsChecked(true);
+                    m_navSync = false;
+                }
+                ui::LoginDialog::ShowLogin([weak = get_weak(), target](bool ok) {
+                    auto self = weak.get();
+                    if (!self || self->m_shutdown) return;
+                    self->UpdateUserState();
+                    if (ok && CanOpen(target)) self->ShowSection(target);
+                });
                 return;
             }
+            ShowSection(target);
+            return;
         }
+    }
+
+    bool MainWindow::CanOpen(Section section)
+    {
+        sca::EUserLevel need = section == Section::VisionEdit ? sca::EUserLevel::Engineer : sca::EUserLevel::Operator;
+        return sca::UserAccess::IsAtLeast(need);
+    }
+
+    void MainWindow::LeaveLockedSection()
+    {
+        if (!CanOpen(m_section)) ShowSection(Section::Main);
     }
 
     // SH-11 RESET — chung một đường với nút RESET của bảng alarm, trang Alarm và nút RESET vật lý.
     void MainWindow::OnResetClick(WF::IInspectable const&, RoutedEventArgs const&)
     {
         sca::McControl::RequestReset();
+    }
+
+    // Login → hộp mật khẩu Engineer; đang là Engineer → đăng xuất ngay (không hỏi lại), rời trang bị khoá.
+    void MainWindow::OnUserClick(WF::IInspectable const&, RoutedEventArgs const&)
+    {
+        if (sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer))
+        {
+            sca::UserAccess::Logout("by user");
+            LeaveLockedSection();
+            UpdateUserState();
+            return;
+        }
+        ui::LoginDialog::ShowLogin([weak = get_weak()](bool) {
+            if (auto self = weak.get(); self && !self->m_shutdown) self->UpdateUserState();
+        });
+    }
+
+    void MainWindow::UpdateUserState()
+    {
+        m_userVersion = sca::UserAccess::Version();
+        bool engineer = sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer);
+        ui::SetText(UserText(), engineer ? L"Logout" : L"Login");
+        // Xanh đặc khi đang ở cấp cao — nhìn là biết máy đang mở quyền (như Origin xong ở trang Main: không quầng).
+        ui::SetTint(UserButton(), engineer ? ui::Tint::Blue : ui::Tint::None, false);
+        ToolTipService::SetToolTip(UserButton(), box_value(engineer ? ui::H(sca::Loc::F("User.LoggedInTip", sca::UserAccess::IdleLogoutMin()))
+                                                                    : ui::T("User.LoginTip")));
+        VisionEditLockIcon().Glyph(engineer ? L"\xE785" : L"\xE72E");   // Unlock / Lock
+        ToolTipService::SetToolTip(NavVisionEdit(), engineer ? nullptr : box_value(ui::T("User.VisionEditLockedTip")));
+    }
+
+    // Tự đăng xuất (Tuấn 2026-10-21: 10 phút không thao tác). GetLastInputInfo đếm mọi chuột/phím/chạm của phiên Windows —
+    // kể cả bên trong control VisionMaster (popup ActiveX, sự kiện không đi qua cây XAML), nên người đang sửa Flow không bị
+    // đăng xuất giữa chừng. Không xét lúc có hộp thoại đang mở hay Vision Edit đang chạy một chuỗi hiệu chuẩn: chuỗi chạy
+    // xong mới tính, đủ giờ thì đăng xuất ngay sau đó.
+    void MainWindow::CheckIdleLogout()
+    {
+        if (sca::UserAccess::Level() == sca::EUserLevel::Operator || ui::ModalOverlay::AnyOpen()) return;
+        if (m_coreReady && get_self<VisionEditPage>(PageVisionEdit())->IsBusy()) return;
+        LASTINPUTINFO input{ sizeof(LASTINPUTINFO), 0 };
+        if (!GetLastInputInfo(&input)) return;
+        auto idle = std::chrono::milliseconds(GetTickCount() - input.dwTime);   // DWORD: tự đúng khi bộ đếm quay vòng
+        if (sca::UserAccess::LogoutIfIdle(idle)) LeaveLockedSection();
     }
 
     void MainWindow::OnCoreReady()
@@ -345,6 +417,9 @@ namespace winrt::ShieldCanAssy::implementation
                 AlarmTabIcon().ClearValue(IconElement::ForegroundProperty());
             }
         }
+
+        CheckIdleLogout();
+        if (m_userVersion != sca::UserAccess::Version()) UpdateUserState();
 
         UpdateBanner();
         UpdateAlarmPanel();
@@ -612,6 +687,7 @@ namespace winrt::ShieldCanAssy::implementation
 
         if (m_bannerPopup) m_bannerPopup.IsOpen(false);
         m_alarmPanel.Close();
+        ui::LoginDialog::Close();
         ui::Dialogs::CloseAll();
 
         for (int i = 0; i < (int)Section::Count; ++i)

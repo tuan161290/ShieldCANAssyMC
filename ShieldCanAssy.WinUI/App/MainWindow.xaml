@@ -81,7 +81,15 @@
                     <RadioButton x:Name="NavManual" Content="Manual" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
                     <RadioButton x:Name="NavTeaching" Content="Teaching" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
                     <RadioButton x:Name="NavSetting" Content="Setting" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
-                    <RadioButton x:Name="NavVisionEdit" Content="Vision Edit" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <!-- Vision Edit đòi Engineer (Tuấn 2026-10-21): khoá khi chưa đăng nhập, mở khoá khi đã — biểu tượng luôn
+                         có mặt, chỉ đổi glyph, nên tab không đổi bề ngang. -->
+                    <RadioButton x:Name="NavVisionEdit" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon x:Name="VisionEditLockIcon" Glyph="&#xE72E;" FontSize="14"
+                                      FontFamily="{StaticResource SegoeIcons}"/>
+                            <TextBlock Text="Vision Edit" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </RadioButton>
                     <!-- SH-10 Alarm: có alarm thì nền RedOn + quầng #FF4D5E phủ cả tab, chữ và biểu tượng trắng. Nền đặt ở Border
                          phía sau nút (như Border bọc ngoài của WPF). -->
                     <Grid Margin="2,0">
@@ -98,8 +106,18 @@
                     </Grid>
                 </StackPanel>
 
-                <Button x:Name="ShellResetButton" Grid.Column="1" Content="RESET" VerticalAlignment="Center"
-                        Padding="16,8" FontWeight="SemiBold" Click="OnResetClick"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- Đăng nhập theo cấp (Tuấn 2026-10-21): Login → hộp mật khẩu Engineer; đã là Engineer thì nút xanh
+                         "Logout". Bề ngang cố định để RESET không xê dịch khi chữ đổi. -->
+                    <Button x:Name="UserButton" Width="120" Padding="12,8" VerticalAlignment="Center" Click="OnUserClick">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE77B;" FontSize="15" FontFamily="{StaticResource SegoeIcons}"/>
+                            <TextBlock x:Name="UserText" Text="Login" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="ShellResetButton" Content="RESET" VerticalAlignment="Center"
+                            Padding="16,8" FontWeight="SemiBold" Click="OnResetClick"/>
+                </StackPanel>
             </Grid>
 
             <!-- ══════════ SH-12 Trang ══════════ Thứ tự khớp enum Section trong MainWindow.xaml.h. -->

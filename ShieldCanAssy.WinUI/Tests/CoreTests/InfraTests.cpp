@@ -1,6 +1,6 @@
 // Kiểm thử tầng hạ tầng / dữ liệu của ShieldCanAssy: AppPaths, Loc::Format, IoMap/AlarmCode/AxisId/Enums,
 // AxisAngle/AxisScale, SystemData (mặc định, migrate, JSON dạng C#), TrayLayout/TrayState, ModelData, RunningData,
-// McDataManager, AlarmCatalog/AlarmManager, LogWorker, UiThread, SingleInstanceGuard.
+// McDataManager, AlarmCatalog/AlarmManager, LogWorker, UiThread, SingleInstanceGuard, UserAccess.
 //
 // Port các phép kiểm mức dữ liệu của ShieldCanAssy.Wpf\SelfTest.cs (TestHardwareAssumptions, TestResetRules,
 // TestEventAlarmsAlwaysResettable, TestTrayGridZigzag, TestTrayGridMath, TestModelManagement, TestAxisScale,
@@ -24,6 +24,7 @@
 #include "Infor/IoMap.h"
 #include "Lang/Loc.h"
 #include "SysConfig/AppPaths.h"
+#include "SysConfig/UserAccess.h"
 #include "Utility/Log/LogWorker.h"
 #include "Utility/SingleInstanceGuard.h"
 #include "Utility/UiThread.h"
@@ -85,12 +86,13 @@ namespace
     }
 
     // ── Khoá JSON của bản C# (Newtonsoft, NullValueHandling.Ignore) ──
+    // Ngoại lệ chỉ bản WinUI: "ScanAssyByPair" (2026-10-28) — bản WPF đọc file bỏ qua khoá lạ.
 
     const std::vector<std::string> kSystemKeys = {
         "MachineName", "MachineCode", "SimulationMode", "Language", "ZSafe", "HasAbsoluteEncoder", "RequireHomeAfterEmg",
         "HasLightCurtain", "HasAirSensor", "HomeRotateSequential", "ControlTickMs", "WatchdogTimeoutMs",
         "WatchdogStartupGraceMs", "OnlyNozzle", "PickRetryCount", "PickRetryDeltaZ", "MaxConsecutiveNg", "ScanAssyByRow",
-        "VacuumTimeoutMs", "VacuumSettleMs", "BlowTimeMs", "InputZSlowDown", "InputZSlowUp", "AssyZSlowDown", "AssyZSlowUp",
+        "ScanAssyByPair", "VacuumTimeoutMs", "VacuumSettleMs", "BlowTimeMs", "InputZSlowDown", "InputZSlowUp", "AssyZSlowDown", "AssyZSlowUp",
         "MaxCompensationAngleDeg", "MaxCompensationDistance", "PlaceTargetGuardMm", "ACapTolDeg", "MaxGuardSkipStreak",
         "AlignXTolMm", "IoDiIpAddress", "IoDoIpAddress", "VisionSolutionPath", "VisionTriggerTimeoutMs", "VisionSettleMs",
         "TopSettleMs", "LampSettleMs", "TopLampMs", "VisionOutputs", "CalibValidDays", "TopDownCalibStepXMm",
@@ -626,6 +628,7 @@ namespace
         CHECK(sys->MachineName == "Shield CAN Assy MC" && sys->MachineCode == "SO1C86-SCAM" && sys->SimulationMode && sys->Language == "vi");
         CHECK(sys->ZSafe == 50.0 && sys->ControlTickMs == 20 && sys->WatchdogTimeoutMs == 500 && sys->WatchdogStartupGraceMs == 5000);
         CHECK(sys->PickRetryCount == 2 && sys->PickRetryDeltaZ == 0.3 && sys->MaxConsecutiveNg == 5 && !sys->ScanAssyByRow);
+        CHECK(!sys->ScanAssyByPair && sys->ScanAssy() == SystemData::EScanAssy::Tray);
         CHECK(sys->VacuumTimeoutMs == 800 && sys->VacuumSettleMs == 0 && sys->BlowTimeMs == 120);
         // Z qua điểm giảm tốc: mặc định đúng nhịp 30/09 (đầu vào hạ một mạch, nâng chậm; lắp ráp chậm cả hai chiều).
         CHECK(!sys->InputZSlowDown && sys->InputZSlowUp && sys->AssyZSlowDown && sys->AssyZSlowUp);
@@ -803,6 +806,19 @@ namespace
         CHECK(re != sys && re->ToJsonText() == before);
         CHECK(re->MachineName == "Máy thử" && re->Language == "en" && re->OnlyNozzle == 2 && re->GetAxis(AxisId::Y2)->MoveSpeedLow() == 33.0
               && re->GetAxis(AxisId::A1)->HomeOffset == -14.25 && re->VisionOutputs.FlowAlignBottom(2) == "AB2");
+        CHECK(re->ScanAssy() == SystemData::EScanAssy::Row);
+
+        // Quét từng cặp (chỉ bản WinUI): khoá riêng, thắng ScanAssyByRow; đặt chế độ thì hai cờ không bao giờ cùng bật.
+        re->SetScanAssy(SystemData::EScanAssy::Pair);
+        CHECK(re->ScanAssyByPair && !re->ScanAssyByRow);
+        CHECK(McDataManager::SaveSystemData());
+        McDataManager::LoadSystemData();
+        CHECK(McDataManager::SysData()->ScanAssy() == SystemData::EScanAssy::Pair);
+        CHECK(RawFile(AppPaths::SystemFile()).find("\"ScanAssyByPair\": true") != std::string::npos);
+        McDataManager::SysData()->ScanAssyByRow = true;   // file sửa tay: cả hai cờ bật → theo cặp
+        CHECK(McDataManager::SysData()->ScanAssy() == SystemData::EScanAssy::Pair);
+        McDataManager::SysData()->SetScanAssy(SystemData::EScanAssy::Tray);
+        CHECK(!McDataManager::SysData()->ScanAssyByRow && !McDataManager::SysData()->ScanAssyByPair);
 
         // ── system.json dạng C#: trục sai thứ tự, thiếu trục, trục lạ, phần tử null, khoá lạ, khoá cũ, enum dạng tên ──
         base::WriteAllText(AppPaths::SystemFile(), std::string("\xEF\xBB\xBF") + kSystemJsonCs);
@@ -1606,6 +1622,77 @@ namespace
         CHECK(SingleInstanceGuard::TryLock(mutexName));
         SingleInstanceGuard::Release();
     }
+
+    /// <summary>Đăng nhập theo cấp (Tuấn 2026-10-21): users.json mặc định, sai/đúng mật khẩu, tự đăng xuất, đổi mật khẩu
+    /// và thời gian tự đăng xuất (chỉ Engineer), nạp lại từ file, file hỏng.</summary>
+    void TestUserAccess()
+    {
+        using namespace std::chrono_literals;
+        fs::path file = AppPaths::UsersFile();
+        std::error_code ec;
+        fs::remove(file, ec);
+
+        // Chưa có file: tạo với mật khẩu mặc định, chỉ lưu dạng băm.
+        UserAccess::Load();
+        CHECK(fs::exists(file));
+        CHECK(UserAccess::Level() == EUserLevel::Operator && !UserAccess::IsAtLeast(EUserLevel::Engineer));
+        CHECK(UserAccess::IsDefaultPassword(EUserLevel::Engineer) && UserAccess::PasswordChangedAt(EUserLevel::Engineer).empty());
+        CHECK(UserAccess::IdleLogoutMin() == UserAccess::DefaultIdleLogoutMin);
+        std::string raw = RawFile(file);
+        CHECK_MSG(raw.find("\"1234\"") == std::string::npos && raw.find("\"Hash\"") != std::string::npos, raw);
+
+        // Sai mật khẩu: giữ Operator. Đúng: lên Engineer, Version tăng.
+        uint64_t v0 = UserAccess::Version();
+        CHECK(!UserAccess::Login(EUserLevel::Engineer, "123"));
+        CHECK(!UserAccess::Login(EUserLevel::Engineer, ""));
+        CHECK(UserAccess::Level() == EUserLevel::Operator && UserAccess::Version() == v0);
+        CHECK(UserAccess::Login(EUserLevel::Engineer, UserAccess::DefaultEngineerPassword));
+        CHECK(UserAccess::IsAtLeast(EUserLevel::Engineer) && UserAccess::Version() > v0);
+
+        // Tự đăng xuất đúng ngưỡng.
+        CHECK(!UserAccess::LogoutIfIdle(9min + 59s) && UserAccess::Level() == EUserLevel::Engineer);
+        CHECK(UserAccess::LogoutIfIdle(10min) && UserAccess::Level() == EUserLevel::Operator);
+        CHECK(!UserAccess::LogoutIfIdle(60min));   // đã là Operator
+
+        // Thời gian tự đăng xuất: chỉ Engineer, trong khoảng cho phép.
+        CHECK(!UserAccess::SetIdleLogoutMin(5).empty() && UserAccess::IdleLogoutMin() == 10);
+        CHECK(UserAccess::Login(EUserLevel::Engineer, "1234"));
+        CHECK(!UserAccess::SetIdleLogoutMin(0).empty() && !UserAccess::SetIdleLogoutMin(121).empty());
+        CHECK(UserAccess::SetIdleLogoutMin(5).empty() && UserAccess::IdleLogoutMin() == 5);
+        CHECK(UserAccess::LogoutIfIdle(5min) && UserAccess::Level() == EUserLevel::Operator);
+
+        // Đổi mật khẩu: chỉ Engineer, tối thiểu 4 ký tự; mật khẩu cũ hết dùng được.
+        CHECK(!UserAccess::ChangePassword(EUserLevel::Engineer, "abcd").empty());
+        CHECK(UserAccess::Login(EUserLevel::Engineer, "1234"));
+        CHECK(!UserAccess::ChangePassword(EUserLevel::Engineer, "abc").empty());
+        CHECK(!UserAccess::ChangePassword(EUserLevel::Operator, "abcd").empty());
+        CHECK(UserAccess::ChangePassword(EUserLevel::Engineer, "Ab c9").empty());
+        CHECK(!UserAccess::IsDefaultPassword(EUserLevel::Engineer) && !UserAccess::PasswordChangedAt(EUserLevel::Engineer).empty());
+        UserAccess::Logout("test");
+        CHECK(UserAccess::Level() == EUserLevel::Operator);
+        CHECK(!UserAccess::Login(EUserLevel::Engineer, "1234"));
+        CHECK(UserAccess::Login(EUserLevel::Engineer, "Ab c9"));
+
+        // Nạp lại: về Operator, mật khẩu mới và thời gian tự đăng xuất còn nguyên.
+        UserAccess::Load();
+        CHECK(UserAccess::Level() == EUserLevel::Operator && UserAccess::IdleLogoutMin() == 5);
+        CHECK(!UserAccess::IsDefaultPassword(EUserLevel::Engineer));
+        CHECK(!UserAccess::Login(EUserLevel::Engineer, "1234") && UserAccess::Login(EUserLevel::Engineer, "Ab c9"));
+
+        // Đặt lại đúng mật khẩu mặc định thì lại là "mặc định".
+        CHECK(UserAccess::ChangePassword(EUserLevel::Engineer, "1234").empty() && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
+
+        // File hỏng: đổi tên .bad, về mật khẩu mặc định, 10 phút.
+        UserAccess::Logout({});
+        CHECK(base::WriteAllText(file, "{ \"Passwords\": { \"Engineer\": { \"Salt\": \"zz\" } "));
+        UserAccess::Load();
+        fs::path bad = file;
+        bad += ".bad";
+        CHECK(fs::exists(bad) && fs::exists(file));
+        CHECK(UserAccess::IdleLogoutMin() == 10 && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
+        CHECK(UserAccess::Login(EUserLevel::Engineer, "1234"));
+        UserAccess::Logout({});
+    }
 }
 
 int RunInfraTests()
@@ -1636,6 +1723,7 @@ int RunInfraTests()
     TestAlarmCatalog(root);
     TestAlarmManager();
     TestLogAndThreads();
+    TestUserAccess();
 
     AppPaths::SetExeDirForTests({});
     LogWorker::Instance().Shutdown();

@@ -159,14 +159,14 @@ Trình tự tắt:
 
 | Nhóm | Số phép kiểm |
 |---|---|
-| Infra (dữ liệu tương thích C#, alarm, log, đường dẫn, chữ) | 507 |
+| Infra (dữ liệu tương thích C#, alarm, log, đường dẫn, chữ, phân quyền) | 542 |
 | FastechBinding (chữ ký/struct EziMOTIONPlusE, EziAxisStatus) | 290 |
 | Motion (FakeAxis/FakeIo, FastechAxis/PanasonicAxis trên thiết bị giả, MotionConnect, alarm kết nối) | 372 |
 | Vision (hợp đồng Flow, VmOutCheck, GlobalVarSync, FakeVision, VisionConnect) | 201 |
 | ControllerFoundation | 132 |
 | RoutineCalib | 129 |
-| Controller (Init, về gốc, AUTO/MANUAL, EMG, rèm, khí, đèn, chạy rà, chu trình Auto, VM gate/lỗi…) | 425 |
-| **Tổng** | **2056**, đều đạt |
+| Controller (Init, về gốc, AUTO/MANUAL, EMG, rèm, khí, đèn, chạy rà, chu trình Auto, VM gate/lỗi…) | 448 |
+| **Tổng** | **2114**, đều đạt (23/10) |
 
 `ServoTests.exe` (`C:\PGM\ServoControl\Cpp`): 296 phép kiểm, chỉ dùng cổng giả, không mở COM.
 
@@ -176,6 +176,11 @@ Ngày 18/10, vài phép kiểm Controller đọc trạng thái quá sớm nên l
 - thời gian chu kỳ chỉ ghi ở S40.
 
 Các phép kiểm đó đã đổi sang chờ (`WaitUntil`).
+
+Ngày 21/10, chạy CoreTests trong lúc App thật và VisionMaster đang mở, một lần hỏng 2 phép kiểm ở TH4 của kịch bản trả hàng
+(`ControllerTests.cpp` ~1823: chờ alarm 5031). Chạy lại hai lần liền đều đạt hết — vẫn còn một chỗ phụ thuộc thời gian khi máy bận.
+Cùng ngày một lần hỏng 1 phép kiểm chọn ô (`ControllerTests.cpp` ~793, `HasSelection` ngay sau Về gốc + AUTO; hai câu báo
+đều đúng), chạy lại hai lần đều đạt — chỗ thứ hai cần đổi sang chờ (`WaitUntil`) khi rảnh.
 
 Giao diện: `ShieldCanAssy.exe --root <tạm>\data --shot <tạm>\png` rồi xem ảnh từng trang. Chưa có kiểm thử tự động bằng chuột/bàn phím.
 
@@ -207,6 +212,101 @@ Giao diện: `ShieldCanAssy.exe --root <tạm>\data --shot <tạm>\png` rồi xe
 ---
 
 ## 9. Khác biệt và chỗ còn hở so với bản WPF
+
+- **Phân quyền** (chỉ bản WinUI, Tuấn chốt 2026-10-21 — `Core\SysConfig\UserAccess.*`, `App\Ui\LoginDialog.*`):
+  - Hai cấp: Operator (mở app luôn ở cấp này) và Engineer. Chỉ trang Vision Edit đòi Engineer; tab có biểu tượng khoá, bấm vào thì
+    hỏi mật khẩu. Nút Login / Logout nằm cạnh RESET.
+  - Mật khẩu theo cấp, không có tài khoản từng người. Mật khẩu Engineer mặc định là `1234`; đổi ở Setting → System → USER ACCESS
+    (chỉ Engineer). File `Config\users.json` chỉ giữ bản băm PBKDF2-HMAC-SHA256 kèm muối, không giữ chữ thật.
+  - Tự đăng xuất sau 10 phút không thao tác (đổi được 1..120 phút ở cùng card). Đo bằng `GetLastInputInfo` nên thao tác bên trong
+    control VisionMaster cũng được tính. Không tính lúc có hộp thoại mở hay Vision Edit đang chạy một chuỗi hiệu chuẩn.
+  - **Quên mật khẩu:** đóng app, xoá `Config\users.json`, mở lại — mật khẩu về `1234`. File hỏng thì app tự đổi tên thành
+    `users.json.bad` và cũng về mặc định.
+  - Mỗi lần đăng nhập, gõ sai, đăng xuất, đổi mật khẩu đều ghi log mục `User`. Bản WPF không có phân quyền, không đọc `users.json`.
+  - PLAN.md §9 còn dự kiến cấp Technician (Manual, Teaching): thêm vào `EUserLevel` giữa hai cấp và sửa `MainWindow::CanOpen`.
+
+- **Popup Origin ở trang Main** (chỉ bản WinUI, Tuấn 2026-10-21 — `MainPage::OnOriginClick`, `McControl::ServoOnAndReleaseBrakes`):
+  - Z1/Z2 chưa nhả phanh mà không còn lý do chặn nào khác (`McControl::OriginBlockReason` rỗng) thì bấm Origin hiện hộp Yes/No:
+    Servo On mọi trục, nhả phanh Z1/Z2, rồi về gốc. Không cần sang trang Manual. Câu trả lời vào log như mọi hộp xác nhận.
+  - Bấm Yes thì làm đúng nghi thức của trang Manual: Servo On (all) bỏ qua trục ALM, chờ driver báo ServoOn, "Brake off" Z1/Z2,
+    chờ qua 300 ms nhả phanh, rồi mới `RequestOrigin`. STOP, EMG hay alarm trong lúc chờ thì huỷ, báo "Cannot Origin: …".
+  - Còn lý do chặn khác (EMG, rèm, khí, trục ALM/mất kết nối, đang chạy) thì không hỏi: gửi thẳng như cũ để dòng thông báo
+    nói lý do. Phanh đã nhả sẵn thì về gốc ngay, không hỏi.
+  - Nút Origin trang Manual giữ như cũ (operator ở ngay cạnh nút SVO / Brake Off). Bản WPF không có popup này.
+
+- **Trang Teaching, chế độ Input** (chỉ bản WinUI, Tuấn 2026-10-21): bộ chọn tray còn Input / Assy, bỏ Input 1 / Input 2.
+  Bộ chọn Tray và Tool là nút kiểu Radio (`ChoiceButtonStyle` trong `Styles.xaml`, nút đang chọn tô accent) nằm thẳng trên
+  nền trang, phía trên card CELL COORDS — luôn thấy, không phải cuộn cột trái. Card TRAY bên trái còn tên tray + Tool đang làm
+  và thứ tự quét. Trang Vision Edit làm y như vậy: chọn Tool nằm trên nền trang, phía trên card VISION CALIB (khoá khi Busy).
+  - Input hiện cả hai tray đầu vào: hai hàng P1/P2/P3 + điểm kiểm chứng, hai cột cao độ Z hút / Z giảm tốc, hai lưới ô
+    (Tray 1 trên, Tray 2 dưới, số thứ tự nối tiếp theo sổ). Số hàng/cột và thứ tự quét chỉ sửa ở hàng Tray 1.
+  - Lệnh theo một tray (Move, hạ Z, Set Offset, Go Pick, về gốc Z ở khu Jog) lấy tray của ô đang chọn; chưa chọn ô là Tray 1.
+  - Bản WPF vẫn chọn từng tray (ba nút).
+- **Vision Edit bỏ nút Check Calib** (chỉ bản WinUI, Tuấn 2026-10-21): dòng cổng Auto đầu card VISION CALIB tự đánh giá lại
+  mỗi nhịp (`VmCycle::EvaluateCalib`, chỉ đọc model + `system.json`), xanh khi sẵn sàng, đỏ khi Auto bị chặn. Bỏ luôn dòng
+  kết quả trùng bên dưới nút.
+- **Calibration Center Point = TOP CAM REF của tray lắp ráp** (Tuấn chốt 2026-10-21, PLAN.md §6.2): tâm lưới 9 điểm top-down
+  lấy THẲNG điểm đầu tiên của camera trên tray lắp ráp, ô (1,1) (`AssyTray->CamTopDownAnchorX/Y` của model) — bỏ nút Save
+  Center. Dòng "Calibration Center Point = Top CAM ref (1,1): X=… Y2=…"; chưa teach thì chữ cam và numpad / Auto Calib từ
+  chối. Các ô Step X/Y, Verify travel, Test angle và hai danh sách bottom-up ghi `system.json` ngay khi đổi (trước đây chỉ
+  ghi đĩa nhờ nút Save Center). `TopDownCalibCenterX/Y/Set` vẫn đọc/ghi nguyên giá trị cho bản WPF.
+- **Vision Edit, chạy kiểm từng bước** (chỉ bản WinUI, Tuấn 2026-10-21): "Assy cell" / "Input cell" là nút mở lưới ô của tray
+  (cùng Flyout với nút 6 của hand-eye, không có "In Place"), thay cho 4 ô gõ hàng/cột. Ô tray đầu vào là của Tray 1 —
+  `Routine_Calib::StepPick` chỉ hút ở Tray 1.
+- **Auto bật đèn CAM trước khi chạy tới điểm chụp** (chỉ bản WinUI, Tuấn đề xuất 2026-10-23): S05 (đèn CAM2) và S20/S21 (đèn
+  CAM1) bật đèn ngay trước lệnh chạy trục tới vị trí soi (`Routine_Auto::LightCamLamp`). Thời gian chờ đèn
+  (`LampSettleMs` / `TopLampMs`) tính từ lúc bật đèn, nên lúc kích Flow chỉ chờ phần còn thiếu — trục chạy lâu hơn số đó thì
+  không chờ thêm. Bớt khoảng 100 ms mỗi nhịp hai sản phẩm (CAM1) và mỗi lần bắt đầu quét tray lắp ráp (CAM2). Các nút
+  trang Vision Edit / hiệu chuẩn vẫn bật → chờ → chụp → tắt như cũ. Bản WPF vẫn bật đèn sau khi trục tới nơi.
+
+- **Nút Save của thanh công cụ VisionMaster lưu thẳng, không mở Save As** (Tuấn báo 2026-10-28): nút đó
+  (`VMControls.WPF.ToolControl.SaveSolution`) kiểm `VM.Core.VmSolution.Instance.SolutionPath` phía .NET, rỗng thì gọi
+  Save As. App nạp solution bằng SDK C++ (`::LoadSolution`) nên biến đó luôn rỗng; bản WPF nạp bằng `VmSolution.Load` nên
+  không gặp (đọc IL của VMControls.WPF.dll / VM.Core.dll 4.4.0). Sửa: `VisionMasterDevice::SolutionFile()` giữ đường dẫn
+  tuyệt đối lúc nạp; mỗi lần trang Vision Edit gắn solution, `ui::SetVmDotNetSolutionPath` (App\Ui\VmDotNet.cpp) lấy CLR v4
+  đang chạy trong tiến trình (CLRCreateInstance → EnumerateLoadedRuntimes → AppDomain mặc định), tìm VM.Core, gọi setter
+  private `SolutionPath` qua `Type.InvokeMember` rồi đọc lại. Log Info "Vision Edit: toolbar Save now saves to …" hoặc
+  Warning kèm lý do (Save As vẫn dùng được). File dùng `#import` type library mscorlib nên tắt /MP riêng trong vcxproj.
+  CHƯA thử trên máy thật.
+
+- **Vision Edit có nút Hide Calib / Show Calib** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-28): mép phải hàng thanh công cụ
+  VisionMaster, sát cột hiệu chuẩn (thanh Jog không còn chỗ ở màn 1280). Ẩn cột 320 px để VisionMaster lấy cả bề ngang khi
+  sửa job; hai popup ActiveX tự giãn theo khung giữ chỗ (VmPane). Không khoá theo Busy, chuỗi đang chạy vẫn chạy (STOP vẫn
+  ở thanh Jog). Nhớ trong phiên, mở App lại thì hiện. UI-SPEC VE-62.
+
+- **Quét tray lắp ráp từng cặp** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-28): Setting > "Scan Assy tray" nay là hộp chọn
+  Whole tray / By row / By pair (thay công tắc "by row"). By pair: S05 chỉ chụp HAI ô trống đầu tiên — đúng hai ô vòng này
+  đặt — rồi mới hút, đặt xong mới chụp hai ô kế (`Routine_Auto::NextUnscannedCell`). Ô chụp không thấy thành NG thì ô
+  trống kế vào cặp. Tổng số lần chụp không đổi; khoảng cách đo → đặt ngắn nhất. Chạy rà đi đúng đường đó
+  (`Routine_DryCycle::SweepCells`). Lưu ở khoá mới `ScanAssyByPair` trong system.json (bản WPF bỏ qua khoá lạ);
+  `SystemData::ScanAssy()` gộp hai cờ, cặp thắng hàng. CoreTests kiểm: lần hút đầu sau đúng 2 LocateTop, mọi lần hút số ô
+  đã chụp mà chưa đặt ≤ 2.
+
+- **Chụp ô X lớn trước** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-28): trong cặp (By pair) và trong hàng (By row, và hàng đầu
+  soi trước lúc chờ tray đầu vào), S05 chụp ô có X chỗ đứng chụp (`CamPosFor`) lớn nhất trước — gương của luật hút ô X nhỏ
+  trước. Gantry vừa đặt ở X lớn (tray lắp ráp ~420–667), chụp (~328–504) rồi về tray đầu vào (~28–195): đi một chiều.
+  Ô cùng cột (lệch X dưới nửa bước cột) giữ thứ tự ghé. Whole tray giữ thứ tự rắn bò (một lượt mỗi tray, đảo chiều từng hàng
+  chỉ thêm đường). Luật ở `Routine_Auto::FirstToScan` (Routine_AutoStatics.cpp); chạy rà theo cùng luật
+  (`Routine_DryCycle::ScanOrder`). CoreTests kiểm thứ tự X của LocateTop trong hàng và trong cặp.
+
+- **Xong một tray là hoàn thành chu trình, cả hai bàn ra vị trí chờ** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-28): S50 khi
+  tray đầu vào hết hàng (cả sổ Tray 1 + Tray 2) HOẶC tray lắp ráp hết ô trống. Ô còn việc của tray kia thành Skipped
+  (`Routine_Auto::FinishTray`, thay `CloseSelection`), Y1 và Y2 cùng về StandbyPos, máy chờ với thông báo
+  "Cycle complete — input tray empty / assy tray full. Both trays at standby: replace, then Start". Start sau đó nạp hai
+  tray như tray mới. Hết hàng đầu vào mà tay còn cầm can thì đặt nốt rồi mới kết thúc; tray lắp ráp đầy mà tay còn
+  cầm can thì can nằm chờ trên tay như cũ. Đồng hồ tray lắp ráp được chốt ở cả hai trường hợp. Bản WPF vẫn chỉ đẩy tray
+  hết ra, tray kia làm tiếp (PLAN §5.2 mô tả bản WPF). CoreTests: TrayChangeover / AssyTrayFull cập nhật theo.
+
+- **Cao độ Z hút/đặt và điểm giảm tốc gõ tay được** (Tuấn yêu cầu 2026-10-27): card PICK/PLACE HEIGHT trang Teaching đổi
+  8 ô hiển thị thành NumberBox. Gõ số mm rồi Enter (hoặc rời ô) → hỏi Old/New như nút Teach → ghi vào model đang mở; Save mới
+  ghi file. Chặn: cao độ hút/đặt phải > 0, mọi số phải nằm trong soft limit trục Z (điểm giảm tốc cho phép 0 = tắt); sai thì
+  ô trả lại số cũ. Ghi log Info "Teaching: typed …". Điểm teach X/Y (P1/P2/P3, jig, REF…) vẫn chỉ Teach bằng encoder.
+
+- **Popup control VisionMaster cắt theo vùng client cửa sổ chính** (Tuấn báo 2026-10-25): thu nhỏ cửa sổ thì ba khung
+  VmRenderControl vẫn hiện nguyên chỗ cũ ngoài cửa sổ, vì popup là cửa sổ cấp cao nhất, không bị cửa sổ chủ cắt.
+  `VmPane::SyncNow` giờ giao khung ô giữ chỗ với `GetClientRect` của cửa sổ chính; `AxHost::MoveInOwnerClient(r, clip)` đặt
+  popup bằng phần nhìn thấy và dời control bên trong theo độ lệch, không còn phần nào thì ẩn. Áp dụng cho cả hai control
+  trang Vision Edit. Chưa cắt theo viewport ScrollViewer (các ô giữ chỗ hiện không nằm trong ScrollViewer).
 
 - **SDK C++ của VisionMaster** không tạo được biến toàn cục và không duyệt được IO của module (mục 5).
 - **`EziAxisStatus`** (`Core\Fastech\EziAxisStatus.h`): bảng bit của bản C# lệch một vị trí so với header gốc của Fastech

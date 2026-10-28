@@ -1,6 +1,7 @@
 #pragma once
 // Phần dựng bằng code của trang Vision Edit (UI-SPEC §6): ô jog của thanh trên, nút có huy hiệu số bước, lưới chọn ô tray
-// lắp ráp cho nút 6 của bước hand-eye. Tách khỏi VisionEditPage.xaml.cpp cho trang đỡ dài; không giữ trạng thái máy.
+// (nút 6 của bước hand-eye, hai ô của khu chạy kiểm). Tách khỏi VisionEditPage.xaml.cpp cho trang đỡ dài; không giữ trạng
+// thái máy.
 #include <functional>
 #include <string>
 #include <vector>
@@ -19,10 +20,11 @@ namespace ui::visionedit
                   winrt::Microsoft::UI::Xaml::Controls::TextBlock* caption = nullptr);
 
     /// <summary>
-    /// Nội dung Flyout chọn ô tray lắp ráp (VE-44/45): tiêu đề Vision.HeCellPickerTitle, lưới rows×cols nút 48×40 "(r,c)"
-    /// (ô đang chọn: viền Accent 2.5), nút "In Place" ở đáy. <paramref name="onPick"/>(row, col) — 0-based; (−1, −1) =
-    /// tại chỗ.
+    /// Nội dung Flyout chọn ô tray: tiêu đề <paramref name="title"/>, lưới rows×cols nút 48×40 "(r,c)" (ô đang chọn: viền
+    /// Accent 2.5), nút "In Place" ở đáy khi <paramref name="allowInPlace"/>. Dùng cho nút 6 của hand-eye (VE-44/45) và hai
+    /// ô của khu chạy kiểm từng bước. <paramref name="onPick"/>(row, col) — 0-based; (−1, −1) = tại chỗ.
     /// </summary>
-    winrt::Microsoft::UI::Xaml::FrameworkElement BuildCellPicker(int rows, int cols, int selRow, int selCol,
+    winrt::Microsoft::UI::Xaml::FrameworkElement BuildCellPicker(winrt::hstring const& title, int rows, int cols, int selRow,
+                                                                 int selCol, bool allowInPlace,
                                                                  std::function<void(int, int)> onPick);
 }

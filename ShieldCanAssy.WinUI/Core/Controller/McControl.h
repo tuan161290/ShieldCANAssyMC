@@ -164,6 +164,21 @@ namespace sca
         static void RequestReset();
         static void RequestOrigin();
 
+        /// <summary>Popup Origin trang Main (Tuấn 2026-10-21): lý do Về gốc sẽ bị từ chối KHÔNG kể phanh Z1/Z2 — cùng điều
+        /// kiện DoOrigin + Routine_Origin PreCheck. Rỗng = về gốc được, hoặc chỉ còn thiếu Servo On + nhả phanh.</summary>
+        static std::string OriginBlockReason();
+
+        /// <summary>Z1 và Z2 đều đã nhả phanh xong (McFunction::BrakeReady) — Về gốc không cần nghi thức tay nữa.</summary>
+        static bool OriginBrakesReady();
+
+        /// <summary>
+        /// Nghi thức tay trước Về gốc, làm hộ khi operator đã xác nhận trên popup Origin trang Main (Tuấn 2026-10-21) thay vì
+        /// sang trang Manual: Servo On mọi trục chưa bật (như "Servo On (all)"), "Mở phanh" Z1/Z2, chờ qua cửa sổ nhả phanh.
+        /// KHÔNG tự về gốc — xong thì người gọi RequestOrigin. CHẶN (tối đa ~7 s) — gọi từ luồng nền.
+        /// </summary>
+        /// <returns>Lý do thất bại, RỖNG khi Z1/Z2 đã sẵn sàng.</returns>
+        static std::string ServoOnAndReleaseBrakes(std::stop_token ct);
+
         /// <summary>Nút Init cạnh Về gốc trang Main — đưa máy về vị trí chờ, không về gốc lại.</summary>
         static void RequestInit();
         static void RequestMuteBuzzer();

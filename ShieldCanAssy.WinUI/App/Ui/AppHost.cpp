@@ -13,6 +13,7 @@
 #include "Infor/AlarmCode.h"
 #include "Infor/AlarmManager.h"
 #include "SysConfig/AppPaths.h"
+#include "SysConfig/UserAccess.h"
 #include "Ui/UiUtil.h"
 #include "Utility/Log/LogWorker.h"
 #include "Utility/SingleInstanceGuard.h"
@@ -100,6 +101,7 @@ namespace ui
         // Bản C++ chỉ hiển thị tiếng Anh (PORTING §3): không gọi Loc.SetLanguage; SysData.Language giữ nguyên trong file.
         sca::McDataManager::LoadRunningData();
         sca::McDataManager::LoadRecentModel();
+        sca::UserAccess::Load();   // mở app luôn là Operator
 
         if (options.ShotMode())
         {

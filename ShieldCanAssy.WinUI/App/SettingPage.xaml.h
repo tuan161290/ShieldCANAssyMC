@@ -33,6 +33,9 @@ namespace winrt::ShieldCanAssy::implementation
         void OnDryRunClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnNgStopClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
+        // ── Phân quyền ──
+        void OnChangePasswordClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+
         // ── Vision ──
         void OnSolutionPathChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::Controls::TextChangedEventArgs const&);
         winrt::fire_and_forget OnBrowseSolutionClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
@@ -60,6 +63,9 @@ namespace winrt::ShieldCanAssy::implementation
         void UpdateStaticInfo();
         void UpdateAutoMode();
         void UpdateCommandStates();
+        /// <summary>Card USER ACCESS — chỉ vẽ lại khi UserAccess::Version đổi.</summary>
+        void UpdateUserAccess(bool force = false);
+        void SetupIdleLogoutBox();
 
         /// <summary>Ghi mọi ô đã sửa vào dữ liệu sống trước Lưu / Nạp lại solution. Còn ô sai thì cảnh báo (kèm hành
         /// động bị từ chối) và trả false.</summary>
@@ -86,6 +92,8 @@ namespace winrt::ShieldCanAssy::implementation
         int m_shownNozzle{ -1 };
         int m_shownDryRun{ -1 };
         int m_shownNgStop{ -1 };
+        uint64_t m_shownUserVersion{ 0 };
+        bool m_syncingIdle{ false };   // đang đặt ô Auto logout từ code — bỏ qua ValueChanged
     };
 }
 

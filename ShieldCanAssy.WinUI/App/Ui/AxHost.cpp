@@ -42,16 +42,20 @@ void AxHost::ConvertToPopup()
     ShowWindow(m_popup, SW_SHOWNOACTIVATE);
 }
 
-void AxHost::MoveInOwnerClient(const RECT& r)
+void AxHost::MoveInOwnerClient(const RECT& r, const RECT& clip)
 {
     if (!m_wnd.m_hWnd) return;
     if (m_popup)
     {
-        POINT tl{ r.left, r.top };
+        // The popup is a top-level window, so nothing clips it to the owner: it takes the visible part (clip) only, and
+        // the control sits inside at r's offset from clip — what lies outside the owner's client area is outside the popup.
+        POINT tl{ clip.left, clip.top };
         ClientToScreen(m_owner, &tl);
-        SetWindowPos(m_popup, HWND_TOP, tl.x, tl.y, r.right - r.left, r.bottom - r.top, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+        SetWindowPos(m_popup, HWND_TOP, tl.x, tl.y, clip.right - clip.left, clip.bottom - clip.top,
+                     SWP_NOACTIVATE | SWP_SHOWWINDOW);
         // The child is clipped to the popup's client area, so a bleed hides the control's own frame (WPF: Margin="-3").
-        Move({ -m_bleed, -m_bleed, r.right - r.left + m_bleed, r.bottom - r.top + m_bleed });
+        const LONG dx = r.left - clip.left, dy = r.top - clip.top;
+        Move({ dx - m_bleed, dy - m_bleed, dx + r.right - r.left + m_bleed, dy + r.bottom - r.top + m_bleed });
     }
     else
     {

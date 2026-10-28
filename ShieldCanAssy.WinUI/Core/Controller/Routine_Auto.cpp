@@ -349,6 +349,7 @@ namespace sca
         auto cam = model->AssyTray->CamPosFor(row, col);
         double camX = cam.X, camY = cam.Y;
 
+        LightCamLamp(LampFor(run->AutoState));   // đèn lên sáng trong lúc trục chạy — xem LightCamLamp
         if (!m_func.MoveToCell(model->AssyTray->AxisRow, camY, camX, ct))
             return Halt(Loc::F("Auto.ScanMoveFail", row, col));
 
@@ -403,11 +404,33 @@ namespace sca
         return NextUnscannedCell(tray);
     }
 
-    /// Ô lắp ráp còn trống và CHƯA có kết quả quét trước. Bật SystemData::ScanAssyByRow thì chỉ xét HÀNG đang làm —
-    /// hàng của ô trống đầu tiên, tức hàng mà AssignCell sắp giao tới. Tray đầu vào chưa vào cũng chỉ xét hàng đó: soi
-    /// trước hàng đầu trong lúc chờ tray đầu vào (Tuấn chốt 2026-09-26).
+    /// Ô lắp ráp còn trống và CHƯA có kết quả quét trước. Quét từng hàng thì chỉ xét HÀNG đang làm — hàng của ô trống
+    /// đầu tiên, tức hàng mà AssignCell sắp giao tới. Tray đầu vào chưa vào cũng chỉ xét hàng đó: soi trước hàng đầu
+    /// trong lúc chờ tray đầu vào (Tuấn chốt 2026-09-26).
+    ///
+    /// Quét từng cặp (Tuấn 2026-10-28) chỉ xét HAI ô trống đầu tiên — đúng hai ô AssignCell sắp giao cho hai tay (ô tay
+    /// đang giữ lệnh vẫn Empty tới lúc đặt nên vẫn nằm trong hai ô này). Ô soi không thấy thành NG, ô trống kế vào cặp và
+    /// được soi tiếp, nên cặp luôn là hai ô đặt được (hoặc ít hơn khi tray sắp đầy). CountFreeCells khi đó ≤ 2: S1x hút
+    /// đúng số ô đã soi.
+    ///
+    /// Trong cặp / hàng, ô X lớn chụp trước (FirstToScan, Tuấn 2026-10-28). Cả tray thì giữ thứ tự đi ô (rắn bò): quét một
+    /// lượt mỗi tray, đảo chiều từng hàng ở đó chỉ thêm đường đi.
     int Routine_Auto::NextUnscannedCell(const TrayState& tray)
     {
+        std::vector<int> group;
+        if (m_sys()->ScanAssy() == SystemData::EScanAssy::Pair)
+        {
+            std::lock_guard<std::recursive_mutex> l(m_cacheMutex);
+            int seen = 0;
+            for (int i = 0; i < tray.CellCount() && seen < 2; i++)
+            {
+                if (tray.Get(i) != ECellState::Empty || !tray.InScope(i)) continue;
+                seen++;
+                if (m_assyScan.find(i) == m_assyScan.end()) group.push_back(i);
+            }
+            return FirstScanCell(tray, group);
+        }
+
         int onlyRow = -1;
         if (m_sys()->ScanAssyByRow || !m_inputIn)
         {
@@ -418,20 +441,34 @@ namespace sca
             onlyRow = r0;
         }
 
-        std::lock_guard<std::recursive_mutex> l(m_cacheMutex);
-        // Có chọn ô thì chỉ soi ô đã chọn (Tuấn 2026-10-16).
-        for (int i = 0; i < tray.CellCount(); i++)
         {
-            if (tray.Get(i) != ECellState::Empty || !tray.InScope(i) || m_assyScan.find(i) != m_assyScan.end()) continue;
-            if (onlyRow >= 0)
+            std::lock_guard<std::recursive_mutex> l(m_cacheMutex);
+            // Có chọn ô thì chỉ soi ô đã chọn (Tuấn 2026-10-16).
+            for (int i = 0; i < tray.CellCount(); i++)
             {
+                if (tray.Get(i) != ECellState::Empty || !tray.InScope(i) || m_assyScan.find(i) != m_assyScan.end()) continue;
+                if (onlyRow < 0) return i;
                 int r, c;
                 tray.RowCol(i, r, c);
-                if (r != onlyRow) continue;
+                if (r == onlyRow) group.push_back(i);
             }
-            return i;
         }
-        return -1;
+        return FirstScanCell(tray, group);
+    }
+
+    /// Ô chụp trước trong nhóm — theo X của chỗ CAM top-down đứng chụp (TrayLayout::CamPosFor), không phải X của tay.
+    int Routine_Auto::FirstScanCell(const TrayState& tray, const std::vector<int>& cells)
+    {
+        if (cells.empty()) return -1;
+        auto layout = Model()->AssyTray;
+        std::vector<double> camX;
+        for (int i : cells)
+        {
+            int r, c;
+            tray.RowCol(i, r, c);
+            camX.push_back(layout->CamPosFor(r, c).X);
+        }
+        return cells[(size_t)FirstToScan(camX, layout->HalfColPitch())];
     }
 
     // ───────────────────────── cổng ─────────────────────────
@@ -703,6 +740,7 @@ namespace sca
         // (Routine_Calib::MoveZToBottomCapture). Vừa hút xong thì Z đã ở đó; lệnh này giữ đúng cả khi chạy
         // tiếp sau PAUSE mà Z đã bị jog.
         std::string zAxis = nozzle == 1 ? AxisId::Z1 : AxisId::Z2;
+        LightCamLamp(LampFor(run->AutoState));   // đèn lên sáng trong lúc trục chạy — xem LightCamLamp
         if (!m_func.Move(zAxis, SafeZ(), ZSpeed(zAxis), ct))
             return Halt(Loc::F("Auto.ZAlignHeightFail", zAxis));
 
@@ -1167,14 +1205,41 @@ namespace sca
         return true;
     }
 
+    /// <summary>
+    /// Hoàn thành chu trình (Tuấn 2026-10-28): MỘT trong hai tray xong — tray đầu vào hết hàng (cả sổ Tray 1 + Tray 2),
+    /// hoặc tray lắp ráp hết ô trống — là xong cả lượt. Ô còn việc của tray kia thành Skipped (trang Main thấy ô nào
+    /// chưa làm), CẢ HAI bàn ra vị trí chờ, máy báo "Cycle complete" và chờ Start; Start nạp hai tray như tray mới.
+    /// Trước đó chỉ tray hết mới ra ngoài, tray kia làm tiếp với tray thay vào.
+    /// </summary>
     bool Routine_Auto::S50_TrayCheck(std::stop_token ct)
     {
         auto run = RunData();
-        bool needInput = NextLoadedCell(*run->InputTray) < 0;
-        bool needAssy = NextFreeCell(*run->AssyTray) < 0;
+        bool inputDone = NextLoadedCell(*run->InputTray) < 0;
+        bool assyDone = NextFreeCell(*run->AssyTray) < 0;
 
-        // Tray lắp ráp vừa hết ô trống: chốt thời gian thực tế của tray (Tuấn 2026-10-08) — chia cho số ô đặt OK.
-        if (needAssy && run->AssyTrayStartedAt)
+        // Hết hàng đầu vào mà tay còn cầm hàng, tray lắp ráp còn chỗ: đặt nốt đã rồi mới kết thúc lượt.
+        bool holding = run->Nozzle1->HasProduct || run->Nozzle2->HasProduct;
+        if (inputDone && !assyDone && holding)
+        {
+            run->AutoState = EAutoState::S20_Align1;
+            return true;
+        }
+
+        if (!inputDone && !assyDone)
+        {
+            run->AutoState = EAutoState::S00_Ready;
+            return true;
+        }
+
+        // ── Hoàn thành chu trình ──
+        std::string reason = inputDone && assyDone ? Loc::T("Auto.DoneInputEmpty") + ", " + Loc::T("Auto.DoneAssyFull")
+                           : inputDone ? Loc::T("Auto.DoneInputEmpty") : Loc::T("Auto.DoneAssyFull");
+        int leftInput = FinishTray(*run->InputTray, ECellState::Loaded, "input tray");
+        int leftAssy = FinishTray(*run->AssyTray, ECellState::Empty, "assy tray");
+
+        // Tray lắp ráp xong (đầy, hoặc kết thúc cùng lượt): chốt thời gian thực tế của tray (Tuấn 2026-10-08) — chia
+        // cho số ô đặt OK.
+        if (run->AssyTrayStartedAt)
         {
             int ok = 0;
             std::vector<ECellState> cells = run->AssyTray->Cells;
@@ -1184,42 +1249,26 @@ namespace sca
                     { ok, FormatHmsTenths(std::floor(run->AssyTrayDoneSec * 10) / 10), run->AssyTrayDonePerProductSec() }),
                 LogLevel::Info);
         }
+        Save();
 
-        // Còn hàng trên tay hút thì chưa được đổi tray đầu vào — phải đặt nốt đã.
-        bool holding = run->Nozzle1->HasProduct || run->Nozzle2->HasProduct;
-        if (needInput && !needAssy && holding)
-        {
-            run->AutoState = EAutoState::S20_Align1;
-            return true;
-        }
-
-        if (!needInput && !needAssy)
-        {
-            run->AutoState = EAutoState::S00_Ready;
-            return true;
-        }
-
-        std::string what = TrayWhat(needInput, needAssy);
-
-        // Hết ô lắp ráp mà tay còn cầm hàng: giữ nguyên sản phẩm trên tay, chờ đổi tray (Tuấn chốt 2026-09-13).
-        // Chờ đổi tray chỉ là thông báo, không alarm (Tuấn 2026-09-30): Warning 5020 còn nguyên nhân tới lúc bấm
-        // Start, nên có lỗi khác trong lúc chờ thì RESET không đưa máy ra khỏi LỖI được — Start nào cũng bị từ chối.
+        // Hết ô lắp ráp mà tay còn cầm hàng: giữ nguyên sản phẩm trên tay (Tuấn chốt 2026-09-13) — lượt sau soi lại
+        // và đặt lên tray lắp ráp mới. Chỉ là thông báo, không alarm (Tuấn 2026-09-30).
         std::string holdNote = holding
             ? " — nozzle still holding product; after tray change the new tray is scanned and the product re-aligned before place"
             : "";
-        if (needInput) CloseSelection(*run->InputTray, ECellState::Loaded, "input tray");
-        if (needAssy) CloseSelection(*run->AssyTray, ECellState::Empty, "assy tray");
-        Save();
 
-        // Tray cần thay chạy ra vị trí chờ của nó (StandbyPos trục hàng) cho operator lấy ra, đặt tray mới — từ lúc
-        // đó coi như tray đã ra khỏi máy. Bước nào cần tray đó thì tự chờ tới khi nạp lại bằng nút Start (Tuấn chốt
-        // 2026-09-26).
-        if (!MoveTraysToStandby(needInput, needAssy, ct))
-            return Halt(Loc::F("Auto.TrayToStandbyFail",
-                Loc::T(needInput && needAssy ? "Auto.TrayBoth" : needInput ? "Auto.TrayInput" : "Auto.TrayAssy")));
-        if (needInput) m_inputIn = false;
-        if (needAssy) m_assyIn = false;
-        Log("Moved " + what + " to standby" + holdNote, LogLevel::Info);
+        // Cả hai bàn ra vị trí chờ (StandbyPos trục hàng), chạy song song — từ lúc đó coi như hai tray đã ra khỏi máy.
+        if (!MoveTraysToStandby(true, true, ct))
+            return Halt(Loc::F("Auto.TrayToStandbyFail", Loc::T("Auto.TrayBoth")));
+        m_inputIn = false;
+        m_assyIn = false;
+        {
+            std::lock_guard<std::mutex> l(m_waitingMutex);
+            m_cycleDone = Loc::F("Auto.CycleDone", reason);
+        }
+        Log(Loc::Format("Cycle complete ({0}): both trays to standby — {1} input cells and {2} assy cells left undone (skipped)",
+                { reason, leftInput, leftAssy }) + holdNote,
+            LogLevel::Info);
 
         // Luôn chạy lại từ S00, kể cả khi tay còn cầm hàng (Tuấn chốt 2026-09-13): S00 bỏ tư thế
         // đo cũ nên sản phẩm đang cầm được soi lại ở CAM bottom-up, S05 quét tray lắp ráp mới
@@ -1228,18 +1277,20 @@ namespace sca
         return true;
     }
 
-    /// Xong các ô operator đã chọn (Tuấn 2026-10-16) — coi như xong tray: ô còn việc (open: tray đầu vào còn hàng, tray
-    /// lắp ráp còn trống) mà KHÔNG được chọn thành Skipped, để sổ hết thật và tray đặt vào sau là tray mới; rồi xoá lựa
-    /// chọn, vì lựa chọn chỉ cho tray đang làm. Không chọn ô nào thì không làm gì.
-    void Routine_Auto::CloseSelection(TrayState& tray, ECellState open, const std::string& what)
+    /// Kết thúc tray khi xong lượt: ô còn việc (open: tray đầu vào còn hàng, tray lắp ráp còn trống) — kể cả ô không
+    /// được chọn (Tuấn 2026-10-16) — thành Skipped, để sổ hết thật và tray đặt vào sau là tray mới; rồi xoá lựa chọn, vì
+    /// lựa chọn chỉ cho tray đang làm. Ô Processing (nguồn của hàng còn trên tay) giữ nguyên.
+    int Routine_Auto::FinishTray(TrayState& tray, ECellState open, const std::string& what)
     {
-        if (!tray.HasSelection()) return;
+        bool hadSelection = tray.HasSelection();
         int skipped = 0;
         for (int i = 0; i < tray.CellCount(); i++)
-            if (tray.Get(i) == open && !tray.InScope(i)) { tray.Set(i, ECellState::Skipped); skipped++; }
+            if (tray.Get(i) == open) { tray.Set(i, ECellState::Skipped); skipped++; }
         tray.ClearSelection();
-        Log("Selected cells of " + what + " done — " + std::to_string(skipped) + " unselected cells marked skipped",
-            LogLevel::Info);
+        if (skipped > 0 || hadSelection)
+            Log(what + " done — " + std::to_string(skipped) + " cells left undone marked skipped" +
+                (hadSelection ? " (cell selection cleared)" : ""), LogLevel::Info);
+        return skipped;
     }
 
     /// Operator vừa đặt tray mới: tray đầu vào có mặt (inputMask, 0 = không đổi) đầy hàng, tray lắp ráp trống hết. Ô đã
@@ -1267,14 +1318,13 @@ namespace sca
         }
     }
 
-    std::string Routine_Auto::TrayWhat(bool input, bool assy)
-    {
-        return input && assy ? "both trays" : input ? "input tray" : assy ? "assy tray" : "";
-    }
-
     /// Thông báo chờ nạp tray, theo tray còn thiếu — "hết/đầy" khi sổ tray đó đã dùng xong, không thì "chờ".
     std::string Routine_Auto::TrayWaitText()
     {
+        {
+            std::lock_guard<std::mutex> l(m_waitingMutex);
+            if (!m_cycleDone.empty()) return m_cycleDone;   // vừa xong lượt, chưa nạp tray nào
+        }
         auto run = RunData();
         std::string input = NextLoadedCell(*run->InputTray) < 0 ? Loc::T("Auto.WaitInputEmpty")
                                                                 : Loc::T("Auto.WaitInput");
@@ -1339,6 +1389,10 @@ namespace sca
         bool input = inputMask != 0;
         bool assy = m_loadAssy.exchange(0) == 1;
         if (!input && !assy) return;
+        {
+            std::lock_guard<std::mutex> l(m_waitingMutex);
+            m_cycleDone.clear();   // lượt mới bắt đầu nạp tray
+        }
 
         // Hai tray đầu vào là MỘT sổ: chỉ làm lại khi cả sổ đã hết. Còn dở một tray (về gốc giữa chừng) thì giữ nguyên
         // — tray đã xong nằm lại trên bàn mà tính là tray mới thì máy sẽ đi hút ô rỗng.
@@ -1495,6 +1549,10 @@ namespace sca
         m_loadAssy.exchange(0);
         m_inputIn = false;
         m_assyIn = false;
+        {
+            std::lock_guard<std::mutex> l(m_waitingMutex);
+            m_cycleDone.clear();
+        }
         ClearVisionCaches("Init/origin, trays out to standby — next run re-captures the current row from the start");
         m_restartCycle = true;
     }
@@ -1590,21 +1648,28 @@ namespace sca
         }
     }
 
-    /// Bật đèn CAM cần cho lần soi này, và chỉ chờ đèn sáng khi vừa mới bật.
+    /// Bật đèn CAM, không chờ. Bước soi gọi hàm này TRƯỚC khi chạy trục tới vị trí chụp (Tuấn đề xuất 2026-10-23), để
+    /// đèn lên sáng trong lúc trục đang chạy và ổn định — tới lúc kích Flow thì WaitLamp thường không còn phải chờ gì.
     ///
     /// Đèn sáng suốt cả nhóm bước, không nháy từng lần kích (Tuấn yêu cầu 2026-09-25). Trước đây mỗi lần gọi Flow đều
     /// bật rồi tắt ngay, nên hai lần soi CAM dưới của một nhịp thành hai nháy và một lượt quét tray lắp ráp thành 40
-    /// nháy. Ngoài chuyện nhìn rối và tuổi thọ đèn, mỗi nháy còn phải trả lại khoảng chờ đèn lên đủ sáng — đèn đã sáng
-    /// sẵn thì không phải chờ.
+    /// nháy. Ngoài chuyện nhìn rối và tuổi thọ đèn, mỗi nháy còn phải trả lại khoảng chờ đèn lên đủ sáng.
     ///
     /// Đổi sang đèn khác thì tắt đèn cũ trước: hai đèn cùng sáng là ánh sáng của camera này lọt vào khung hình camera kia.
-    void Routine_Auto::TurnCamLampOn(int lampBit, std::stop_token ct)
+    void Routine_Auto::LightCamLamp(int lampBit)
     {
         if (lampBit < 0 || lampBit == m_lampOn) return;   // Flow chỉ tính, hoặc đèn đang sáng sẵn
         auto io = m_func.Io();
         if (m_lampOn >= 0 && io) io->SetDo(m_lampOn, false);
         if (io) io->SetDo(lampBit, true);
         m_lampOn = lampBit;
+        m_lampSince.Restart();
+    }
+
+    /// Bật đèn CAM cần cho lần soi này (nếu bước soi chưa bật sẵn) rồi chờ đèn sáng đủ.
+    void Routine_Auto::TurnCamLampOn(int lampBit, std::stop_token ct)
+    {
+        LightCamLamp(lampBit);
         WaitLamp(lampBit, ct);
     }
 
@@ -1622,13 +1687,15 @@ namespace sca
         m_lampOn = -1;
     }
 
-    /// Chờ đèn CAM sáng đủ sau khi vừa bật, trước khi kích Flow — mỗi đèn một số (SystemData::BottomLampMs cho đèn CAM1,
-    /// SystemData::TopLampMs cho đèn CAM2). Flow chỉ tính — không dùng camera, không bật đèn nào — thì không chờ giây nào.
+    /// Chờ đèn CAM sáng đủ trước khi kích Flow — mỗi đèn một số (SystemData::BottomLampMs cho đèn CAM1,
+    /// SystemData::TopLampMs cho đèn CAM2), tính từ lúc BẬT đèn: đèn bật sẵn từ trước khi chạy trục thì chỉ chờ phần
+    /// còn thiếu, thường là không chờ. Flow chỉ tính — không dùng camera, không bật đèn nào — thì không chờ giây nào.
     void Routine_Auto::WaitLamp(int lampBit, std::stop_token ct)
     {
         if (lampBit < 0) return;
         int ms = lampBit == IoMap::DoLampCam2 ? m_sys()->TopLampMs : m_sys()->BottomLampMs;
-        if (ms > 0) base::Delay(ms, ct);
+        long long left = ms - m_lampSince.ElapsedMilliseconds();
+        if (left > 0) base::Delay(static_cast<int>(left), ct);
     }
 
     VmCameraRead Routine_Auto::LocateTopVm(std::stop_token ct)

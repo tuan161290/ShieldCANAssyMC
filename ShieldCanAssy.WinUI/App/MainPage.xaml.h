@@ -34,7 +34,7 @@ namespace winrt::ShieldCanAssy::implementation
         void OnModeTrackSizeChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::SizeChangedEventArgs const&);
         void OnRunClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnStopClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
-        void OnOriginClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        winrt::fire_and_forget OnOriginClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnResetClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnMuteClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnClearCountersClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
@@ -88,13 +88,15 @@ namespace winrt::ShieldCanAssy::implementation
         Microsoft::UI::Xaml::Media::Animation::Storyboard m_modeSlide{ nullptr };
         Microsoft::UI::Xaml::Media::Animation::DoubleAnimation m_modeSlideX{ nullptr };
         int m_ngStreakShown{ -1 };
+        /// <summary>Popup Origin đang mở hoặc đang Servo On + nhả phanh trên luồng nền — bấm Origin lại lúc đó bị bỏ qua.</summary>
+        std::shared_ptr<std::atomic<bool>> m_originPrep = std::make_shared<std::atomic<bool>>(false);
 
         // Tray + CAM + log
         ui::TrayCard m_inputCard;
         ui::TrayCard m_assyCard;
         std::array<ui::MainCamFrame, 3> m_cams;
         ui::LogListView m_log;
-        bool m_logShown{ true };
+        bool m_logShown{ false };   // mở app là ẩn (Tuấn 2026-10-21) — khớp trạng thái đầu trong MainPage.xaml
         Microsoft::UI::Xaml::Media::Animation::Storyboard m_logAnim{ nullptr };
         /// <summary>Bảng "Not triggered" (WaitingCard của MainViewModel).</summary>
         std::shared_ptr<const sca::ReadoutCard> m_waitingCard;

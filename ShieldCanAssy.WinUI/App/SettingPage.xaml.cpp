@@ -16,7 +16,9 @@
 #include "Infor/Enums.h"
 #include "Lang/Loc.h"
 #include "SysConfig/AppPaths.h"
+#include "SysConfig/UserAccess.h"
 #include "Ui/Dialogs.h"
+#include "Ui/LoginDialog.h"
 #include "Ui/UiUtil.h"
 
 using namespace winrt;
@@ -51,6 +53,7 @@ namespace winrt::ShieldCanAssy::implementation
         m_loaded = true;
 
         SetupNumberBoxes();
+        SetupIdleLogoutBox();
         BindFields();
         BuildAxisTable();
         LogTableHost().Child(m_log.Build());
@@ -59,6 +62,7 @@ namespace winrt::ShieldCanAssy::implementation
         LoadZSafe();
         UpdateStaticInfo();
         UpdateCommandStates();
+        UpdateUserAccess(true);
         SelectSection(m_section);
     }
 
@@ -142,7 +146,18 @@ namespace winrt::ShieldCanAssy::implementation
                      [](bool v) { Sys()->SetRequireHomeAfterEmg(v); });
         bindToggle(HomeSeqSwitch(), &sca::SystemData::HomeRotateSequential);
         bindToggle(CurtainSwitch(), &sca::SystemData::HasLightCurtain);
-        bindToggle(ScanByRowSwitch(), &sca::SystemData::ScanAssyByRow);
+        // Cả tray / từng hàng / từng cặp — hai cờ ScanAssyByRow + ScanAssyByPair gộp ở SystemData::ScanAssy.
+        using Scan = sca::SystemData::EScanAssy;
+        m_texts.BindChoice(ScanAssyCombo(), { "Whole tray", "By row", "By pair" },
+            []() -> std::string {
+                switch (Sys()->ScanAssy())
+                {
+                case Scan::Row: return "By row";
+                case Scan::Pair: return "By pair";
+                default: return "Whole tray";
+                }
+            },
+            [](std::string v) { Sys()->SetScanAssy(v == "By row" ? Scan::Row : v == "By pair" ? Scan::Pair : Scan::Tray); });
 
         // ── VISION — LIMITS & TOLERANCES (SE-30, SE-31) ──
         bindDouble(MaxCompAngleBox(), "Max comp. angle (°)", &sca::SystemData::MaxCompensationAngleDeg);
@@ -437,6 +452,64 @@ namespace winrt::ShieldCanAssy::implementation
         if (VisionBusyRing().IsActive() != m_visionBusy) VisionBusyRing().IsActive(m_visionBusy);
     }
 
+    // ══════════ Phân quyền (Tuấn 2026-10-21) ══════════
+
+    void SettingPage::SetupIdleLogoutBox()
+    {
+        NumberBox box = IdleLogoutBox();
+        sp::NumberToggleGroup::SetupNumberBox(box);
+        box.Minimum(sca::UserAccess::MinIdleLogoutMin);
+        box.Maximum(sca::UserAccess::MaxIdleLogoutMin);
+        box.ValueChanged([this](NumberBox const& sender, NumberBoxValueChangedEventArgs const& e) {
+            if (m_syncingIdle) return;
+            double v = e.NewValue();
+            std::string error = std::isnan(v) ? sca::Loc::F("User.IdleRange", sca::UserAccess::MinIdleLogoutMin, sca::UserAccess::MaxIdleLogoutMin)
+                                              : sca::UserAccess::SetIdleLogoutMin((int)std::lround(v));
+            if (!error.empty()) ui::Dialogs::Warn(error);
+            // Từ chối hay làm tròn thì ô về đúng số đang dùng.
+            if ((int)std::lround(std::isnan(v) ? -1 : v) != sca::UserAccess::IdleLogoutMin())
+            {
+                m_syncingIdle = true;
+                sender.Value(sca::UserAccess::IdleLogoutMin());
+                m_syncingIdle = false;
+            }
+        });
+    }
+
+    void SettingPage::UpdateUserAccess(bool force)
+    {
+        uint64_t version = sca::UserAccess::Version();
+        if (!force && version == m_shownUserVersion) return;
+        m_shownUserVersion = version;
+
+        bool engineer = sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer);
+        ui::SetEnabled(ChangePasswordButton(), engineer);
+        ui::SetEnabled(IdleLogoutBox(), engineer);
+
+        bool isDefault = sca::UserAccess::IsDefaultPassword(sca::EUserLevel::Engineer);
+        std::string changed = sca::UserAccess::PasswordChangedAt(sca::EUserLevel::Engineer);
+        ui::SetText(PasswordStateText(), isDefault ? sca::Loc::T("User.DefaultPassword")
+                                                   : changed.empty() ? std::string() : sca::Loc::F("User.PasswordSetAt", changed));
+        PasswordStateText().Foreground(ui::Res(isDefault ? L"CautionBrush" : L"TextSecondaryBrush"));
+
+        // Không ghi đè lúc người dùng đang gõ dở trong ô.
+        if (IdleLogoutBox().FocusState() == FocusState::Unfocused)
+        {
+            m_syncingIdle = true;
+            IdleLogoutBox().Value(sca::UserAccess::IdleLogoutMin());
+            m_syncingIdle = false;
+        }
+    }
+
+    void SettingPage::OnChangePasswordClick(WF::IInspectable const&, RoutedEventArgs const&)
+    {
+        ui::LoginDialog::ShowChangePassword([weak = get_weak()](bool ok) {
+            if (!ok) return;
+            ui::Dialogs::Info(sca::Loc::T("User.PasswordChanged"));
+            if (auto self = weak.get()) self->UpdateUserAccess(true);
+        });
+    }
+
     // ══════════ Vision (SE-21…SE-29) ══════════
 
     void SettingPage::SetReport(TextBlock const& block, const std::string& text)
@@ -603,7 +676,9 @@ namespace winrt::ShieldCanAssy::implementation
 
     void SettingPage::OnTick()
     {
-        if (!m_loaded || !m_coreReady) return;
+        if (!m_loaded) return;
+        UpdateUserAccess();
+        if (!m_coreReady) return;
 
         UpdateAutoMode();
         UpdateCommandStates();

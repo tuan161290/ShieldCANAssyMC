@@ -311,6 +311,81 @@
         <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
 
+    <!-- ==== Nút chọn kiểu Radio (Tuấn 2026-10-21) — RadioButton trông như nút: cùng GroupName chọn được đúng một. Chưa
+         chọn = nút trắng như FlatButtonStyle; đang chọn = tô accent, chữ trắng SemiBold. Dùng cho chọn tray / Tool trang
+         Teaching. Bấm lại nút đang chọn không bỏ chọn (hành vi gốc của RadioButton). -->
+    <Style x:Key="ChoiceButtonStyle" TargetType="RadioButton">
+        <Setter Property="Background" Value="{StaticResource ControlFillBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ControlElevationStrokeBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="16,5"/>
+        <Setter Property="FontFamily" Value="{StaticResource SegoeUI}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="MinHeight" Value="40"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="UseSystemFocusVisuals" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid x:Name="RootGrid">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"/>
+                        <Border x:Name="Overlay" Background="Transparent" CornerRadius="{TemplateBinding CornerRadius}"/>
+                        <ContentPresenter x:Name="ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          FontSize="{TemplateBinding FontSize}"
+                                          FontWeight="{TemplateBinding FontWeight}"
+                                          Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          AutomationProperties.AccessibilityView="Raw"/>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Overlay.Background" Value="#0A000000"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Overlay.Background" Value="#14000000"/>
+                                        <Setter Target="ContentPresenter.Opacity" Value="0.8"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="RootGrid.Opacity" Value="0.45"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="CheckStates">
+                                <VisualState x:Name="Checked">
+                                    <VisualState.Setters>
+                                        <Setter Target="Bd.Background" Value="{StaticResource AccentFillBrush}"/>
+                                        <Setter Target="Bd.BorderBrush" Value="{StaticResource AccentFillBrush}"/>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{StaticResource TextOnAccentBrush}"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Unchecked"/>
+                                <VisualState x:Name="Indeterminate"/>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ==== Mục điều hướng dọc trong trang (Setting, EtherCAT) — cột trái kiểu ứng dụng Settings của Windows 11 ====
          Mục đang chọn: nền xám nhạt + vạch accent dọc bo tròn ở mép trái. IsChecked do trang đặt (bấm lại mục đang
          chọn không bỏ chọn được). Nội dung: biểu tượng Segoe Fluent + chữ (xem SettingPage.xaml). -->

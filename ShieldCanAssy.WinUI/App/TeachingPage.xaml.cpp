@@ -150,9 +150,12 @@ namespace winrt::ShieldCanAssy::implementation
         }
         for (auto box : { TrimAllXBox(), TrimAllYBox(), TrimAllABox(), TrimXBox(), TrimYBox(), TrimABox() })
             ui::ConfigureNumberBox(box, 3);
+        BuildZBoxes();
 
         m_cellView.Attach(CellGrid());
-        m_cellView.OnCellTapped = [this](int row, int col) { SelectCell(row, col); };
+        m_cellView.OnCellTapped = [this](int row, int col) { SelectCell(FirstTray(), row, col); };
+        m_cellView2.Attach(CellGrid2());
+        m_cellView2.OnCellTapped = [this](int row, int col) { SelectCell(1, row, col); };
 
         BuildJog();
         WireEvents();
@@ -174,6 +177,9 @@ namespace winrt::ShieldCanAssy::implementation
         tip(P1Button(), "Teach.P1Tip");
         tip(P2Button(), "Teach.P2Tip");
         tip(P3Button(), "Teach.P3Tip");
+        tip(T2P1Button(), "Teach.P1Tip");
+        tip(T2P2Button(), "Teach.P2Tip");
+        tip(T2P3Button(), "Teach.P3Tip");
         tip(ApplySizeButton(), "Teach.ApplySizeTip");
         tip(GoJigPick1Button(), "Teach.GoJigPick1Tip");
         tip(GoJigPick2Button(), "Teach.GoJigPick2Tip");
@@ -296,22 +302,18 @@ namespace winrt::ShieldCanAssy::implementation
         click(SaveBigButton(), [](TeachingPage& p) { p.SaveModel(); });
 
         // ── tray / Tool / thứ tự quét ──
-        TraySelector().SelectionChanged([weak](SelectorBar const& bar, auto&&) {
-            auto s = weak.get();
-            if (!s || s->m_suppressSelectors) return;
-            auto item = bar.SelectedItem();
-            if (!item) return;
-            int tray = item == s->TrayInput2Item() ? 1 : item == s->TrayAssyItem() ? AssyTraySel : 0;
-            s->SelectTray(tray);
-        });
-        ToolSelector().SelectionChanged([weak](SelectorBar const& bar, auto&&) {
-            auto s = weak.get();
-            if (!s || s->m_suppressSelectors) return;
-            auto item = bar.SelectedItem();
-            if (!item) return;
-            s->m_useNozzle1 = item != s->Tool2Item();
-            s->Compute();   // OnToolSwitched
-        });
+        // Nút kiểu Radio: Checked chỉ bắn ở nút vừa được chọn (bấm lại nút đang chọn không bắn).
+        auto checked = [weak](RadioButton const& radio, std::function<void(TeachingPage&)> fn) {
+            radio.Checked([weak, fn](auto&&, auto&&) {
+                auto s = weak.get();
+                if (s && !s->m_suppressSelectors) fn(*s);
+            });
+        };
+        checked(TrayInputRadio(), [](TeachingPage& p) { p.SelectTray(p.m_lastInputTray); });
+        checked(TrayAssyRadio(), [](TeachingPage& p) { p.SelectTray(AssyTraySel); });
+        // OnToolSwitched
+        checked(Tool1Radio(), [](TeachingPage& p) { p.m_useNozzle1 = true; p.Compute(); });
+        checked(Tool2Radio(), [](TeachingPage& p) { p.m_useNozzle1 = false; p.Compute(); });
         ScanOrderRadios().SelectionChanged([weak](auto&&, auto&&) {
             auto s = weak.get();
             if (!s || s->m_suppressSelectors) return;
@@ -329,19 +331,28 @@ namespace winrt::ShieldCanAssy::implementation
         dbl(GoCamAnchorButton(), [](TeachingPage& p) { p.MoveCamTopDownAnchor(); });
 
         // ── teach 3 điểm ──
-        click(P1Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::P00); });
-        click(P2Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::P0C); });
-        click(P3Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::PR0); });
-        click(TeachVerifyButton(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::Verify); });
+        // Hàng thứ nhất = Tray 1 (Input) hoặc Assy; hàng T2* = Tray 2, chỉ hiện ở chế độ Input.
+        click(P1Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::P00, p.FirstTray()); });
+        click(P2Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::P0C, p.FirstTray()); });
+        click(P3Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::PR0, p.FirstTray()); });
+        click(TeachVerifyButton(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::Verify, p.FirstTray()); });
+        click(T2P1Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::P00, 1); });
+        click(T2P2Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::P0C, 1); });
+        click(T2P3Button(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::PR0, 1); });
+        click(T2TeachVerifyButton(), [](TeachingPage& p) { p.TeachGridPoint(GridPoint::Verify, 1); });
         click(ApplySizeButton(), [](TeachingPage& p) { p.ApplySize(); });
 
         // ── góc hút, cao độ, vị trí soi, cơ cấu kẹp ──
         click(TeachPickA1Button(), [](TeachingPage& p) { p.TeachPickAngle(1); });
         click(TeachPickA2Button(), [](TeachingPage& p) { p.TeachPickAngle(2); });
-        click(TeachZPickZ1Button(), [](TeachingPage& p) { p.TeachZPick(AxisId::Z1); });
-        click(TeachZPickZ2Button(), [](TeachingPage& p) { p.TeachZPick(AxisId::Z2); });
-        click(TeachZSlowZ1Button(), [](TeachingPage& p) { p.TeachZSlow(AxisId::Z1); });
-        click(TeachZSlowZ2Button(), [](TeachingPage& p) { p.TeachZSlow(AxisId::Z2); });
+        click(TeachZPickZ1Button(), [](TeachingPage& p) { p.TeachZPick(AxisId::Z1, p.FirstTray()); });
+        click(TeachZPickZ2Button(), [](TeachingPage& p) { p.TeachZPick(AxisId::Z2, p.FirstTray()); });
+        click(TeachZSlowZ1Button(), [](TeachingPage& p) { p.TeachZSlow(AxisId::Z1, p.FirstTray()); });
+        click(TeachZSlowZ2Button(), [](TeachingPage& p) { p.TeachZSlow(AxisId::Z2, p.FirstTray()); });
+        click(T2TeachZPickZ1Button(), [](TeachingPage& p) { p.TeachZPick(AxisId::Z1, 1); });
+        click(T2TeachZPickZ2Button(), [](TeachingPage& p) { p.TeachZPick(AxisId::Z2, 1); });
+        click(T2TeachZSlowZ1Button(), [](TeachingPage& p) { p.TeachZSlow(AxisId::Z1, 1); });
+        click(T2TeachZSlowZ2Button(), [](TeachingPage& p) { p.TeachZSlow(AxisId::Z2, 1); });
         click(TeachAlign1Button(), [](TeachingPage& p) { p.TeachAlignPos(1); });
         click(TeachAlign2Button(), [](TeachingPage& p) { p.TeachAlignPos(2); });
         click(TeachJigPick1Button(), [](TeachingPage& p) { p.TeachHandEyePick(1); });
@@ -362,7 +373,11 @@ namespace winrt::ShieldCanAssy::implementation
         click(ApplyTrimButton(), [](TeachingPage& p) { p.ApplyPlaceTrim(); });
         click(ClearTrimButton(), [](TeachingPage& p) { p.ClearPlaceTrim(); });
         CellScroll().SizeChanged([weak](auto&&, SizeChangedEventArgs const& e) {
-            if (auto s = weak.get()) s->m_cellView.FitWidth(e.NewSize().Width);
+            if (auto s = weak.get())
+            {
+                s->m_cellView.FitWidth(e.NewSize().Width);
+                s->m_cellView2.FitWidth(e.NewSize().Width);
+            }
         });
 
         // ── tốc độ jog — CHUNG cho mọi trục và mọi trang (McFunction::JogFast) ──
@@ -419,14 +434,23 @@ namespace winrt::ShieldCanAssy::implementation
         {
             m_useNozzle1 = false;
             SelectTray(AssyTraySel);
-            SelectCell(0, 0);
+            SelectCell(AssyTraySel, 0, 0);
             LeftScroll().ChangeView(nullptr, index == 1 ? 0.0 : 760.0, nullptr, true);
         }
         else
         {
             m_useNozzle1 = true;
             SelectTray(0);
-            LeftScroll().ChangeView(nullptr, LeftScroll().ScrollableHeight() + 2000.0, nullptr, true);
+            SelectCell(1, 0, 0);
+            double offset = LeftScroll().ScrollableHeight() + 2000.0;
+            if (index == 4)
+            {
+                // Card 3 điểm với hai hàng Tray 1 / Tray 2: đo chỗ chữ nhắc đầu card sau khi phần Tray 2 vừa hiện.
+                LeftScroll().UpdateLayout();
+                auto content = LeftScroll().Content().as<UIElement>();
+                offset = ThreePointHintText().TransformToVisual(content).TransformPoint({ 0, 0 }).Y - 70;
+            }
+            LeftScroll().ChangeView(nullptr, offset, nullptr, true);
         }
         OnTick();
     }
@@ -504,17 +528,17 @@ namespace winrt::ShieldCanAssy::implementation
 
     // ───────────────────────── tray / Tool ─────────────────────────
 
-    std::shared_ptr<sca::TrayLayout> TeachingPage::Layout() const
+    std::shared_ptr<sca::TrayLayout> TeachingPage::LayoutOf(int tray) const
     {
         auto model = McDataManager::Model();
-        return UseInputTray() ? model->InputLayout(m_selectedTray) : model->AssyTray;
+        return tray == AssyTraySel ? model->AssyTray : model->InputLayout(tray);
     }
 
     std::string TeachingPage::CurrentZAxis() const { return m_useNozzle1 ? AxisId::Z1 : AxisId::Z2; }
 
-    std::string TeachingPage::TrayText() const
+    std::string TeachingPage::TrayTextOf(int tray) const
     {
-        return Loc::T(m_selectedTray == 0 ? "Teach.TrayInput1Lower" : m_selectedTray == 1 ? "Teach.TrayInput2Lower" : "Teach.TrayAssyLower");
+        return Loc::T(tray == 0 ? "Teach.TrayInput1Lower" : tray == 1 ? "Teach.TrayInput2Lower" : "Teach.TrayAssyLower");
     }
 
     /// <summary>"pick" / "place" theo tray đang chọn — tray đầu vào là nơi HÚT, tray lắp ráp là nơi ĐẶT.</summary>
@@ -530,6 +554,16 @@ namespace winrt::ShieldCanAssy::implementation
         if (slow <= 0) return Loc::F("Teach.ZSlowNotTaught", zAxis, what);
         if (slow >= pick) return Loc::F("Teach.ZSlowWrongSide", zAxis, slow, what, pick);
         return Loc::F("Teach.ZSlowOk", zAxis, pick - slow);
+    }
+
+    std::string TeachingPage::VerifyLine(sca::TrayLayout const& layout) const
+    {
+        std::string zAxis = CurrentZAxis();
+        if (!layout.IsTaughtFor(zAxis)) return Loc::T("Teach.VerifyNotTaught");
+        double err = 0;
+        bool ok = layout.VerifyGrid(zAxis, err);
+        if (!layout.GeometryFor(zAxis).PRC_Verify.Taught) return Loc::T("Teach.VerifyNoPoint");
+        return ok ? Loc::F("Teach.VerifyOk", err, layout.VerifyThreshold) : Loc::F("Teach.VerifyFail", err, layout.VerifyThreshold);
     }
 
     /// <summary>Còn thiếu điểm nào của cơ cấu kẹp, và hai điều kiện CƠ KHÍ mà bước hand-eye dựa vào. Báo chứ không chặn.</summary>
@@ -548,6 +582,7 @@ namespace winrt::ShieldCanAssy::implementation
     void TeachingPage::SelectTray(int tray)
     {
         m_selectedTray = tray;
+        if (tray != AssyTraySel) m_lastInputTray = tray;
         OnTraySwitched();
     }
 
@@ -565,11 +600,10 @@ namespace winrt::ShieldCanAssy::implementation
 
     void TeachingPage::SyncSelectors()
     {
+        // Đặt true cho nút đúng là đủ — GroupName tự bỏ chọn nút còn lại.
         m_suppressSelectors = true;
-        auto trayItem = m_selectedTray == 0 ? TrayInput1Item() : m_selectedTray == 1 ? TrayInput2Item() : TrayAssyItem();
-        if (TraySelector().SelectedItem() != trayItem) TraySelector().SelectedItem(trayItem);
-        auto toolItem = m_useNozzle1 ? Tool1Item() : Tool2Item();
-        if (ToolSelector().SelectedItem() != toolItem) ToolSelector().SelectedItem(toolItem);
+        (IsAssyTray() ? TrayAssyRadio() : TrayInputRadio()).IsChecked(true);
+        (m_useNozzle1 ? Tool1Radio() : Tool2Radio()).IsChecked(true);
         m_suppressSelectors = false;
     }
 
@@ -627,64 +661,96 @@ namespace winrt::ShieldCanAssy::implementation
 
     void TeachingPage::Compute()
     {
-        auto layout = Layout();
+        auto model = McDataManager::Model();
         std::string zAxis = CurrentZAxis();
-        // Tray 2 nằm sau Tray 1 trong sổ: quét zigzag thì hàng đầu Tray 2 nối tiếp chiều của hàng cuối Tray 1 — đánh số
-        // theo hàng trong sổ để số trên bảng đúng đường máy đi.
-        int rowBase = m_selectedTray == 1 ? McDataManager::Model()->InputTray->Rows() : 0;
-        int rows = layout->Rows(), cols = layout->Cols();
 
         m_cells.clear();
-        m_cells.reserve((size_t)rows * (size_t)cols);
-        for (int r = 0; r < rows; ++r)
-        {
-            for (int c = 0; c < cols; ++c)
+        // Sổ tray đầu vào nối Tray 2 sau Tray 1 theo hàng (ModelData::InputCell): đánh số theo chỉ số sổ — Tray 1 từ 1,
+        // Tray 2 từ R×C + 1 — để số trên bảng đúng đường máy đi, kể cả chiều zigzag ở hàng đầu Tray 2.
+        auto addTray = [&](int tray, sca::TrayLayout const& layout, int rowBase) {
+            int rows = layout.Rows(), cols = layout.Cols();
+            for (int r = 0; r < rows; ++r)
             {
-                auto p = layout->CellPos(zAxis, r, c);
-                const sca::CellOffset* off = layout->GetOffset(zAxis, r, c);
-                ui::teaching::CellInfo cell;
-                cell.Row = r;
-                cell.Col = c;
-                cell.X = p.X;
-                cell.Y = p.Y;
-                cell.Dx = off ? off->Dx : 0;
-                cell.Dy = off ? off->Dy : 0;
-                cell.PlaceDx = off ? off->PlaceDx : 0;
-                cell.PlaceDy = off ? off->PlaceDy : 0;
-                cell.PlaceDa = off ? off->PlaceDa : 0;
-                cell.VisitOrder = sca::TrayState::VisitIndex(rowBase + r, c, cols, layout->ScanOrder) - rowBase * cols + 1;
-                m_cells.push_back(cell);
+                for (int c = 0; c < cols; ++c)
+                {
+                    auto p = layout.CellPos(zAxis, r, c);
+                    const sca::CellOffset* off = layout.GetOffset(zAxis, r, c);
+                    ui::teaching::CellInfo cell;
+                    cell.Tray = tray;
+                    cell.Row = r;
+                    cell.Col = c;
+                    cell.X = p.X;
+                    cell.Y = p.Y;
+                    cell.Dx = off ? off->Dx : 0;
+                    cell.Dy = off ? off->Dy : 0;
+                    cell.PlaceDx = off ? off->PlaceDx : 0;
+                    cell.PlaceDy = off ? off->PlaceDy : 0;
+                    cell.PlaceDa = off ? off->PlaceDa : 0;
+                    cell.VisitOrder = sca::TrayState::VisitIndex(rowBase + r, c, cols, layout.ScanOrder) + 1;
+                    m_cells.push_back(cell);
+                }
             }
+        };
+        if (IsAssyTray())
+        {
+            addTray(AssyTraySel, *model->AssyTray, 0);
+        }
+        else
+        {
+            addTray(0, *model->InputTray, 0);
+            addTray(1, *model->InputTray2, model->InputTray->Rows());
         }
 
-        // Ô đang chọn giữ qua (Row, Col) — ô không còn tồn tại (vừa thu nhỏ lưới) thì bỏ chọn.
-        if (m_selRow >= rows || m_selCol >= cols) { m_selRow = -1; m_selCol = -1; }
+        // Ô đang chọn giữ qua (Row, Col) — ô không còn tồn tại (vừa thu nhỏ lưới) thì bỏ chọn, và chế độ Input quay về
+        // Tray 1 (không còn ô nào nói đang làm Tray 2).
+        auto layout = Layout();
+        if (m_selRow >= layout->Rows() || m_selCol >= layout->Cols())
+        {
+            m_selRow = -1;
+            m_selCol = -1;
+            if (UseInputTray()) m_selectedTray = m_lastInputTray = 0;
+        }
         // Bản WPF dựng lại TeachCellRow mới mỗi lần nên setter SelectedCell luôn chạy → nạp lại 3 ô bù của ô chọn.
         LoadTrimBoxes();
         LoadTrimAllBoxes();
 
-        m_cellView.Update(m_cells, rows, cols, m_selRow, m_selCol);
+        UpdateCellViews();
         RefreshTexts();
+    }
+
+    void TeachingPage::UpdateCellViews()
+    {
+        auto first = LayoutOf(FirstTray());
+        bool inFirst = m_selectedTray == FirstTray();
+        m_cellView.Update(m_cells, FirstTray(), first->Rows(), first->Cols(), inFirst ? m_selRow : -1, inFirst ? m_selCol : -1);
+        if (UseInputTray())
+        {
+            auto second = LayoutOf(1);
+            bool inSecond = m_selectedTray == 1;
+            m_cellView2.Update(m_cells, 1, second->Rows(), second->Cols(), inSecond ? m_selRow : -1, inSecond ? m_selCol : -1);
+        }
     }
 
     const ui::teaching::CellInfo* TeachingPage::SelectedCell() const
     {
         if (m_selRow < 0 || m_selCol < 0) return nullptr;
         for (auto const& c : m_cells)
-            if (c.Row == m_selRow && c.Col == m_selCol) return &c;
+            if (c.Tray == m_selectedTray && c.Row == m_selRow && c.Col == m_selCol) return &c;
         return nullptr;
     }
 
-    void TeachingPage::SelectCell(int row, int col)
+    void TeachingPage::SelectCell(int tray, int row, int col)
     {
-        if (row == m_selRow && col == m_selCol) return;
+        if (tray == m_selectedTray && row == m_selRow && col == m_selCol) return;
+        // Chế độ Input: ô ở lưới nào thì tray đó thành tray đang làm — Move, hạ Z, Set Offset, Go Pick theo nó.
+        m_selectedTray = tray;
+        if (tray != AssyTraySel) m_lastInputTray = tray;
         m_selRow = row;
         m_selCol = col;
         // Nạp 3 ô nhập theo ô vừa chọn — không nạp lại thì số của ô trước còn nằm đó và một cái bấm Apply là chép nhầm
         // lượng bù sang ô khác.
         LoadTrimBoxes();
-        auto layout = Layout();
-        m_cellView.Update(m_cells, layout->Rows(), layout->Cols(), m_selRow, m_selCol);
+        UpdateCellViews();
         UpdateCellUi();
     }
 
@@ -719,7 +785,11 @@ namespace winrt::ShieldCanAssy::implementation
         auto layout = Layout();
         auto cell = SelectedCell();
 
-        ui::SetText(SelectedCellText(), cell ? cell->Cell() : Loc::T("Teach.NoCellHint"));
+        // Chế độ Input có hai lưới — ghi rõ ô thuộc tray nào ("Tray 2 · cell (1, 3)").
+        std::string cellText = !cell ? Loc::T("Teach.NoCellHint")
+                             : UseInputTray() ? Loc::F("Tray.SummaryOfTray", cell->Tray + 1, Loc::F("Teach.CellLabel", cell->Cell()))
+                                              : cell->Cell();
+        ui::SetText(SelectedCellText(), cellText);
         if (cell)
         {
             ui::SetText(SelectedCellInfoText(),
@@ -759,72 +829,111 @@ namespace winrt::ShieldCanAssy::implementation
     void TeachingPage::RefreshTexts()
     {
         auto model = McDataManager::Model();
-        auto layout = Layout();
+        auto first = LayoutOf(FirstTray());   // hàng / cột thứ nhất: Tray 1 (Input) hoặc Assy
+        auto second = LayoutOf(1);            // hàng / cột Tray 2 — chỉ hiện ở chế độ Input
         std::string zAxis = CurrentZAxis();
-        const auto& geo = layout->GeometryFor(zAxis);
         bool input = UseInputTray();
 
         ui::SetText(CurrentModelText(), model->Name);
 
         // ── chọn tray ──
-        ui::SetText(TrayTitleText(), Loc::T(m_selectedTray == 0 ? "Teach.TrayInput1" : m_selectedTray == 1 ? "Teach.TrayInput2" : "Teach.TrayAssy"));
+        // Bộ chọn nằm trên card CELL COORDS — ở đầu cột trái vẫn nhắc đang làm tray nào, Tool nào.
+        ui::SetText(TrayTitleText(), Loc::F("Teach.TrayToolTitle", Loc::T(input ? "Teach.TrayInputBoth" : "Teach.TrayAssy"), m_useNozzle1 ? 1 : 2));
         ui::Show(SharedSizeText(), input);
+
+        // Phần của Tray 2 chỉ ẩn/hiện khi đổi chế độ tray (người bấm), không theo trạng thái máy.
+        int tray2 = input ? 1 : 0;
+        if (tray2 != m_tray2Shown)
+        {
+            m_tray2Shown = tray2;
+            UIElement const tray2Parts[] = {
+                Tray1PointsCaption(), Tray2PointsBlock(), CellTray1Text(), CellTray2Block(),
+                ZPickHead1Text(), ZPickHead2Text(), T2ZPickZ1Box(), T2ZPickZ2Box(), T2TeachZPickZ1Button(), T2TeachZPickZ2Button(),
+                ZSlowHead1Text(), ZSlowHead2Text(), T2ZSlowZ1Box(), T2ZSlowZ2Box(), T2TeachZSlowZ1Button(), T2TeachZSlowZ2Button(),
+            };
+            for (UIElement const& part : tray2Parts) ui::Show(part, input);
+            // Cột giá trị Tray 2 của hai bảng cao độ: chế độ Assy co về 0 để cột thứ nhất giãn hết bề ngang.
+            GridLength width = input ? GridLengthHelper::FromValueAndType(1, GridUnitType::Star) : GridLengthHelper::FromPixels(0);
+            ZPickGrid().ColumnDefinitions().GetAt(3).Width(width);
+            ZSlowGrid().ColumnDefinitions().GetAt(3).Width(width);
+        }
+        // "Tray 2 · outer" (+ "· not taught" khi chưa teach đủ cả hai Tool — máy chỉ dùng tray đã teach đủ).
+        auto trayCaption = [](int tray, sca::TrayLayout const& layout) {
+            std::string text = Loc::F("Tray.SummaryOfTray", tray + 1, Loc::T(tray == 0 ? "Teach.TrayInner" : "Teach.TrayOuter"));
+            return layout.IsTaught() ? text : text + " · " + Loc::T("Tray.NotTaught");
+        };
+        if (input)
+        {
+            std::string caption1 = trayCaption(0, *first), caption2 = trayCaption(1, *second);
+            ui::SetText(Tray1PointsCaption(), caption1);
+            ui::SetText(Tray2PointsCaption(), caption2);
+            ui::SetText(CellTray1Text(), caption1);
+            ui::SetText(CellTray2Text(), caption2);
+        }
 
         // ── mốc CAM top-down (chỉ Tray lắp ráp) ──
         ui::Show(CamAnchorCard(), !input);
         ui::SetText(CamAnchorText(), Fv(model->AssyTray->CamTopDownAnchorX, "0.000") + " / " + Fv(model->AssyTray->CamTopDownAnchorY, "0.000"));
 
-        // ── teach 3 điểm ──
-        const sca::TeachPoint* steps[3] = { &geo.P00, &geo.P0C, &geo.PR0 };
-        TextBlock xs[3] = { P1XText(), P2XText(), P3XText() };
-        TextBlock ys[3] = { P1YText(), P2YText(), P3YText() };
-        Button buttons[3] = { P1Button(), P2Button(), P3Button() };
-        for (int i = 0; i < 3; ++i)
+        // ── teach 3 điểm: hàng thứ nhất (slot 0) và hàng Tray 2 (slot 1) ──
+        struct PointRow
         {
-            ui::SetText(xs[i], "X " + Fv(steps[i]->X, "0.000"));
-            ui::SetText(ys[i], "Y " + Fv(steps[i]->Y, "0.000"));
-            int taught = steps[i]->Taught ? 1 : 0;
-            if (taught != m_stepTaughtShown[i])
+            Button Buttons[3];
+            TextBlock Xs[3];
+            TextBlock Ys[3];
+            TextBlock VerifyX, VerifyY, Verify;
+        };
+        auto drawPoints = [&](int slot, sca::TrayLayout const& layout, PointRow const& row) {
+            const auto& geo = layout.GeometryFor(zAxis);
+            const sca::TeachPoint* steps[3] = { &geo.P00, &geo.P0C, &geo.PR0 };
+            for (int i = 0; i < 3; ++i)
             {
-                m_stepTaughtShown[i] = taught;
-                if (taught) buttons[i].Background(ui::Res(L"VisionOkBrush"));
-                else buttons[i].ClearValue(Control::BackgroundProperty());
+                ui::SetText(row.Xs[i], "X " + Fv(steps[i]->X, "0.000"));
+                ui::SetText(row.Ys[i], "Y " + Fv(steps[i]->Y, "0.000"));
+                int taught = steps[i]->Taught ? 1 : 0;
+                int& shown = m_stepTaughtShown[slot * 3 + i];
+                if (taught != shown)
+                {
+                    shown = taught;
+                    if (taught) row.Buttons[i].Background(ui::Res(L"VisionOkBrush"));
+                    else row.Buttons[i].ClearValue(Control::BackgroundProperty());
+                }
             }
-        }
-        ui::SetText(VerifyXText(), Fv(geo.PRC_Verify.X, "0.000"));
-        ui::SetText(VerifyYText(), Fv(geo.PRC_Verify.Y, "0.000"));
-
-        // Dòng kiểm chứng lưới (UpdateVerifyText của bản WPF).
-        std::string verify;
-        if (!layout->IsTaughtFor(zAxis))
+            ui::SetText(row.VerifyX, Fv(geo.PRC_Verify.X, "0.000"));
+            ui::SetText(row.VerifyY, Fv(geo.PRC_Verify.Y, "0.000"));
+            ui::SetText(row.Verify, VerifyLine(layout));
+        };
+        drawPoints(0, *first, PointRow{ { P1Button(), P2Button(), P3Button() }, { P1XText(), P2XText(), P3XText() },
+                                        { P1YText(), P2YText(), P3YText() }, VerifyXText(), VerifyYText(), VerifyText() });
+        if (input)
         {
-            verify = Loc::T("Teach.VerifyNotTaught");
+            drawPoints(1, *second, PointRow{ { T2P1Button(), T2P2Button(), T2P3Button() }, { T2P1XText(), T2P2XText(), T2P3XText() },
+                                             { T2P1YText(), T2P2YText(), T2P3YText() }, T2VerifyXText(), T2VerifyYText(), T2VerifyText() });
+            ui::SetText(T2ColsText(), std::to_string(second->Cols()));
+            ui::SetText(T2RowsText(), std::to_string(second->Rows()));
         }
-        else
-        {
-            double err = 0;
-            bool ok = layout->VerifyGrid(zAxis, err);
-            verify = geo.PRC_Verify.Taught
-                ? (ok ? Loc::F("Teach.VerifyOk", err, layout->VerifyThreshold) : Loc::F("Teach.VerifyFail", err, layout->VerifyThreshold))
-                : Loc::T("Teach.VerifyNoPoint");
-        }
-        ui::SetText(VerifyText(), verify);
 
         // ── góc hút (chỉ tray đầu vào — góc ĐẶT do vision tính) ──
         ui::Show(PickAngleCard(), input);
         ui::SetText(PickA1Text(), Fv(model->PickAngleA1, "0.00") + "°");
         ui::SetText(PickA2Text(), Fv(model->PickAngleA2, "0.00") + "°");
 
-        // ── cao độ hút/đặt + điểm giảm tốc: cùng cặp Z1/Z2 trên Layout, nghĩa vật lý theo tray ──
+        // ── cao độ hút/đặt + điểm giảm tốc: cùng cặp Z1/Z2 trên mỗi lưới, nghĩa vật lý theo tray; Tray 2 teach Z riêng ──
         ui::SetText(ZPickTitleText(), Loc::T(input ? "Teach.ZPickTitle" : "Teach.ZPlaceTitle"));
         ui::SetText(ZPickHintText(), Loc::T(input ? "Teach.ZPickHint" : "Teach.ZPlaceHint"));
-        ui::SetText(ZPickZ1Text(), MmText(layout->Z_PickZ1));
-        ui::SetText(ZPickZ2Text(), MmText(layout->Z_PickZ2));
         ui::SetText(ZSlowTitleText(), Loc::T(input ? "Teach.ZSlowPickTitle" : "Teach.ZSlowPlaceTitle"));
         ui::SetText(ZSlowHintText(), Loc::F("Teach.ZSlowHint", PickPlaceWord()));
-        ui::SetText(ZSlowZ1Text(), MmText(layout->Z_SlowZ1));
-        ui::SetText(ZSlowZ2Text(), MmText(layout->Z_SlowZ2));
-        ui::SetText(ZSlowStatusText(), ZSlowLine(*layout, AxisId::Z1) + "\n" + ZSlowLine(*layout, AxisId::Z2));
+        // Ô số: chỉ đặt khi model đổi và ô không có focus — OnTick không ghi đè số đang gõ.
+        for (ZBox& z : m_zBoxes)
+            if (!z.SecondCol || input) ShowZBox(z, ZFieldOf(z.SecondCol ? *second : *first, z));
+        std::string slowStatus = ZSlowLine(*first, AxisId::Z1) + "\n" + ZSlowLine(*first, AxisId::Z2);
+        if (input)
+        {
+            auto ofTray = [](int tray, std::string const& line) { return Loc::F("Tray.SummaryOfTray", tray, line); };
+            slowStatus = ofTray(1, ZSlowLine(*first, AxisId::Z1)) + "\n" + ofTray(1, ZSlowLine(*first, AxisId::Z2)) + "\n" +
+                         ofTray(2, ZSlowLine(*second, AxisId::Z1)) + "\n" + ofTray(2, ZSlowLine(*second, AxisId::Z2));
+        }
+        ui::SetText(ZSlowStatusText(), slowStatus);
 
         // ── vị trí soi CAM bottom-up ──
         ui::SetText(AlignX1Text(), MmText(model->AlignPosX_Nozzle1));
@@ -846,19 +955,19 @@ namespace winrt::ShieldCanAssy::implementation
     /// Đọc vị trí THỰC của trục X và trục hàng (Y1/Y2 tuỳ tray), hỏi lại, rồi ghi vào đúng điểm teach của lưới tray ×
     /// Tool đang chọn. <c>TeachPoint(x, y)</c> là đường DUY NHẤT bật cờ Taught. Không chặn khi chưa về gốc.
     /// </summary>
-    winrt::fire_and_forget TeachingPage::TeachGridPoint(GridPoint which)
+    winrt::fire_and_forget TeachingPage::TeachGridPoint(GridPoint which, int tray)
     {
         auto self = get_strong();
         try
         {
-            auto layout = Layout();
+            auto layout = LayoutOf(tray);
             std::string rowAxis = layout->AxisRow;
             auto axisX = AxisOf(AxisId::X), axisRow = AxisOf(rowAxis);
             if (!axisX || !axisRow) co_return;
             double x = axisX->CurrentPos();
             double y = axisRow->CurrentPos();
             std::string zAxis = CurrentZAxis();
-            bool input = UseInputTray();
+            bool input = tray != AssyTraySel;
             int nozzle = m_useNozzle1 ? 1 : 2;
 
             const char* nameKey = which == GridPoint::P00 ? "Teach.PointP1" : which == GridPoint::P0C ? "Teach.PointP2"
@@ -868,7 +977,7 @@ namespace winrt::ShieldCanAssy::implementation
                                 : which == GridPoint::PR0 ? geo.PR0 : geo.PRC_Verify;
 
             // Lưới teach riêng theo tray × Tool — câu hỏi phải nói đang ghi vào bản nào.
-            if (!co_await ConfirmTeach(Loc::F("Teach.WhatGridPoint", Loc::T(nameKey), TrayText(), nozzle),
+            if (!co_await ConfirmTeach(Loc::F("Teach.WhatGridPoint", Loc::T(nameKey), TrayTextOf(tray), nozzle),
                                        XyText(old, rowAxis), XyText(x, rowAxis, y)))
                 co_return;
 
@@ -891,7 +1000,7 @@ namespace winrt::ShieldCanAssy::implementation
         catch (...) { LogUiError("Teach grid point", "unknown error"); }
     }
 
-    winrt::fire_and_forget TeachingPage::TeachZPick(std::string zAxis)
+    winrt::fire_and_forget TeachingPage::TeachZPick(std::string zAxis, int tray)
     {
         auto self = get_strong();
         try
@@ -899,9 +1008,9 @@ namespace winrt::ShieldCanAssy::implementation
             auto axis = AxisOf(zAxis);
             if (!axis) co_return;
             double z = axis->CurrentPos();
-            auto layout = Layout();
+            auto layout = LayoutOf(tray);
             double old = zAxis == AxisId::Z1 ? layout->Z_PickZ1 : layout->Z_PickZ2;
-            if (!co_await ConfirmTeach(Loc::F(UseInputTray() ? "Teach.WhatZPick" : "Teach.WhatZPlace", zAxis, TrayText()),
+            if (!co_await ConfirmTeach(Loc::F(tray != AssyTraySel ? "Teach.WhatZPick" : "Teach.WhatZPlace", zAxis, TrayTextOf(tray)),
                                        MmText(old), MmText(z)))
                 co_return;
             NoteTeachWithoutOrigin("pick height " + zAxis);
@@ -914,7 +1023,7 @@ namespace winrt::ShieldCanAssy::implementation
 
     /// <summary>Ghi cao độ BẮT ĐẦU GIẢM TỐC — cùng cách teach với cao độ hút/đặt. Không chặn khi số nằm sai phía: dòng
     /// trạng thái nói rõ máy sẽ bỏ qua.</summary>
-    winrt::fire_and_forget TeachingPage::TeachZSlow(std::string zAxis)
+    winrt::fire_and_forget TeachingPage::TeachZSlow(std::string zAxis, int tray)
     {
         auto self = get_strong();
         try
@@ -922,15 +1031,124 @@ namespace winrt::ShieldCanAssy::implementation
             auto axis = AxisOf(zAxis);
             if (!axis) co_return;
             double z = axis->CurrentPos();
-            auto layout = Layout();
+            auto layout = LayoutOf(tray);
             double old = zAxis == AxisId::Z1 ? layout->Z_SlowZ1 : layout->Z_SlowZ2;
-            if (!co_await ConfirmTeach(Loc::F("Teach.WhatZSlow", zAxis, TrayText()), MmText(old), MmText(z))) co_return;
+            if (!co_await ConfirmTeach(Loc::F("Teach.WhatZSlow", zAxis, TrayTextOf(tray)), MmText(old), MmText(z))) co_return;
             NoteTeachWithoutOrigin("slow pt " + zAxis);
             if (zAxis == AxisId::Z1) layout->Z_SlowZ1 = z; else layout->Z_SlowZ2 = z;
             RefreshTexts();
         }
         catch (const std::exception& ex) { LogUiError("Teach Z slow", ex.what()); ui::Dialogs::Error(ex.what()); }
         catch (...) { LogUiError("Teach Z slow", "unknown error"); }
+    }
+
+    // ───────────────────────── cao độ gõ tay ─────────────────────────
+    // Cao độ hút/đặt và điểm giảm tốc là số thường (không có cờ Taught như TeachPoint), nên gõ tay không chặn Auto. Gõ tay
+    // vẫn đi qua cùng hộp hỏi Old/New với nút Teach, và bị chặn ngoài soft limit của trục Z.
+
+    void TeachingPage::BuildZBoxes()
+    {
+        struct Def { NumberBox Box; const char* Axis; bool SecondCol; bool Slow; };
+        const Def defs[] = {
+            { ZPickZ1Box(), AxisId::Z1, false, false },   { ZPickZ2Box(), AxisId::Z2, false, false },
+            { ZSlowZ1Box(), AxisId::Z1, false, true },    { ZSlowZ2Box(), AxisId::Z2, false, true },
+            { T2ZPickZ1Box(), AxisId::Z1, true, false },  { T2ZPickZ2Box(), AxisId::Z2, true, false },
+            { T2ZSlowZ1Box(), AxisId::Z1, true, true },   { T2ZSlowZ2Box(), AxisId::Z2, true, true },
+        };
+        m_zBoxes.clear();
+        for (Def const& d : defs)
+        {
+            ui::ConfigureNumberBox(d.Box, 3);
+            ToolTipService::SetToolTip(d.Box, box_value(ui::T("Teach.ZTypeTip")));
+            ZBox z;
+            z.Box = d.Box;
+            z.ZAxis = d.Axis;
+            z.SecondCol = d.SecondCol;
+            z.Slow = d.Slow;
+            m_zBoxes.push_back(std::move(z));
+        }
+        // Sau vòng trên m_zBoxes không đổi kích thước nữa — chỉ số trong lambda luôn đúng.
+        for (size_t i = 0; i < m_zBoxes.size(); ++i)
+        {
+            m_zBoxes[i].Box.ValueChanged([weak = get_weak(), i](NumberBox const&, NumberBoxValueChangedEventArgs const&) {
+                if (auto self = weak.get()) self->CommitZTyped(i);
+            });
+        }
+    }
+
+    double& TeachingPage::ZFieldOf(sca::TrayLayout& layout, ZBox const& z) const
+    {
+        const bool z1 = z.ZAxis == AxisId::Z1;
+        if (z.Slow) return z1 ? layout.Z_SlowZ1 : layout.Z_SlowZ2;
+        return z1 ? layout.Z_PickZ1 : layout.Z_PickZ2;
+    }
+
+    void TeachingPage::ShowZBox(ZBox& z, double value, bool force)
+    {
+        if (!z.Box) return;
+        if (!force)
+        {
+            if (z.Shown == value) return;                                      // NaN ≠ NaN: lần đầu luôn đặt
+            if (z.Box.FocusState() != FocusState::Unfocused) return;           // người đang gõ
+        }
+        z.Shown = value;
+        z.Box.Value(value);   // bắn ValueChanged → CommitZTyped thấy số = model, bỏ qua
+    }
+
+    winrt::fire_and_forget TeachingPage::CommitZTyped(size_t index)
+    {
+        auto self = get_strong();
+        if (index >= m_zBoxes.size()) co_return;
+        try
+        {
+            ZBox& z = m_zBoxes[index];
+            const int tray = z.SecondCol ? 1 : FirstTray();
+            auto layout = LayoutOf(tray);
+            if (!layout) co_return;
+            const double old = ZFieldOf(*layout, z);
+            const double v = z.Box.Value();
+            if (std::isnan(v)) { ShowZBox(z, old, true); co_return; }   // ô trống: trả lại số cũ
+            if (std::abs(v - old) < 0.0005) co_return;                   // số do code đặt, hoặc chỉ định dạng lại
+            if (m_zCommitBusy) { ShowZBox(z, old, true); co_return; }    // đang hỏi cho ô khác
+
+            const std::string what = Loc::F(z.Slow ? "Teach.WhatZSlow" : tray != AssyTraySel ? "Teach.WhatZPick" : "Teach.WhatZPlace",
+                                            z.ZAxis, TrayTextOf(tray));
+            auto axis = AxisOf(z.ZAxis);
+            auto cfg = axis ? axis->Config() : nullptr;
+            const double lo = std::max(0.0, cfg ? cfg->SoftLimitNeg : 0.0);
+            const double hi = cfg ? cfg->SoftLimitPos : std::numeric_limits<double>::infinity();
+            std::string why;
+            if (!z.Slow && v <= 0) why = Loc::F("Teach.ZTypeNotPositive", what);
+            else if (v < lo || v > hi) why = Loc::F("Teach.ZTypeOutOfRange", what, v, z.ZAxis, lo, hi);
+            if (!why.empty())
+            {
+                ShowZBox(z, old, true);
+                ui::Dialogs::Warn(why);
+                co_return;
+            }
+
+            bool ok = false;
+            {
+                m_zCommitBusy = true;
+                struct Reset { bool& Flag; ~Reset() { Flag = false; } } reset{ m_zCommitBusy };
+                ok = co_await ConfirmTeach(what, MmText(old), MmText(v));
+            }
+            // Trong lúc hỏi có thể đã nạp model khác: không ghi vào lưới cũ.
+            auto now = LayoutOf(tray);
+            if (!ok || now != layout)
+            {
+                if (now) ShowZBox(z, ZFieldOf(*now, z), true);
+                co_return;
+            }
+            ZFieldOf(*layout, z) = v;
+            sca::LogWorker::Instance().RecordLog(
+                Loc::Format("Teaching: typed {0} = {1:0.000} mm (was {2:0.000})", { what, v, old }), sca::LogLevel::Info, "Teaching");
+            ShowZBox(z, v, true);
+            RefreshTexts();   // quãng chạy chậm đo từ cao độ hút/đặt
+        }
+        catch (const std::exception& ex) { LogUiError("Type Z height", ex.what()); ui::Dialogs::Error(ex.what()); }
+        catch (winrt::hresult_error const& ex) { LogUiError("Type Z height", winrt::to_string(ex.message())); }
+        catch (...) { LogUiError("Type Z height", "unknown error"); }
     }
 
     /// <summary>Ghi GÓC HÚT của tay <paramref name="nozzle"/> — toạ độ trục A quấn về [0, 360). Mọi lần hạ Z xuống hút
@@ -1346,7 +1564,8 @@ namespace winrt::ShieldCanAssy::implementation
     }
 
     /// <summary>Về gốc Z cũng đi qua chặng chậm — nâng khỏi hốc tray bằng mức Auto THẤP tới điểm giảm tốc rồi mới tăng
-    /// tốc (Tuấn 2026-09-24). Điểm giảm tốc lấy của TRAY ĐANG TEACH (đầu hút đang nằm trong hốc của chính tray đó).</summary>
+    /// tốc (Tuấn 2026-09-24). Điểm giảm tốc lấy của TRAY ĐANG LÀM — chế độ Input là tray của ô đang chọn (đầu hút đang nằm
+    /// trong hốc của chính tray đó).</summary>
     void TeachingPage::MoveZHome(std::string axisName)
     {
         auto axis = AxisOf(axisName);
@@ -1355,7 +1574,8 @@ namespace winrt::ShieldCanAssy::implementation
         MoveZ(axisName, cfg ? cfg->HomeOffset : 0, Layout()->ZSlowFor(axisName));
     }
 
-    /// <summary>Tray đầu vào nào đang chọn thì cao độ của tray đó (Tray 2 teach Z riêng); đang ở tray lắp ráp thì Tray 1.</summary>
+    /// <summary>Cao độ của tray đầu vào chứa ô đang chọn (Tray 2 teach Z riêng; chưa chọn ô = Tray 1); đang ở tray lắp ráp
+    /// thì Tray 1.</summary>
     void TeachingPage::MoveZPick(std::string axisName)
     {
         auto input = UseInputTray() ? Layout() : McDataManager::Model()->InputTray;

@@ -170,6 +170,12 @@ namespace
               !Routine_Auto::Nozzle1TakesFirstCell(400.03, 400.0) &&
               !Routine_Auto::Nozzle1TakesFirstCell(422.0, 400.0, 11.0));
         CHECK(Routine_Auto::Nozzle1TakesFirstPickCell(209.64, 147.92, 210.0, 148.0, 7.5));
+        // Chụp ô X lớn trước (Tuấn 2026-10-28); cùng cột giữ thứ tự ghé; rỗng = −1.
+        CHECK(Routine_Auto::FirstToScan({ 328.2, 353.3 }) == 1 && Routine_Auto::FirstToScan({ 353.3, 328.2 }) == 0);
+        CHECK(Routine_Auto::FirstToScan({ 328.2, 403.5, 378.4, 353.3 }, 12.5) == 1);
+        CHECK(Routine_Auto::FirstToScan({ 400.03, 400.0 }, 11.0) == 0 && Routine_Auto::FirstToScan({ 400.0, 400.03 }, 11.0) == 0);
+        CHECK(Routine_Auto::FirstToScan({ 400.0, 400.03 }) == 1);
+        CHECK(Routine_Auto::FirstToScan({}) == -1 && Routine_Auto::FirstToScan({ 5.0 }) == 0);
     }
 
     // ───────────────────────── VmCycle ─────────────────────────

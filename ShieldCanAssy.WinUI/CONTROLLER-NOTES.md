@@ -22,7 +22,7 @@ class it implements, but must not change public signatures or other classes' hea
   shared_ptr. `TrayLayout::Rows()/Cols()` are functions; `TrayState::Rows/Cols` are fields, `CellCount()/HasSelection()` functions.
   `ModelData::InputCell` returns `shared_ptr<TrayLayout>`; `HandEyeJigProblem` returns a string (empty = OK). `AxisConfig::MoveSpeedLow()`
   is a function; `SystemData::GetAxis` non-const; `AlarmData::Message()` a function; VisionCalib dates are TimePoint (`TimePoint{}` = MinValue).
-- Routine_Auto statics (TrayMissingAt, Nozzle1TakesFirstCell, Nozzle1TakesFirstPickCell) live in `Routine_AutoStatics.cpp` — do not
+- Routine_Auto statics (TrayMissingAt, Nozzle1TakesFirstCell, Nozzle1TakesFirstPickCell, FirstToScan) live in `Routine_AutoStatics.cpp` — do not
   redefine. `Routine_Auto::RunData()` is the C# `Run` property (renamed: clashes with `Run(ct)`).
 - Vision: `VisionConnect::SetRealDeviceFactory(...)` is registered by the App at startup; McControl::Init picks
   `SimulationMode ? FakeVision : VisionConnect` like C#. In simulation the real VisionMaster is never touched.

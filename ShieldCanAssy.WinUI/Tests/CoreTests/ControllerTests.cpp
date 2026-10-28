@@ -413,7 +413,20 @@ namespace
         bool blocked = WaitUntil([] { return Has(Msg(), "brake") && State() == EMcState::NotHomed; }, 2000);
         CHECK_MSG(blocked && !St().OrgOk(), VmState());
 
-        ServoAndBrakes();
+        // Popup Origin trang Main (Tuấn 2026-10-21): lúc này CHỈ thiếu phanh nên OriginBlockReason rỗng; xác nhận thì
+        // ServoOnAndReleaseBrakes làm hộ nghi thức tay (huỷ giữa chừng trả lý do "cancelled"), rồi về gốc như thường.
+        CHECK_MSG(!McControl::OriginBrakesReady() && McControl::OriginBlockReason().empty(), McControl::OriginBlockReason());
+        {
+            std::stop_source cancelled;
+            cancelled.request_stop();
+            std::string why = McControl::ServoOnAndReleaseBrakes(cancelled.get_token());
+            CHECK_MSG(Has(why, "cancelled"), why);
+        }
+        z1->SetServoOn(false);
+        WaitUntil([] { return !Func()->BrakeReady(AxisId::Z1); }, 500);
+        std::string prep = McControl::ServoOnAndReleaseBrakes(McControl::ManualToken());
+        CHECK_MSG(prep.empty() && McControl::OriginBrakesReady() && McControl::Motion().AllServoOn(), prep);
+
         bool ok = Origin();
         CHECK_MSG(ok, std::string("last step ") + ToString(St().OriginStep()) + " — " + Msg());
         CHECK(McControl::Motion().AllHomed());
@@ -917,7 +930,8 @@ namespace
         CHECK_MSG(WaitUntil([] { return Has(Msg(), "Dry run stopped"); }, 2000), Msg());
         CHECK(McControl::Motion().ZSafeOk());
         CHECK_MSG(dry->Sweeps() >= 1, std::to_string(dry->Sweeps()));
-        CHECK_MSG(Sys()->ScanAssyByRow || dry->Sweeps() == 1, std::format("{} sweeps after {} strokes", dry->Sweeps(), dry->Strokes()));
+        CHECK_MSG(Sys()->ScanAssy() != SystemData::EScanAssy::Tray || dry->Sweeps() == 1,
+                  std::format("{} sweeps after {} strokes", dry->Sweeps(), dry->Strokes()));
         CHECK(!airTouched);
         CHECK_MSG(fv->VmCallCount() == flow0, std::format("{} -> {}", flow0, fv->VmCallCount()));
         CHECK(run->CountOk == ok0 && run->CountNg == ng0);
@@ -1045,7 +1059,8 @@ namespace
         CHECK(Sys()->OnlyNozzle == 0);
         io->SimPress(IoMap::BtnArmA1);
         CHECK_MSG(WaitUntil([] { return State() == EMcState::Running; }, 1000), Msg());
-        CHECK(Func()->RunBit());
+        // McControl đặt Running TRƯỚC rồi mới bật bit RUN (cùng một lượt quét) — chờ, không đọc ngay (chập chờn 2026-10-28).
+        CHECK(WaitUntil([] { return Func()->RunBit(); }, 500));
         CHECK_MSG(WaitUntil([&] { return run->CountOk > okHeld; }, 120000) && !AlarmManager::HasError(),
                   std::format("OK {} -> {} — {}", okHeld, run->CountOk, Msg()));
 
@@ -1192,11 +1207,25 @@ namespace
         CHECK_MSG(locateAt3 == locateAt2, std::format("LocateTop at OK=2: {}, at OK=3: {}", locateAt2, locateAt3));
         PauseToStop();
 
-        // Quét TỪNG HÀNG: đặt vài sản phẩm đầu chỉ tốn cỡ một hàng trigger LocateTop.
+        // X chỗ đứng chụp của mỗi lần LocateTop, theo thứ tự — luồng chu trình ghi, luồng test lấy ra.
         auto sys = Sys();
+        std::mutex topMx;
+        std::vector<double> topX;
+        const std::string flowTop = sys->VisionOutputs.FlowLocateTop, gvX = sys->VisionOutputs.GvAxisX;
+        fv->SetAfterFlow([&](const std::string& flow)
+        {
+            if (flow != flowTop) return;
+            std::lock_guard<std::mutex> l(topMx);
+            topX.push_back(fv->GetGlobal(gvX));
+        });
+        auto takeTopX = [&] { std::lock_guard<std::mutex> l(topMx); auto v = topX; topX.clear(); return v; };
+        auto joinX = [](const std::vector<double>& v) { std::string s; for (double x : v) s += std::format("{:.1f} ", x); return s; };
+
+        // Quét TỪNG HÀNG: đặt vài sản phẩm đầu chỉ tốn cỡ một hàng trigger LocateTop.
         sys->ScanAssyByRow = true;
         run->ResetCounters();
         Prep(ECellState::Loaded, ECellState::Empty);
+        takeTopX();
         int locateBeforeRow = fv->LocateTopCount();
         McControl::RequestStart();
         bool placedRow = WaitUntil([&] { return run->CountOk >= 2; }, 120000);
@@ -1204,6 +1233,11 @@ namespace
         int cols = run->AssyTray->Cols, cells = run->AssyTray->CellCount();
         CHECK_MSG(placedRow && locatedRow >= cols && locatedRow <= 2 * cols && locatedRow < cells,
                   std::format("LocateTop +{}; row {} cells, tray {} cells, OK={}", locatedRow, cols, cells, run->CountOk));
+        // Trong hàng, ô X lớn chụp trước (Tuấn 2026-10-28): hàng đầu (thứ tự đi ô X tăng) chụp từ X lớn xuống X nhỏ.
+        auto rowX = takeTopX();
+        bool rowDesc = (int)rowX.size() >= cols;
+        for (int k = 1; rowDesc && k < cols; k++) rowDesc = rowX[(size_t)k] < rowX[(size_t)k - 1];
+        CHECK_MSG(rowDesc, "row capture X: " + joinX(rowX));
         PauseToStop();
 
         // Init giữa hàng rồi Start lại: bỏ số quét của hàng đang làm, chụp lại từ ô trống đầu tiên.
@@ -1235,6 +1269,35 @@ namespace
                               firstFree, freeRow, rowFree, rescan.empty() ? -1 : rescan[0], rescanned, run->CountOk, Msg()));
         PauseToStop();
         sys->ScanAssyByRow = false;
+
+        // Quét TỪNG CẶP (Tuấn 2026-10-28): mỗi vòng chỉ soi đúng hai ô sắp đặt rồi mới hút. Lần hút đầu tiên tới sau đúng
+        // 2 lần LocateTop; ở mọi lần hút, số ô đã soi mà chưa đặt không quá 2 (cả tray thì ~cả tray, từng hàng ~một hàng).
+        sys->SetScanAssy(SystemData::EScanAssy::Pair);
+        run->ResetCounters();
+        Prep(ECellState::Loaded, ECellState::Empty);
+        takeTopX();
+        int locateBeforePair = fv->LocateTopCount();
+        std::atomic<int> pairPicks{ 0 }, firstPickLocates{ -1 }, maxAhead{ -1 };
+        io->AfterSetDo = [&](int bit, bool on)
+        {
+            if (!on || (bit != IoMap::DoVacuum1 && bit != IoMap::DoVacuum2)) return;
+            int located = fv->LocateTopCount() - locateBeforePair;
+            if (pairPicks++ == 0) firstPickLocates = located;
+            maxAhead = std::max(maxAhead.load(), located - run->CountOk);   // luồng chu trình: CountOk cùng luồng
+        };
+        McControl::RequestStart();
+        bool placedPairs = WaitUntil([&] { return run->CountOk >= 6; }, 120000);
+        PauseToStop();
+        io->AfterSetDo = nullptr;
+        CHECK_MSG(placedPairs && firstPickLocates == 2 && maxAhead == 2 && pairPicks >= 6,
+                  std::format("OK={}, picks {}, LocateTop before 1st pick {}, max scanned-not-placed {} — {}", run->CountOk,
+                              pairPicks.load(), firstPickLocates.load(), maxAhead.load(), Msg()));
+        // Mỗi cặp chụp ô X lớn trước — kể cả cặp ở hàng có thứ tự đi ô X tăng (tray giả lập 4 cột: cặp không vắt hàng).
+        auto pairX = takeTopX();
+        bool pairDesc = pairX.size() >= 6;
+        for (size_t k = 0; pairDesc && k + 1 < 6; k += 2) pairDesc = pairX[k] > pairX[k + 1];
+        CHECK_MSG(pairDesc, "pair capture X: " + joinX(pairX));
+        sys->SetScanAssy(SystemData::EScanAssy::Tray);
 
         // Chỉ một tay hút: chọn chỉ tay #2 — tay #1 không mở van hút lần nào mà máy vẫn đặt ra sản phẩm.
         McControl::SetOnlyNozzle(2);
@@ -1326,7 +1389,8 @@ namespace
 
         PrepareRun();
 
-        // ── Hết tray đầu vào giữa chừng: tray ra vị trí chờ, chờ Start ──
+        // ── Hết tray đầu vào giữa chừng: hoàn thành chu trình — CẢ HAI tray ra vị trí chờ, ô trống còn lại của tray lắp
+        //    ráp thành Skipped, chờ Start (Tuấn 2026-10-28) ──
         Prep(ECellState::Ng, ECellState::Empty);
         run->InputTray->CurrentIndex = 0;
         run->InputTray->Set(0, ECellState::Loaded);
@@ -1334,13 +1398,16 @@ namespace
         WaitUntil([] { return State() == EMcState::Running; }, 3000);
         CHECK_MSG(WaitUntil(WaitingOp, 120000), VmState());
         CHECK_MSG(!AlarmManager::IsActive(AlarmCode::TrayEmpty) && !AlarmManager::PendingReset(), PendingText());
-        CHECK_MSG(AtStandby(rowIn), PosText(rowIn));
-        CHECK_MSG(Has(Msg(), "input tray") && Has(Msg(), "Start"), Msg());
+        CHECK_MSG(AtStandby(rowIn) && AtStandby(rowAssy), PosText(rowIn) + ", " + PosText(rowAssy));
+        CHECK_MSG(Has(Msg(), "Cycle complete") && Has(Msg(), "input tray empty") && Has(Msg(), "Start"), Msg());
+        CHECK_MSG(CountCells(*run->AssyTray, ECellState::Empty) == 0 &&
+                  CountCells(*run->AssyTray, ECellState::Skipped) == run->AssyTray->CellCount() - 1,
+                  TrayText(*run->AssyTray));
 
-        // STOP lúc chờ tray: chu trình thoát khỏi vòng chờ, máy về DỪNG.
+        // STOP lúc chờ tray: chu trình thoát khỏi vòng chờ, máy về DỪNG. Hai tray đều ra nên chờ ở bước quét S05.
         McControl::RequestStop();
         CHECK_MSG(WaitUntil([] { return State() == EMcState::Paused; }, 5000), VmState());
-        CHECK_MSG(run->AutoState == EAutoState::S10_Pick1 && CountCells(*run->InputTray, ECellState::Loaded) == 0,
+        CHECK_MSG(run->AutoState == EAutoState::S05_ScanAssy && CountCells(*run->InputTray, ECellState::Loaded) == 0,
                   std::string(ToString(run->AutoState)));
 
         // Lỗi lúc tray đang chờ đổi: vào LỖI, RESET xong START mềm vào lại được sẵn sàng.
@@ -1486,22 +1553,29 @@ namespace
         run->NozzleClearReason.clear();
         io->SimSet(IoMap::TrayIn1Present, true);
 
-        // ── Tray lắp ráp đầy: tray lắp ráp ra vị trí chờ, Start nạp lại ──
+        // ── Tray lắp ráp đầy: hoàn thành chu trình, cả hai tray ra vị trí chờ, hàng còn lại thành Skipped; Start nạp lại
+        //    hai tray như tray mới ──
         Prep(ECellState::Loaded, ECellState::Ok);
         McControl::RequestStart();
         CHECK_MSG(WaitUntil(WaitingOp, 60000), VmState());
-        CHECK_MSG(AtStandby(rowAssy), PosText(rowAssy));
+        CHECK_MSG(AtStandby(rowAssy) && AtStandby(rowIn), PosText(rowAssy) + ", " + PosText(rowIn));
+        CHECK_MSG(Has(Msg(), "Cycle complete") && Has(Msg(), "assy tray full") && !Has(Msg(), "input tray empty"), Msg());
+        CHECK_MSG(CountCells(*run->InputTray, ECellState::Skipped) == run->InputTray->CellCount(), TrayText(*run->InputTray));
         McControl::RequestReset();
         WaitUntil([] { return !AlarmManager::PendingReset(); }, 2000);
         io->SimSet(IoMap::TrayAssyPresent, false);
         St().SetMessage({});
+        // Start khi mới thay tray đầu vào: nạp tray đầu vào (tray mới, đủ hàng), chạy vào máy, chờ tray lắp ráp.
         io->SimPress(IoMap::BtnGoB1);
-        Sleep(300);
-        CHECK_MSG(WaitingOp() && Has(Msg(), "No assy tray at standby"), VmState());
+        CHECK_MSG(WaitUntil([] { return WaitingOp() && Has(Msg(), "Assy tray full"); }, 30000) && !Has(Msg(), "Cycle complete"),
+                  VmState());
+        CHECK_MSG(CountCells(*run->InputTray, ECellState::Loaded) == run->InputTray->CellCount() && !AtStandby(rowIn),
+                  TrayText(*run->InputTray) + " — " + PosText(rowIn));
         io->SimSet(IoMap::TrayAssyPresent, true);
         io->SimPress(IoMap::BtnArmA1);
         CHECK_MSG(WaitUntil([] { return State() == EMcState::Running; }, 5000), VmState());
         CHECK(CountCells(*run->AssyTray, ECellState::Ok) <= 2);
+        CHECK_MSG(CountCells(*run->InputTray, ECellState::Skipped) == 0, TrayText(*run->InputTray));   // tray đầu vào mới
         PauseToStop();
         io->SimSet(IoMap::TrayIn1Present, true);
         io->SimSet(IoMap::TrayAssyPresent, true);
@@ -1737,7 +1811,10 @@ namespace
         int aligned1 = fv->AlignBottomCount() - alignBefore1;
         CHECK_MSG(aligned1 == 1, std::format("AlignBottom +{}", aligned1));
         CHECK(!run->Nozzle1->HasProduct && !run->Nozzle2->HasProduct && !Func()->HasProduct(1) && !Func()->HasProduct(2));
-        CHECK(CountCells(*run->InputTray, ECellState::Ok) == 1 && CountCells(*run->InputTray, ECellState::Loaded) == run->InputTray->CellCount() - 1);
+        // Hoàn thành chu trình: hàng còn lại trên tray đầu vào thành Skipped, cả hai tray ra vị trí chờ (Tuấn 2026-10-28).
+        CHECK(CountCells(*run->InputTray, ECellState::Ok) == 1 && CountCells(*run->InputTray, ECellState::Skipped) == run->InputTray->CellCount() - 1);
+        CHECK_MSG(AtStandby(Model()->InputTray->AxisRow) && AtStandby(Model()->AssyTray->AxisRow),
+                  PosText(Model()->InputTray->AxisRow) + ", " + PosText(Model()->AssyTray->AxisRow));
         CHECK_MSG(WaitUntil([] { return Has(Msg(), "assy tray"); }, 1000), Msg());
 
         // Start với tray lắp ráp mới: số tray vừa xong chuyển xuống Last, đồng hồ đếm lại.
@@ -1802,7 +1879,7 @@ namespace
         CHECK_MSG(run->AssyTray->Get(last) == ECellState::Ng, ToString(run->AssyTray->Get(last)));
         CHECK_MSG(waiting3 && aligned3 == 0 && !run->Nozzle1->HasProduct && !run->Nozzle2->HasProduct && Has(Msg(), "assy tray"),
                   std::format("AlignBottom +{} — ", aligned3) + VmState());
-        CHECK(AllCells(*run->InputTray, ECellState::Loaded) && run->CountNg == ngBefore3);
+        CHECK(AllCells(*run->InputTray, ECellState::Skipped) && run->CountNg == ngBefore3);   // xong lượt: hàng còn lại Skipped
         McControl::RequestStart();
         WaitUntil([] { return State() == EMcState::Running; }, 5000);
         McControl::RequestPause();
@@ -1933,14 +2010,22 @@ namespace
                 assy->SetPlaceTrim(AxisId::Z2, r, c, trimDx - allDx, trimDy - allDy, 0);
             }
 
-        // Đèn CAM sáng suốt cả nhóm bước, không nháy từng lần kích Flow — đếm SƯỜN LÊN.
+        // Đèn CAM sáng suốt cả nhóm bước, không nháy từng lần kích Flow — đếm SƯỜN LÊN. Đèn CAM1 bật TRƯỚC khi X chạy
+        // tới vị trí soi (2026-10-23): ở sườn lên, X còn ở tray đầu vào (X ≤ 210), xa cả hai vị trí soi (270, 300).
         auto io = Io();
+        auto xAxis = Axis(AxisId::X);
+        const double align1 = Model()->AlignPosX_Nozzle1, align2 = Model()->AlignPosX_Nozzle2;
         std::mutex mx;
-        int lampOn1 = 0, lampOn2 = 0;
+        int lampOn1 = 0, lampOn2 = 0, lamp1AtAlign = 0;
         bool cam1 = false, cam2 = false, bothLampsOn = false;
         io->AfterSetDo = [&](int bit, bool on)
         {
             std::lock_guard<std::mutex> l(mx);
+            if (bit == IoMap::DoLampCam1 && on && !cam1)
+            {
+                double x = xAxis->CurrentPos();
+                if (std::abs(x - align1) < 1.0 || std::abs(x - align2) < 1.0) lamp1AtAlign++;
+            }
             if (bit == IoMap::DoLampCam1) { if (on && !cam1) lampOn1++; cam1 = on; }
             if (bit == IoMap::DoLampCam2) { if (on && !cam2) lampOn2++; cam2 = on; }
             if (cam1 && cam2) bothLampsOn = true;
@@ -1964,6 +2049,7 @@ namespace
             std::lock_guard<std::mutex> l(mx);
             CHECK_MSG(lampOn1 > 0 && lampOn2 > 0 && lampOn1 + lampOn2 < vmCalls, std::format("CAM1 {}x, CAM2 {}x / {} flows", lampOn1, lampOn2, vmCalls));
             CHECK_MSG(lampOn1 <= nhip, std::format("CAM1 {}x for {} strokes", lampOn1, nhip));
+            CHECK_MSG(lamp1AtAlign == 0, std::format("CAM1 lit only after X reached align pos {}/{}x", lamp1AtAlign, lampOn1));
             CHECK(!bothLampsOn);
         }
 
