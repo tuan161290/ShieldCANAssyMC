@@ -81,7 +81,7 @@ namespace winrt::ShieldCanAssy::implementation
         if (section < 0 || section >= SectionCount) return;
         m_section = section;
 
-        std::array<NavigationViewItem, SectionCount> items{ NavSystem(), NavVision(), NavServo(), NavDelay(), NavLog() };
+        std::array<NavigationViewItem, SectionCount> items{ NavSystem(), NavVision(), NavServo(), NavDelay(), NavLog(), NavUsers() };
         auto selected = SectionNav().SelectedItem();
         if (!selected || selected != items[(size_t)section]) SectionNav().SelectedItem(items[(size_t)section]);
 
@@ -90,6 +90,7 @@ namespace winrt::ShieldCanAssy::implementation
         ui::Show(ServoSection(), section == SectionServo);
         ui::Show(DelaySection(), section == SectionDelay);
         ui::Show(LogSection(), section == SectionLog);
+        ui::Show(UsersSection(), section == SectionUsers);
         if (m_coreReady) OnTick();
     }
 

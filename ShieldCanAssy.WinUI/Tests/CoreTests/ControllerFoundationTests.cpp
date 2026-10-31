@@ -21,6 +21,7 @@
 #include "Controller/McFunction.h"
 #include "Controller/Routine_Auto.h"
 #include "Controller/SinglePointAlignMath.h"
+#include "Controller/TrayRemovalWatch.h"
 #include "Controller/TwoHandGate.h"
 #include "Controller/VisionReadout.h"
 #include "Controller/VmCycle.h"
@@ -157,6 +158,31 @@ namespace
         CHECK(Routine_Auto::TrayMissingAt(20.5, 20.0, false));
         CHECK(!Routine_Auto::TrayMissingAt(60.0, 20.0, false));
         CHECK(!Routine_Auto::TrayMissingAt(60.0, 20.0, true));
+
+        // Lấy tray ra ở vị trí chờ (Tuấn 2026-10-30): chỉ sườn xuống đứng vững DebounceMs, trục đứng yên ở vị trí chờ.
+        {
+            const long long d = TrayRemovalWatch::DebounceMs;
+            TrayRemovalWatch w;
+            CHECK(!w.Update(true, true, 0));                // về tới vị trí chờ: chỉ lấy mốc
+            CHECK(!w.Update(true, false, 100));             // vừa tắt
+            CHECK(!w.Update(true, true, 100 + d / 2));      // chập chờn: bật lại trước hạn → không tính
+            CHECK(!w.Update(true, false, 1000));
+            CHECK(!w.Update(true, false, 1000 + d - 1));
+            CHECK(w.Update(true, false, 1000 + d));         // tắt đủ lâu → một lần
+            CHECK(!w.Update(true, false, 5000));
+            CHECK(!w.Update(true, true, 6000));             // đặt tray vào: không làm gì
+            CHECK(!w.Update(true, true, 6000 + d));
+            CHECK(!w.Update(false, false, 7000));           // trục rời vị trí chờ: tray chạy khỏi cảm biến không tính
+            CHECK(!w.Update(false, false, 7000 + 2 * d));
+            CHECK(!w.Update(true, false, 9000));            // về lại mà không có tray: mốc là "không có"
+            CHECK(!w.Update(true, false, 9000 + 2 * d));
+            TrayRemovalWatch w2;
+            CHECK(!w2.Update(true, false, 0));              // mốc "không có", đặt tray rồi lấy ra
+            CHECK(!w2.Update(true, true, 10));
+            CHECK(!w2.Update(true, true, 10 + d));
+            CHECK(!w2.Update(true, false, 2000));
+            CHECK(w2.Update(true, false, 2000 + d));
+        }
 
         // Giao ô theo hình học.
         CHECK(Routine_Auto::Nozzle1TakesFirstCell(483.585, 508.572));
@@ -590,7 +616,14 @@ namespace
         std::string t1 = VisionReadout::Tool1();
         auto card1 = VisionReadout::Tool1Card();
         CHECK_MSG(Contains(t1, Loc::F("Readout.OffsetText", 0.1, -0.2, 0.5)) &&
-                  Contains(t1, Loc::F("Readout.TargetText", 351.2, sim->AssyTray->AxisRow, 60.5, 1, 101.0, 1.0)), t1);
+                  Contains(t1, Loc::F("Readout.TargetText", 351.2, sim->AssyTray->AxisRow, 60.5, 1, "+101.00", 1.0)), t1);
+        CHECK_MSG(card1 && card1->Rows.size() == 2 && card1->Rows[1].Values[2] == "+101.00", t1);
+        // Góc trục A hiển thị có dấu (−180, +180] (Tuấn 2026-10-30): 359 → -1, làm tròn về 0 không ra "-0.000".
+        CHECK(AxisAngle::SignedText(359.0, 3) == "-1.000" && AxisAngle::SignedText(1.0, 3) == "+1.000" &&
+              AxisAngle::SignedText(0.0, 3) == "0.000" && AxisAngle::SignedText(359.9996, 3) == "0.000" &&
+              AxisAngle::SignedText(180.0, 2) == "+180.00" && AxisAngle::SignedText(181.0, 2) == "-179.00" &&
+              AxisAngle::SignedText(-30.0, 1) == "-30.0" && AxisAngle::SignedText(390.0, 0) == "+30");
+        CHECK(Near(AxisAngle::Signed(350), -10) && Near(AxisAngle::Signed(-10), -10) && Near(AxisAngle::Signed(10), 10));
         CHECK(card1 != nullptr && card1->Rows.size() == 2 && card1->Rows[0].Label == Loc::T("Readout.RowOffset") &&
               card1->Rows[1].Label == Loc::T("Readout.RowTarget") && card1->Columns.size() == 4 &&
               card1->Rows[0].Values.size() == 4 && card1->Rows[1].Values.size() == 4 && card1->Cell.empty() &&

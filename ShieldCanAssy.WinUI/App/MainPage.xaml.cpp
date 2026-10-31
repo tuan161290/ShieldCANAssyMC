@@ -48,24 +48,6 @@ namespace
         const long long h = tenths / 36000, m = tenths / 600 % 60, s = tenths / 10 % 60, f = tenths % 10;
         return h >= 1 ? std::format("{}:{:02}:{:02}.{}", h, m, s, f) : std::format("{:02}:{:02}.{}", m, s, f);
     }
-
-    std::string OrWaiting(std::string s) { return s.empty() ? sca::Loc::T("Main.NotTriggered") : s; }
-
-    std::string BindKey(int loadCount, const std::string& path) { return std::to_string(loadCount) + "|" + path; }
-
-    /// <summary>Đường dẫn Flow/module của ba khung (Tool 1, Tool 2, Top) — ô ở Setting: "T1" = cả Flow T1, "T1.Module" =
-    /// module trong Flow T1, trống = cả Flow (VisionOutputNames::RenderPath).</summary>
-    std::array<std::string, 3> RenderPaths()
-    {
-        auto sys = sca::McDataManager::SysData();
-        sca::VisionOutputNames n = sys ? sys->VisionOutputs : sca::VisionOutputNames{};
-        return { sca::VisionOutputNames::RenderPath(n.FlowAlignBottomTool1, n.RenderTool1),
-                 sca::VisionOutputNames::RenderPath(n.FlowAlignBottomTool2, n.RenderTool2),
-                 sca::VisionOutputNames::RenderPath(n.FlowLocateTop, n.RenderTopDown) };
-    }
-
-    /// <summary>Nền khung ảnh CAM = màu card nhìn thấy trên máy (SetBackground của SDK chỉ nhận màu đặc).</summary>
-    constexpr const wchar_t* RenderBackground = L"#F1F1F1";
 }
 
 namespace winrt::ShieldCanAssy::implementation
@@ -129,6 +111,11 @@ namespace winrt::ShieldCanAssy::implementation
         AssyTrayHost().Child(m_assyCard.Build(std::wstring(ui::T("Main.AssyTray")), 1));
         m_inputCard.OnCellTapped = [this](int i) { sca::McControl::ToggleCellSelection(true, i); SyncTray(true); };
         m_assyCard.OnCellTapped = [this](int i) { sca::McControl::ToggleCellSelection(false, i); SyncTray(false); };
+        // Nhấn giữ một ô rồi kéo = chọn / bỏ chọn cả vùng (Tuấn 2026-10-30).
+        m_inputCard.OnCellsDragged = [this](auto const& cells, bool on) { sca::McControl::SetCellsSelected(true, cells, on); SyncTray(true); };
+        m_assyCard.OnCellsDragged = [this](auto const& cells, bool on) { sca::McControl::SetCellsSelected(false, cells, on); SyncTray(false); };
+        m_inputCard.CanSelectCell = [](int i) { return sca::McControl::CanSelectCell(true, i); };
+        m_assyCard.CanSelectCell = [](int i) { return sca::McControl::CanSelectCell(false, i); };
         m_inputCard.OnClearSelection = [this] { sca::McControl::ClearCellSelection(true); SyncTray(true); };
         m_assyCard.OnClearSelection = [this] { sca::McControl::ClearCellSelection(false); SyncTray(false); };
         // Tray 1, và Tray 2 nếu đã teach, thành có hàng — McControl::ReloadInputTray.
@@ -137,35 +124,19 @@ namespace winrt::ShieldCanAssy::implementation
         m_assyCard.OnReload = [this] { sca::McControl::ResetAssyTray(); if (m_coreReady) OnTick(); };
 
         // ── Ba khung CAM ──
-        Tool1CamHost().Child(m_cams[CamTool1].Build(std::wstring(ui::T("Main.CamTool1"))));
-        Tool2CamHost().Child(m_cams[CamTool2].Build(std::wstring(ui::T("Main.CamTool2"))));
-        TopCamHost().Child(m_cams[CamTop].Build(std::wstring(ui::T("Main.CamTop"))));
-        {
-            auto waiting = std::make_shared<sca::ReadoutCard>();
-            waiting->Note = sca::Loc::T("Main.NotTriggered");
-            m_waitingCard = waiting;
-        }
-        for (int i = 0; i < (int)m_cams.size(); ++i)
-        {
-            m_cams[i].SetReadout(m_waitingCard, sca::Loc::T("Main.NotTriggered"));
-            // Bấm tiêu đề bảng: đổi Ofs/Tgt ↔ bảng tách Đích cho CẢ HAI tay (ReadoutHeader_Click → ToggleBreakdown).
-            m_cams[i].OnReadoutHeaderTapped = [this] {
-                m_showBreakdown = !m_showBreakdown;
-                SyncToolCards();
-            };
-            m_cams[i].OnToolbarClicked = [this, i] { ToggleToolbar(i); };
-        }
+        m_cams.Build(Tool1CamHost(), Tool2CamHost(), TopCamHost());
 
         // ── Log ──
         LogListHost().Child(m_log.Build());
         m_log.Update();
 
-        if (m_coreReady) { QueueVm(true); OnTick(); }
+        if (m_coreReady) OnTick();
     }
 
     void MainPage::OnCoreReady()
     {
         m_coreReady = true;
+        m_cams.SetCoreReady();
         if (m_loaded) OnTick();
     }
 
@@ -174,15 +145,14 @@ namespace winrt::ShieldCanAssy::implementation
     void MainPage::OnTick()
     {
         if (!m_loaded || m_closing) return;
-        if (ui::AppHost::Options().ShotMode()) InjectShotSample();
+        if (ui::AppHost::Options().ShotMode()) m_cams.InjectShotSample();
 
         UpdateOperation();
         UpdateCounters();
         RefreshAssyTrayClock();
         UpdateTrays();
-        UpdateCams();
+        m_cams.Update();
         m_log.Update();
-        QueueVm(false);
     }
 
     void MainPage::UpdateOperation()
@@ -253,7 +223,7 @@ namespace winrt::ShieldCanAssy::implementation
     }
 
     // MA-2: chữ luôn RUN, MÀU báo trạng thái — xám khi đứng, xanh nhấp nháy khi Armed (không quầng), xanh + quầng khi
-    // Running. Bấm vào chỉ vào Armed.
+    // Running. Bấm = nút Start cứng (OnRunClick).
     void MainPage::UpdateRunButton(int stateValue)
     {
         const auto state = (sca::EMcState)stateValue;
@@ -387,9 +357,13 @@ namespace winrt::ShieldCanAssy::implementation
         if (!run) return;
         // Chọn ô chỉ ở AUTO (Tuấn 2026-10-16).
         const bool canSelect = sca::McControl::Status().Mode() == sca::EMcMode::Auto;
+        // Quầng ô hiện tại chỉ khi chu trình đang dở (Tuấn 2026-10-30) — đứng yên / chờ đổi tray thì không.
+        const auto state = sca::McControl::Status().State();
+        const bool showCurrent = state == sca::EMcState::Running || state == sca::EMcState::Pausing ||
+                                 state == sca::EMcState::Paused || state == sca::EMcState::Held;
         if (input)
         {
-            if (auto tray = run->InputTray) m_inputCard.Sync(*tray, nullptr, canSelect);
+            if (auto tray = run->InputTray) m_inputCard.Sync(*tray, nullptr, canSelect, showCurrent);
             return;
         }
         auto tray = run->AssyTray;
@@ -398,60 +372,7 @@ namespace winrt::ShieldCanAssy::implementation
         std::vector<int> scanned;
         auto routine = m_coreReady ? sca::McControl::AutoRoutine() : nullptr;
         if (routine) scanned = routine->AssyScannedCells();
-        m_assyCard.Sync(*tray, routine ? &scanned : nullptr, canSelect);
-    }
-
-    // ══════════ Khung CAM: bảng số + ảnh gần nhất ══════════
-
-    std::shared_ptr<const sca::ReadoutCard> MainPage::Shown(std::shared_ptr<const sca::ReadoutCard> const& c) const
-    {
-        if (!c) return m_waitingCard;
-        return m_showBreakdown && c->Breakdown ? c->Breakdown : c;
-    }
-
-    void MainPage::SyncToolCards()
-    {
-        if (m_shotSample && !sca::VisionReadout::Tool1Card())
-            m_cams[CamTool1].SetReadout(Shown(m_shotSample), "Self-test sample readout");
-        else
-            m_cams[CamTool1].SetReadout(Shown(sca::VisionReadout::Tool1Card()), OrWaiting(sca::VisionReadout::Tool1()));
-        m_cams[CamTool2].SetReadout(Shown(sca::VisionReadout::Tool2Card()), OrWaiting(sca::VisionReadout::Tool2()));
-    }
-
-    void MainPage::UpdateCams()
-    {
-        SyncToolCards();
-        auto top = sca::VisionReadout::TopCard();
-        m_cams[CamTop].SetReadout(top ? top : m_waitingCard, OrWaiting(sca::VisionReadout::Top()));
-
-        if (m_shotSample) return;   // --shot: ảnh mẫu đã đặt, không có Vision thật
-        if (auto vision = sca::McControl::Vision())
-        {
-            m_cams[CamTool1].SetImage(vision->LastBottomUpImageTool1());
-            m_cams[CamTool2].SetImage(vision->LastBottomUpImageTool2());
-            m_cams[CamTop].SetImage(vision->LastTopDownImage());
-        }
-    }
-
-    // --shot (luôn mô phỏng, dữ liệu tạm): một ảnh và một bảng số mẫu ở khung Tool 1 để ảnh chụp kiểm được bố cục. Chỉ ở
-    // phía UI — không ghi gì vào Core.
-    void MainPage::InjectShotSample()
-    {
-        if (m_shotSample) return;
-        auto card = std::make_shared<sca::ReadoutCard>();
-        card->Cell = "Cell (2,3)";
-        card->Columns = { "X", "Y", "\xCE\xB8" };
-        card->Rows = { { "Ofs", { "0.012", "-0.034", "0.15" } }, { "Tgt", { "182.410", "96.205", "90.15" } } };
-        card->Note = "Sample";
-        m_shotSample = card;
-
-        auto img = std::make_shared<sca::ImageData>();
-        img->Width = 320; img->Height = 240; img->Channels = 1; img->Stride = 320;
-        img->Pixels.resize((size_t)img->Stride * img->Height);
-        for (int y = 0; y < img->Height; ++y)
-            for (int x = 0; x < img->Width; ++x)
-                img->Pixels[(size_t)y * img->Stride + x] = (uint8_t)(std::abs(x - y) < 3 ? 255 : 60 + x * 150 / 319);
-        m_cams[CamTool1].SetImage(img);
+        m_assyCard.Sync(*tray, routine ? &scanned : nullptr, canSelect, showCurrent);
     }
 
     // ══════════ Log ══════════
@@ -498,218 +419,29 @@ namespace winrt::ShieldCanAssy::implementation
         sb.Begin();
     }
 
-    // ══════════ VmRenderControl của VisionMaster (khi vision là VisionMaster thật) ══════════
-
-    // Control VM gọi sang vServerApp và COM bơm thông điệp trong lúc chờ — gọi trong Loaded/Tick/Click là XAML tự kết thúc
-    // app (0xC000027B). Nên chỉ xếp hàng (ui::QueueVmWork); gộp các lần gọi dồn dập thành một.
-    void MainPage::QueueVm(bool force)
-    {
-        m_vmForce = m_vmForce || force;
-        if (m_vmQueued || m_closing || !m_coreReady) return;
-        m_vmQueued = true;
-        ui::QueueVmWork([weak = get_weak()] {
-            auto self = weak.get();
-            if (!self) return;
-            self->m_vmQueued = false;
-            // Đang ở giữa một lời gọi VM (nó bơm thông điệp nên việc này chạy lồng vào): bỏ, nhịp sau xếp lại.
-            if (self->m_vmBusy || self->m_closing) return;
-            const bool force = std::exchange(self->m_vmForce, false);
-            self->m_vmBusy = true;
-            try
-            {
-                self->EnsureVmPanes();
-                self->UpdateRenderBindings(force);
-            }
-            catch (...) { self->m_vmBusy = false; throw; }
-            self->m_vmBusy = false;
-        });
-    }
-
-    // Tạo ba control lần đầu trang hiện. Mô phỏng (FakeVision) / --shot: không có VisionMaster — khung chỉ có ảnh gần nhất
-    // và chữ "(no image)". Bản C++ không chạm VisionMaster khi mô phỏng (CONTROLLER-NOTES).
-    void MainPage::EnsureVmPanes()
-    {
-        if (m_vmAttempted || !m_loaded || !m_visible || !m_coreReady) return;
-        m_vmAttempted = true;
-
-        if (ui::AppHost::Options().ShotMode()) return;
-        auto vc = std::dynamic_pointer_cast<sca::VisionConnect>(sca::McControl::Vision());
-        if (!vc || vc->IsSimulation()) return;
-
-        std::string error;
-        for (int i = 0; i < (int)m_cams.size(); ++i)
-        {
-            ui::MainCamFrame& f = m_cams[i];
-            if (f.Pane.Create(f.RenderHost(), ui::vmkind::Render, &error))
-            {
-                ApplyRenderLook(i);
-                ui::Show(f.ToolbarButton(), true);
-                continue;
-            }
-            // Thường là chưa đăng ký ActiveX của VisionMaster — ba khung cùng lý do, không thử tiếp.
-            for (ui::MainCamFrame& g : m_cams)
-                if (!g.Pane.Created()) g.ShowVmError("Cannot create VisionMaster view: " + error);
-            sca::LogWorker::Instance().RecordLog("Main: cannot create CAM view - " + error, sca::LogLevel::Warning, "Vision");
-            break;
-        }
-        for (const ui::MainCamFrame& f : m_cams) m_vmActive = m_vmActive || f.Pane.Created();
-
-        ApplyPaneVisibility();
-        UpdateRenderBindings(true);
-    }
-
-    void MainPage::ApplyPaneVisibility()
-    {
-        if (!m_vmActive) return;
-        const int show = m_visible && !m_closing ? 1 : 0;
-        for (ui::MainCamFrame& f : m_cams)
-        {
-            if (!f.Pane.Created() || show == f.PaneShown) continue;
-            f.PaneShown = show;
-            f.Pane.SetVisible(show == 1);
-        }
-    }
-
-    // Gắn ba control vào module đặt ở trang Setting (mặc định cả Flow AlignBottom_Tool1, AlignBottom_Tool2, LocateTop). Chỉ
-    // gắn SAU khi McControl nạp xong solution (nạp xong thì callback kết quả mọi module bị tắt — gắn trước là bị tắt theo);
-    // nạp lại (VisionLoadCount đổi) hay đổi tên ở Setting thì gắn lại. Chưa gắn đủ thì thử lại mỗi giây (timer 1 s của WPF).
-    void MainPage::UpdateRenderBindings(bool force)
-    {
-        if (!m_vmActive || !m_visible || m_closing) return;
-
-        const int load = sca::McControl::VisionLoadCount();
-        const auto paths = RenderPaths();
-
-        bool allBound = true;
-        for (int i = 0; i < (int)m_cams.size(); ++i)
-            if (m_cams[i].Pane.Created() && m_cams[i].BoundKey != BindKey(load, paths[i])) allBound = false;
-        if (allBound) return;
-
-        const auto now = std::chrono::steady_clock::now();
-        if (!force && now - m_lastBindTry < std::chrono::seconds(1)) return;
-        m_lastBindTry = now;
-
-        auto vc = std::dynamic_pointer_cast<sca::VisionConnect>(sca::McControl::Vision());
-        std::shared_ptr<sca::VisionMasterDevice> device =
-            vc ? std::dynamic_pointer_cast<sca::VisionMasterDevice>(vc->Device()) : nullptr;
-        const bool ready = load > 0 && device != nullptr && vc->IsSolutionLoaded();
-
-        std::string diag = ready ? "" : ", waiting for solution load";
-        if (ready)
-        {
-            for (int i = 0; i < (int)m_cams.size(); ++i)
-            {
-                if (!m_cams[i].Pane.Created()) continue;
-                const bool ok = BindOne(i, *device, paths[i], load);
-                diag += std::format(", '{}'={}", paths[i], ok ? "bound" : "NOT found");
-            }
-        }
-
-        // Log một lần cho mỗi bộ tên — đủ biết kẹt ở đâu (chưa nạp solution, hay sai tên module), không rác log mỗi giây.
-        if (diag != m_loggedVisionDiagnostic)
-        {
-            m_loggedVisionDiagnostic = diag;
-            sca::LogWorker::Instance().RecordLog("Main: CAM views" + diag, sca::LogLevel::Info, "Vision");
-        }
-    }
-
-    // Gán Flow/module <path> cho khung; đã gán đúng đường dẫn đó trong lần nạp đó thì thôi. False khi solution chưa có
-    // Flow/module đó, hoặc SDK đang bận chạy Flow (RenderSource không chờ) — lần sau thử lại.
-    bool MainPage::BindOne(int index, sca::VisionMasterDevice& device, std::string const& path, int loadCount)
-    {
-        ui::MainCamFrame& f = m_cams[index];
-        const std::string key = BindKey(loadCount, path);
-        if (f.BoundKey == key) return true;
-        if (!f.Pane.Created() || path.empty()) return false;
-
-        // Khung chỉ vẽ được module ĐANG BẬT callback kết quả (bản WPF EnableResultCallbacks, sửa lỗi 30/09): bật trước
-        // khi gán; cả Flow thì bật mọi module con. SDK bận/chưa nạp → thử lại lần sau; lỗi từng module chỉ log như C#.
-        std::string enableError;
-        if (!device.EnableResultCallbacks(path, enableError)) return false;
-        if (!enableError.empty() && f.CallbackFailLoggedKey != key)
-        {
-            f.CallbackFailLoggedKey = key;
-            sca::LogWorker::Instance().RecordLog(
-                std::format("Main: CAM view '{}' - can't enable result callbacks: {}", path, enableError),
-                sca::LogLevel::Warning, "Vision");
-        }
-
-        // Con trỏ thuộc về SDK: đưa cho control NGAY, không cất giữ.
-        void* source = device.RenderSource(path);
-        if (source == nullptr) return false;
-
-        HRESULT hr = f.Pane.Host().CallPtr(ui::vmdisp::RenderSetParamsInfo, source);
-        if (FAILED(hr))
-        {
-            if (f.FailLoggedKey != key)
-            {
-                f.FailLoggedKey = key;
-                sca::LogWorker::Instance().RecordLog(
-                    std::format("Main: CAM view '{}' - SetParamsInfo hr=0x{:08X} {}", path, (unsigned)hr,
-                                ::base::Narrow(f.Pane.Host().LastError())),
-                    sca::LogLevel::Warning, "Vision");
-            }
-            return false;
-        }
-        f.BoundKey = key;
-        ApplyRenderLook(index);   // gọi lại sau mỗi lần gắn — SDK có thể trả nền/thanh công cụ về mặc định
-        return true;
-    }
-
-    void MainPage::ApplyRenderLook(int index)
-    {
-        ui::MainCamFrame& f = m_cams[index];
-        if (!f.Pane.Created()) return;
-        HRESULT hr = f.Pane.Host().CallStr(ui::vmdisp::RenderSetBackground, RenderBackground);
-        if (SUCCEEDED(hr)) hr = f.Pane.Host().CallBool(ui::vmdisp::RenderSetToolbarVisible, f.ToolbarShown);
-        if (FAILED(hr))
-        {
-            std::string why = ::base::Narrow(f.Pane.Host().LastError());
-            if (why == m_loggedRenderLookError) return;
-            m_loggedRenderLookError = why;
-            sca::LogWorker::Instance().RecordLog("Main: cannot set CAM view background/toolbar - " + why,
-                                                 sca::LogLevel::Warning, "Vision");
-        }
-    }
-
-    // ☰: ẩn/hiện thanh công cụ của khung (Tuấn 2026-10-07). Lời gọi vào control qua hàng đợi, không gọi trong Click.
-    void MainPage::ToggleToolbar(int index)
-    {
-        ui::MainCamFrame& f = m_cams[index];
-        f.ToolbarShown = !f.ToolbarShown;
-        ui::SetTint(f.ToolbarButton(), f.ToolbarShown ? ui::Tint::Accent : ui::Tint::None);
-        ui::QueueVmWork([weak = get_weak(), index] {
-            auto self = weak.get();
-            if (!self || self->m_closing || self->m_vmBusy) return;
-            self->ApplyRenderLook(index);
-        });
-    }
-
     // ══════════ Vòng đời ══════════
 
     void MainPage::OnShown(bool visible)
     {
         m_visible = visible;
-        ApplyPaneVisibility();
-        // Mỗi lần mở lại trang Main thì xét lại — đổi tên module ở Setting là ăn ngay.
-        if (visible) QueueVm(true);
+        m_cams.SetVisible(visible);   // mỗi lần mở lại trang Main thì xét lại — đổi tên module ở Setting là ăn ngay
     }
 
     void MainPage::OnWindowMoved()
     {
-        for (ui::MainCamFrame& f : m_cams) f.Pane.Sync();
+        m_cams.OnWindowMoved();
     }
 
     void MainPage::OnModalChanged(bool modalOpen)
     {
-        for (ui::MainCamFrame& f : m_cams) f.Pane.SetEnabled(!modalOpen);
+        m_cams.OnModalChanged(modalOpen);
     }
 
     void MainPage::OnClosing()
     {
         m_closing = true;
         if (m_armedBlink) m_armedBlink.Stop();
-        for (ui::MainCamFrame& f : m_cams) f.Pane.Dispose();
+        m_cams.Dispose();
     }
 
     // ══════════ Lệnh — Request* chỉ đặt cờ; vòng quét McControl quyết định (interlock ở đó) ══════════
@@ -722,8 +454,10 @@ namespace winrt::ShieldCanAssy::implementation
                                                                                             : sca::EMcMode::Auto);
     }
 
-    // Nút mềm CỐ Ý chỉ đưa máy vào Armed — máy chạy thật chỉ nhận từ nút Start cứng (2026-08-20).
-    void MainPage::OnRunClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestArm(); }
+    // RUN = bấm một trong bốn nút Start cứng (Tuấn 2026-10-31; trước đó cố ý chỉ vào Armed, 2026-08-20): máy đứng ở AUTO
+    // thì vào sẵn sàng rồi chạy, tạm dừng thì chạy tiếp, đang chờ tray thì nạp tray — McControl DoGo, cùng mọi điều kiện an
+    // toàn (rèm, alarm chưa RESET, Init sau dừng giữa hành trình…).
+    void MainPage::OnRunClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestGo(); }
     void MainPage::OnStopClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestStop(); }
     void MainPage::OnResetClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestReset(); }
     void MainPage::OnMuteClick(WF::IInspectable const&, RoutedEventArgs const&) { sca::McControl::RequestMuteBuzzer(); }

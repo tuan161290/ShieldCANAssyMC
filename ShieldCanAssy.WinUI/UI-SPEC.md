@@ -95,7 +95,7 @@ Tints: Green `#198754`, Red `#DC3545`, Caution `#D35400`, Blue `#0078D4`, Accent
 | SH-2 | `Image LogoActro` | `Image` | — | — | H 34, left. |
 | SH-3 | `MachineName` | `TextBlock` · `MachineNameText` | — | `SysData.MachineName` | 20 Bold. |
 | SH-4 | `Status.ModelName` "Model: {0}" | `TextBlock` · `ModelText` | "Model: " + name | `Status.ModelName` (`Status.ModelNotLoaded` when null) | 12 Secondary. |
-| SH-5 | `ItemsControl Motion.AxisList` (7 cells, W 58) | `StackPanel` · `AxisPanel` built in code (Slit `BuildAxisCells`) | axis name / "0.000" | `Motion.AxisList[i].CurrentPos` | Order `AxisId.All` (X Y1 Y2 Z1 Z2 A1 A2). Cell W 58 fixed; name 10 Secondary, value 12 SemiBold centred; `Viewbox StretchDirection=DownOnly` so narrow windows shrink instead of clipping. |
+| SH-5 | `ItemsControl Motion.AxisList` (7 cells, W 58) | `StackPanel` · `AxisPanel` built in code (Slit `BuildAxisCells`) | axis name / "0.000" | `Motion.AxisList[i].CurrentPos` via `ui::AxisPos` | Order `AxisId.All` (X Y1 Y2 Z1 Z2 A1 A2). **Rotary axes (A1/A2, `WrapDegrees`) signed (−180, +180]** — 359 → "-1.000", 1 → "+1.000", 0 → "0.000" (`AxisAngle::SignedText`, 2026-10-30, WinUI only; display only, data/commands stay [0, 360)). Same rule everywhere an A coordinate is shown: MN-14 + Move Abs default, TE jog rows + TE-29, CAM readout Tgt θ / Teaching θ (§2.4), hand-eye "angle Ref". | Cell W 58 fixed; name 10 Secondary, value 12 SemiBold centred; `Viewbox StretchDirection=DownOnly` so narrow windows shrink instead of clipping. |
 | SH-6 | Language button (globe + "EN/VI") → `ToggleLanguageCommand` | **dropped** | — | (`Loc.SetLanguage`, `SysData.Language`) | UI is English-only (PORTING §3). See open question Q1. |
 | SH-7 | `Image LogoHoyeon` | `Image` | — | — | H 44, left of caption buttons. |
 | SH-8 | min/max/close (FontAwesome) | system caption buttons | — | — | Close → normal app close path (`OnClosed` → `Shutdown`). |
@@ -163,7 +163,7 @@ CAM row (fills). Right: log card W 290 collapsible.
 | ID | WPF (binding) | WinUI control · x:Name | Label | Core | Rules / states |
 |---|---|---|---|---|---|
 | MA-1 | Mode switch `ToggleModeCommand`, thumb `Tag=Status.Mode`, `PlaceModeThumb` | custom `Button` (template: track radius 20 + thumb radius 16 + 2 labels) · `ModeSwitch`, `ModeThumb`, `ModeAutoText`, `ModeManualText` | AUTO · MANUAL | `McControl.RequestSetMode(Status.Mode==Auto ? Manual : Auto)` | H 40. Thumb sits under the **real** `Status.Mode` (Auto `GreenOn`, Manual `CautionOn`), label on thumb white, other label Secondary 14 Bold. Slide 150 ms CubicEase-out on mode change (Storyboard on `TranslateTransform.X`), snap on resize. AUTO refused → thumb stays + SH-23. Not a `ToggleSwitch` (would show optimistic state). |
-| MA-2 | RUN `ArmCommand` | `Button` · `RunButton` | RUN | `McControl.RequestArm` (Armed only; real run = hardware Start) | H 52, 18 Bold, text always "RUN". Stopped: `StatusOff #5C5C5C` solid, white. `State==Running`: Green +glow. `State==Armed`: Green, **blink** opacity 1 → 0.3 at 1 Hz (0.5 s each, Storyboard `RunBlink`, discrete keyframes), no glow; stop and reset opacity on exit. Tip `Main.RunTip`. |
+| MA-2 | RUN `ArmCommand` | `Button` · `RunButton` | RUN | `McControl.RequestGo` — **same as the 4 hardware Start buttons** (2026-10-31, WinUI only; WPF and the WinUI port before: `RequestArm`, Armed only): Idle/Paused in AUTO → arm + run, Armed → run, Held → resume, running/waiting → load trays; all DoGo checks apply | H 52, 18 Bold, text always "RUN". Stopped: `StatusOff #5C5C5C` solid, white. `State==Running`: Green +glow. `State==Armed`: Green, **blink** opacity 1 → 0.3 at 1 Hz (0.5 s each, Storyboard `RunBlink`, discrete keyframes), no glow; stop and reset opacity on exit. Tip `Main.RunTip`. |
 | MA-3 | STOP `StopCommand`, `IsStopped` | `Button` · `StopButton` | STOP | `McControl.RequestStop` | H 52, 18 Bold. `IsStopped` = State ∉ {Running, Pausing, WaitOperator} → Red solid white, no glow; else default white. |
 | MA-4 | Origin `OriginCommand` | `Button` · `OriginButton` | Origin | `McControl.RequestOrigin` | H 40 SemiBold, col 2*. `Status.OrgOk` → Blue solid, no glow. Single tap (as WPF). |
 | MA-5 | Init `InitCommand` + `RequireDoubleClick` | `Button` · `InitButton` | Init | `McControl.RequestInit` | **[2×]**. Col 1*, right of Origin (messages say "press Init (next to Origin)"). `RunData.UnsafePause` → Caution +glow. Tip `Main.InitTip`. |
@@ -195,8 +195,8 @@ CAM row (fills). Right: log card W 290 collapsible.
 | MA-21 | Clear selection `ClearSelectionCommand` | `Button` · `InputClearSelButton` / `AssyClearSelButton` | `Loc::F("Tray.ClearSelection", n)` → "Clear (3)" | `McControl.ClearCellSelection(input)` | Visible when `TrayState.Selected` non-empty. H 28, 12 pt, negative vertical margin — **must not change header height**. Tip `Tray.ClearSelectionTip`. |
 | MA-22 | Summary | `InputSummaryText` / `AssySummaryText` | `Tray.SummaryCurrent` / `SummaryDone`; Input card: `Tray.SummaryOfTray` of the active tray | `TrayState.Rows/Cols/RowsPerTray/CellsPerTray/CurrentIndex/CellCount` | 12 Secondary, right. |
 | MA-23 | Group caption (Input only, 2 slots) | per group `TextBlock` | "Tray 1" / "Tray 2 · not taught" (`Tray.N`, `Tray.SummaryOfTray`+`Tray.NotTaught`) | group < `TrayState.Trays` | Active tray (holds `CurrentIndex`): SemiBold Primary; else 11 Secondary. Untaught group grid opacity 0.45. Groups stacked, equal height (Assy card one group, same total height). |
-| MA-24 | Cells (`UniformGrid Rows×Cols`) | `TrayMap` grid built in code | "r-c" (1-based, 12) | `TrayState.Cells[IndexOf(r0+r,c)]`, `CurrentIndex`, `AutoRoutine.AssyScannedCells`, `Selected` | Geometric layout (not visit order; zigzag drawn as the real tray). Fill by look (§10.2). Current: blue glow `#0078D4` blur 9. Selected: 2 px `AccentPressed #005A9E` overlay. Out of scope (selection exists, cell not in it): opacity 0.35. Min 30×34, gap 2, radius 4, elevation stroke. Tap only when `Status.Mode==Auto` → `McControl.ToggleCellSelection(input, index)`, then re-sync. Rebuild only when rows/cols/scan order change. |
-| MA-25 | Reload button `ResetCommand` | `Button` · `InputReloadButton` / `AssyReloadButton` | Clear Tray | Input: `McControl.ReloadInputTray()`; Assy: `McControl.ResetAssyTray()` | H 36, left half of footer. No confirm (as WPF). |
+| MA-24 | Cells (`UniformGrid Rows×Cols`) | `TrayMap` grid built in code | "r-c" (1-based, 12) | `TrayState.Cells[IndexOf(r0+r,c)]`, `CurrentIndex`, `AutoRoutine.AssyScannedCells`, `Selected` | Geometric layout (not visit order; zigzag drawn as the real tray). Fill by look (§10.2). Current: blue glow `#0078D4` blur 9, **only while a cycle is in progress** (`Status.State` ∈ Running/Pausing/Paused/Held — idle `CurrentIndex` 0 left cell 1-1 glowing; Tuấn 2026-10-30). Selected: 2 px `AccentPressed #005A9E` overlay; other cells **not dimmed** (WPF dims 0.35 — dropped 2026-10-30: the dim also let the glow sprite show through as a solid blue cell). Min 30×34, gap 2, radius 4, elevation stroke. Tap only when `Status.Mode==Auto` → `McControl.ToggleCellSelection(input, index)`, then re-sync. **Drag-select** (2026-10-30, WinUI only): press a cell and drag to another → the rectangle between them (book rows, so it can span Tray 1 → Tray 2); anchor unselected = select the selectable cells in it (others skipped silently; message only if none selectable), anchor selected = deselect all in it → `McControl.SetCellsSelected(input, indices, select)`. Preview borders while dragging (only `CanSelectCell` cells in select mode), applied on release; pointer captured on the grid body, left mouse button / touch / pen; body `ManipulationMode` TranslateX\|Y so `TrayScroll` does not take a touch drag. Rebuild only when rows/cols/scan order change. |
+| MA-25 | Reload button `ResetCommand` | `Button` · `InputReloadButton` / `AssyReloadButton` | Clear Tray | Input: `McControl.ReloadInputTray()`; Assy: `McControl.ResetAssyTray()` — both also clear the cell selection (2026-10-30); counters untouched | H 36, left half of footer. No confirm (as WPF). **Automatic** (2026-10-30, Core, no UI): a tray taken out while its row axis is parked at standby (homed, idle, within `TraySensorWindowMm`; sensor off ≥ `TrayRemovalWatch::DebounceMs` 500) is cleared per tray by the scan loop — `McControl.TrayRemovedAtStandby`: input tray k → cells Empty (`RunningData.ClearInputTray`), assy → `ResetAssyTray(false)`; the cell selection is **kept**. Next Start refills an all-Empty input tray seen by its sensor (`RefillEmptyInputTrays`). |
 | MA-26 | Card counters | `InputOkText`… / `AssyOkText`… | OK · NG · Total | `RunData.InputCountOk/InputCountNg`, `AssyCountOk/AssyCountNg` (Total = sum) | 16 Bold; right half with left divider. |
 
 ### 2.4 CAM cards (3× `ui::CamFrame`, §9.5) — order Tool 1, Tool 2, Top; equal width; readout height 70 so images align
@@ -272,7 +272,7 @@ Move Abs 137 · Stop 62 (`Manual.Col*`, "Servo"). Sections: "Gantry — X, Z1, Z
 |---|---|---|---|---|---|
 | MN-12 | Z-safe lamp `ZSafeOk` | `Ellipse` · `ZSafeLamp` + text | Z at Z_SAFE — needed for X, Y1, Y2 to move | `Motion.ZSafeOk` | 12 px, status green / neutral off. |
 | MN-13 | Name | `TextBlock` | X, Z1 … | `Axis.Name` | 14 Bold. |
-| MN-14 | Position + unit | `TextBlock` with 2 `Run`s · `m_posRun`, `m_unitRun` | "123.456" "mm" | `Axis.CurrentPos` (`0.000`), `Axis.Config.Unit` | Consolas 15; unit 10 Secondary. |
+| MN-14 | Position + unit | `TextBlock` with 2 `Run`s · `m_posRun`, `m_unitRun` | "123.456" "mm" | `ui::AxisPos(Axis)` (`0.000`; A1/A2 signed, SH-5), `Axis.Config.Unit` | Consolas 15; unit 10 Secondary. |
 | MN-15 | POT / NOT lamps | `ui::ManualLamp` ×2 + "POT"/"NOT" 9 pt | — | `Axis.FLS`, `Axis.RLS` | Hidden (width kept) for A1/A2. Off LightGray, on Critical + red glow. |
 | MN-16 | SVO toggle `ServoToggleCommand` | `Button` · `m_svoButton` W 66 | "SVO off" / "SVO on" | ServoOn → `Axis.SetServoOnAsync(false)`; else Alarm → `Status.Message = Loc::F("Manual.AxisAlarmNoServo", name)`; else `SetServoOnAsync(true)` | Text + colour follow **real** `Axis.ServoOn` (driver-confirmed): on = Green +glow. Background job; row busy-lock. |
 | MN-17 | RST `ResetAlarmCommand` | `Button` · `m_rstButton` W 48 | RST | `Axis.ResetAlarmAsync()` | `Axis.Alarm` → Red +glow. Tip `Manual.RstTip`. |
@@ -372,7 +372,7 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 | TE-11 | Shared-size note | `TextBlock` · `SharedSizeText` | `Teach.InputSizeShared` | — | Visible for input trays. 11 Secondary. |
 | TE-12 | Tool buttons `SelectNozzle1/2Command` | `RadioButton` ×2 · `Tool1Radio`, `Tool2Radio` (`ChoiceButtonStyle`) next to TE-9 on the page background | Tool 1 · Tool 2 | `CurrentZAxis = Tool1 ? Z1 : Z2`; `CurrentGeometry = Layout.GeometryFor(z)` | Label "Tool". Change → recompute. |
 | TE-13 | Radio `IsRowMajorMode/IsZigZagMode` | `RadioButtons` · `ScanOrderRadios` (MaxColumns 2) | Sequential · Zig zag | `SetScanOrder`: `InvalidateVisionCache`; write on `Model.InputTray` (input) or `Layout`; `McDataManager.SyncRunTrays()` | Header "Scan order". Only RowMajor/Serpentine (ColMajor not exposed). Guard programmatic selection. |
-| TE-14 | `Canvas TraversalCanvas` | `Canvas` · `TraversalCanvas` H 80 | — | `TrayState.VisitIndex(r,c,4,order)` | Fixed 2×4 preview: grey cell rects, numbers 1–8, SteelBlue arrows (trimmed ends, head 7 px). Redraw on order change and SizeChanged. |
+| TE-14 | `Canvas TraversalCanvas` | `Canvas` · `TraversalCanvas` H 96 | — | `TrayState.VisitIndex(r,c,4,order)` | Fixed 2×4 preview: grey cell rects, numbers 1–8, SteelBlue arrows (trimmed ends, head 7 px). WinUI 2026-10-29: the 3 teach cells get a 12 % accent fill and an accent badge at the grid's outer corner — P1 cell (1,1) top-left, P2 end of row 1 top-right, P3 end of col. 1 bottom-left. Redraw on order change and SizeChanged. |
 
 ### 4.3 TOP CAM REF card (visible only Assy tray)
 
@@ -402,7 +402,7 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | TE-28 | Hint | `TextBlock` | `Teach.PickAngleHint` | — | — |
-| TE-29 | A1 value + Teach A1 | `PickA1Text`, `TeachPickA1Button` | "A1: 12.34°" · Teach A1 | `AxisAngle.Wrap(A1.CurrentPos)`; [Confirm]; `Model.PickAngleA1` | No cache invalidation. |
+| TE-29 | A1 value + Teach A1 | `PickA1Text`, `TeachPickA1Button` | "A1: +12.34°" · Teach A1 | `AxisAngle.Wrap(A1.CurrentPos)` stored; shown `AxisAngle::SignedText(…, 2)` (SH-5); [Confirm]; `Model.PickAngleA1` | No cache invalidation. |
 | TE-30 | A2 | `PickA2Text`, `TeachPickA2Button` | Teach A2 | `Model.PickAngleA2` | — |
 
 ### 4.6 PICK HEIGHT / PLACE HEIGHT card
@@ -472,7 +472,8 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 
 Navigation inside the page: **`NavigationView`** `PaneDisplayMode=Left`, `IsPaneToggleButtonVisible=False`, `IsBackButtonVisible=Collapsed`,
 `IsSettingsVisible=False`, `OpenPaneLength=200` (Windows-Settings look, same as Slit `SideNavItemStyle` but the real control). Items:
-System (`E713`) · Vision (`E722`) · Servo (`E90F`) · Delay (`E916`) · Log (`E8FD`) (`Setting.Tab*`). Content = 5 sections, Visibility swap.
+System (`E713`) · Vision (`E722`) · Servo (`E90F`) · Delay (`E916`) · Log (`E8FD`) (`Setting.Tab*`) · Users (`E72E`, WinUI only, §5.7).
+Content = 6 sections, Visibility swap.
 `PaneFooter` = save block (always visible, like WPF's row outside tabs).
 
 Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `SysData` / `AxisConfig` on LostFocus/Enter/Toggled;
@@ -526,7 +527,7 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 | SE-17 | Re-Origin after EMG | `RequireHomeSwitch` | Re-Origin after EMG | `SysData.RequireHomeAfterEmg` | — |
 | SE-18 | Origin A1/A2 in sequence | `HomeSeqSwitch` | Origin A1/A2 in sequence | `SysData.HomeRotateSequential` | — |
 | SE-19 | Curtain fitted (DI13) | `CurtainSwitch` | Curtain fitted (DI13) | `SysData.HasLightCurtain` | Tip `Setting.HasLightCurtainTip` (important). |
-| SE-20 | Scan Assy tray by row (toggle) | `ComboBox` · `ScanAssyCombo` W 160 (WinUI 2026-10-28: toggle → 3 choices) | Scan Assy tray: Whole tray · By row · By pair | `SysData.ScanAssy()` / `SetScanAssy()` over `ScanAssyByRow` + `ScanAssyByPair` (WinUI-only JSON key; pair wins if both set) | By pair: S05 captures only the 2 cells of this round, then picks and places. Tooltip literal in XAML explains all three. |
+| SE-20 | Scan Assy tray by row (toggle) | `ComboBox` · `ScanAssyCombo` W 160 (WinUI 2026-10-28: toggle → 3 choices) | Scan Assy tray: Whole tray · By row · By pair | `SysData.ScanAssy()` / `SetScanAssy()` over `ScanAssyByRow` + `ScanAssyByPair` (WinUI-only JSON key; pair wins if both set) | By pair: S05 captures only the 2 cells of this round, then picks and places; a NG cell leaves a 1-cell pair — one pick, no extra capture (2026-10-30). Tooltip literal in XAML explains all three. |
 
 ### 5.3 Vision section (3 cards as WPF)
 
@@ -566,6 +567,17 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | SE-39 | `DataGrid LogList` | `ui::settingpage::LogTable` · `LogTableHost` | Time · Level · Source · Msg | `LogWorker.LogList` | Card `LOG (MEMORY)`. Prepend new rows only (version check). |
+
+### 5.7 Users section (WinUI only)
+
+Card `USER ACCESS` — moved out of the System section on 2026-10-29 (it sat below the fold, Tuấn could not find the password change).
+
+| ID | WPF | WinUI · x:Name | Label | Core | Rules |
+|---|---|---|---|---|---|
+| SE-40 | — | `Button` · `ChangePasswordButton` (160×40) + `TextBlock` · `PasswordStateText` | Engineer password · Change | `LoginDialog::ShowChangePassword` → `UserAccess::ChangePassword(Engineer, …)` | Enabled from Engineer up. Default password text in Caution. Refuses the master password. |
+| SE-41 | — | `NumberBox` · `IdleLogoutBox` + "min" | Auto logout | `UserAccess::SetIdleLogoutMin` (1..120) | Enabled from Engineer up; writes `Config\users.json` at once, no Save. |
+
+The master password is fixed (not in `users.json`, not on this card).
 
 ---
 
@@ -609,9 +621,22 @@ failure → Warn `Loc::F("Vision.StepStopped", title, reason)`.
 
 ### 6.2 VisionMaster pane (left)
 
+The login level picks the content (WinUI only, Tuấn 2026-10-29 — `VisionEditPage::ApplyVmMode`, re-applied on `OnShown` and when
+`UserAccess::Version` changes):
+
+```
+Master   │ [VmGlobalToolControl ………………………………] [Hide Calib] │   job editor (VE-7, VE-8), as before
+         │ ───────────────────────────────────────────────── │
+         │ VmMainViewConfigControl                           │
+Engineer   CAM VIEW  Engineer: view only…   [Edit Job] [Hide Calib]     outer card transparent
+           ┌ BOTTOM CAM — #1 ┐ ┌ BOTTOM CAM — #2 ┐ ┌ TOP CAM ┐          3× ui::CamViews, same as Main §2.4
+```
+
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
-| VE-7 | `VmGlobalToolControl` | `Border` · `GlobalToolHost` H 40 + `ui::VmPane(GlobalTool)` | — | VisionMaster SDK | Created via queued VM work on first `OnShown(true)`. |
+| VE-63 | — (WinUI only) | `Grid` · `CamViewGrid` (3 equal columns: `Tool1CamHost`, `Tool2CamHost`, `TopCamHost`) + `StackPanel` · `CamViewTitle` | CAM VIEW · `Vision.CamViewHint` | `ui::CamViews("Vision Edit")` — same frames, readouts and VmRenderControl bindings as Main | Below Master. Own render controls; a set that is shown again after the other set bound re-binds (shared bind serial). |
+| VE-64 | — (WinUI only) | `Button` · `EditJobButton` MinW 110 × H 36 | Edit Job | `LoginDialog::ShowLogin(Master)` | Only in CAM VIEW. Engineer password there → "Master password required". Tip `Vision.EditJobTip`. |
+| VE-7 | `VmGlobalToolControl` | `Border` · `GlobalToolHost` H 40 + `ui::VmPane(GlobalTool)` | — | VisionMaster SDK | Master only. Created via queued VM work the first time the job editor shows. |
 | VE-62 | — (WinUI only, 2026-10-28) | `Button` · `CalibToggleButton` MinW 110 × H 36, right end of the VE-7 row (jog bar has no room at 1280) | Hide Calib · Show Calib | layout only | Hides the calibration column (`CalibColumn` W 0, `CalibColumnHost` Collapsed, `VmCard` right margin 0) so the VisionMaster pane gets full width for job editing; VM popups follow via `ui::VmPane` layout tracking. Never disabled; a running calib keeps running. State lives for the session (shown on start). Tips `Vision.CalibHideTip` / `Vision.CalibShowTip`. `--shot` variant 6 = hidden. |
 | VE-8 | `VmMainViewConfigControl ConfigControl` + `BindMultiProcedure()` | `Border` · `ConfigHost` + `ui::VmPane(MainView)` | — | `ProcBindMultiProcedure` (DISPID `0x3`) when solution loaded | Bind on each `OnShown(true)`; failure → log Warning "Vision Edit: solution not bound — …", page stays usable. Placeholder `TextBlock` · `VmPlaceholderText` shows the reason when ActiveX is unavailable. Hide on `OnShown(false)`, disable on `OnModalChanged(true)`. |
 
@@ -855,9 +880,11 @@ public:
     // slots: 2 = Input (Tray 1 above Tray 2), 1 = Assy. input: which McControl selection API to call.
     FrameworkElement Build(std::wstring title, int slots, bool input);
     // Rebuilds cells only when RowsPerTray/Cols/ScanOrder/slot count change; else updates state per cell.
-    void Sync(const sca::TrayState& tray, const std::vector<int>* scanned, bool canSelect);
+    void Sync(const sca::TrayState& tray, const std::vector<int>* scanned, bool canSelect, bool showCurrent);
     void SetCounts(int ok, int ng);                 // Total = ok + ng
     std::function<void(int index)> OnCellTapped;    // → McControl::ToggleCellSelection(input, index)
+    std::function<void(std::vector<int> const& indices, bool select)> OnCellsDragged;   // → McControl::SetCellsSelected
+    std::function<bool(int index)> CanSelectCell;   // → McControl::CanSelectCell(input, index) — drag preview
     std::function<void()> OnClearSelection;         // → McControl::ClearCellSelection(input)
     std::function<void()> OnReload;                 // → ReloadInputTray / ResetAssyTray
 };
@@ -990,7 +1017,7 @@ Do not set Minimum/Maximum where WPF validates with a message (trims) — Number
 | CustomLightYellowBrush (notice) | `#FFFFC0` | (replaced by `InfoBar` Warning `#FFF4CE`) | system | `#FFF4CE` |
 | NotUse / Bypass / VisionOk | `#464646` / `#A5A5A5` / `#C8EBC8` | same | same | same |
 | LaserOk / LaserNg | `#78E600` / `#B61616` | — (unused) | — | — |
-| TrayCellEmpty / Scanned / Loaded / Processing / Ok / Ng / Skipped | `#FFFFFF` / `#CFE3F7` / `#CFE3F7` / `#FFE080` / `#86C691` / `#E94949` / `#A5A5A5` | `TrayCell*Brush` (add `TrayCellScannedBrush`) | same | Scanned missing |
+| TrayCellEmpty / Scanned / Loaded / Processing / Ok / Ng / Skipped | `#FFFFFF` / `#CFE3F7` / **`#FFFFFF`** (WPF `#CFE3F7`; white since 2026-10-30, Tuấn) / `#FFE080` / `#86C691` / `#E94949` / `#A5A5A5` | `TrayCell*Brush` (add `TrayCellScannedBrush`) | same | Scanned missing |
 | Tray cell stroke | `#0F000000`→`#29000000` bottom | code | same | — |
 | Tray current glow | `#0078D4`, blur 9, opacity 0.9 | `SetGlow` | same | — |
 | Mode track | `#0F000000` / hover `#17000000` / pressed `#1F000000` | `ModeTrack*Brush` (page) | same | — |

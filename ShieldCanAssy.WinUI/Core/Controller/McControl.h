@@ -2,6 +2,7 @@
 #include <memory>
 #include <stop_token>
 #include <string>
+#include <vector>
 
 #include "Base/Event.h"
 #include "Communication/GlobalVarSync.h"
@@ -102,19 +103,37 @@ namespace sca
         /// <summary>Bỏ kết quả quét trước tray lắp ráp (S05_ScanAssy) — gọi mỗi khi UI nạp lại tray lắp ráp bằng tay.</summary>
         static void InvalidateAssyScan();
 
-        /// <summary>Nút "Nạp lại tray đầu vào" ở trang Main: mọi ô của Tray 1 (và Tray 2 nếu đã teach) thành có hàng. Không
-        /// đọc cảm biến.</summary>
+        /// <summary>Nút "Clear Tray" của card tray đầu vào: mọi ô của Tray 1 (và Tray 2 nếu đã teach) thành có hàng, bỏ ô
+        /// đang chọn. Không đọc cảm biến, không đụng bộ đếm OK/NG.</summary>
         static void ReloadInputTray();
 
-        /// <summary>Nút "Nạp lại tray lắp ráp" ở trang Main: mọi ô thành trống, bỏ kết quả quét trước của tray cũ, và cho
-        /// chu trình chạy lại từ S00 ở ranh giới bước kế tiếp (Tuấn chốt 2026-09-13).</summary>
-        static void ResetAssyTray();
+        /// <summary>Nút "Clear Tray" của card tray lắp ráp: mọi ô thành trống, bỏ ô đang chọn và kết quả quét trước của tray
+        /// cũ, cho chu trình chạy lại từ S00 ở ranh giới bước kế tiếp (Tuấn chốt 2026-09-13). Không đụng bộ đếm OK/NG.
+        /// <paramref name="clearSelection"/> = false: giữ ô đang chọn (lấy tray ra ở vị trí chờ — TrayRemovedAtStandby).</summary>
+        static void ResetAssyTray(bool clearSelection = true);
+
+        /// <summary>
+        /// Vòng quét thấy tray bị lấy ra ở vị trí chờ (TrayRemovalWatch, Tuấn 2026-10-30): <paramref name="tray"/> 0/1 =
+        /// tray đầu vào 1/2 → RunningData::ClearInputTray; 2 = tray lắp ráp → ResetAssyTray(false). Như bấm Clear Tray cho
+        /// riêng tray đó, nhưng GIỮ ô đang chọn — chọn trước rồi mới thay tray là chọn cho tray sắp đặt vào. Bộ đếm giữ nguyên.
+        /// </summary>
+        static void TrayRemovedAtStandby(int tray);
 
         /// <summary>Bấm một ô ở lưới tray trang Main lúc AUTO (Tuấn 2026-10-16): chọn hoặc bỏ chọn. Gọi được lúc máy đang chạy.
         /// Không ghi running.json — lựa chọn chỉ sống trong phiên.</summary>
         static void ToggleCellSelection(bool input, int index);
 
-        /// <summary>Nút "Bỏ chọn" của card tray trang Main — chu trình lại làm cả tray.</summary>
+        /// <summary>Kéo chọn một vùng ô (Tuấn 2026-10-30): <paramref name="select"/> = chọn các ô chọn được trong
+        /// <paramref name="indices"/> (ô không chọn được bỏ qua lặng lẽ; báo như ToggleCellSelection chỉ khi KHÔNG ô nào chọn
+        /// được), false = bỏ chọn cả nhóm. Chỉ lúc AUTO, như ToggleCellSelection.</summary>
+        static void SetCellsSelected(bool input, const std::vector<int>& indices, bool select);
+
+        /// <summary>Ô chọn được: ô còn việc (tray đầu vào: có hàng; tray lắp ráp: trống), hoặc tray đã hết việc (chọn trước
+        /// cho tray sắp đặt vào). Không xét chế độ máy. Lưới trang Main dùng để xem trước vùng kéo.</summary>
+        static bool CanSelectCell(bool input, int index);
+
+        /// <summary>Nút "Clear (n)" của card tray trang Main — chỉ bỏ chọn, chu trình lại làm cả tray. Màu ô (kết quả) và
+        /// bộ đếm giữ nguyên.</summary>
         static void ClearCellSelection(bool input);
 
         static bool IsInitialized();

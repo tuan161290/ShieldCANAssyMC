@@ -97,7 +97,9 @@ namespace sca
                 card->Rows = {
                     ReadoutRow("X (mm)", { F("{0:0.000}", { TeachX }), mm(cmd.CmdX - TeachX - Ax - Cx), mm(Ax), mm(Cx), F("{0:0.000}", { cmd.CmdX }) }),
                     ReadoutRow("Y (mm)", { F("{0:0.000}", { TeachY }), mm(cmd.CmdY2 - TeachY - Ay - Cy), mm(Ay), mm(Cy), F("{0:0.000}", { cmd.CmdY2 }) }),
-                    ReadoutRow("θ (°)", { F("{0:0.00}", { TeachA }), deg(cmd.DiagDA - Aa - Ca), deg(Aa), deg(Ca), F("{0:0.00}", { cmd.CmdA }) }),
+                    // Góc trục A có dấu (−180, +180] — Teaching + các phần bù đọc liền thành Đích quanh 0° (Tuấn 2026-10-30).
+                    ReadoutRow("θ (°)", { AxisAngle::SignedText(TeachA, 2), deg(cmd.DiagDA - Aa - Ca), deg(Aa), deg(Ca),
+                                          AxisAngle::SignedText(cmd.CmdA, 2) }),
                 };
                 card->Columns = { "Teaching", "+ Vision", Loc::T("Readout.ColCommon"), Loc::T("Readout.ColCellOffset"), Loc::T("Readout.ColTarget") };
                 card->Note = note;
@@ -153,12 +155,13 @@ namespace sca
                 if (cmd != nullptr)
                 {
                     text += Placed(cmd)
-                        ? "\n" + Loc::F("Readout.TargetText", cmd->CmdX, yName, cmd->CmdY2, nozzle, cmd->CmdA, cmd->DiagDA) +
+                        ? "\n" + Loc::F("Readout.TargetText", cmd->CmdX, yName, cmd->CmdY2, nozzle,
+                                        AxisAngle::SignedText(cmd->CmdA, 2), cmd->DiagDA) +
                           (cmd->Route == EVmRoute::Skip ? " · " + Loc::F("Readout.SkipCellInline", OneLine(cmd->Why)) : std::string())
                         : "\n" + Loc::F("Readout.NotPlaced", OneLine(cmd->Why));
                     if (Placed(cmd))
                         rows.emplace_back(Loc::T("Readout.RowTarget"), std::vector<std::string>{
-                            F("{0:0.000}", { cmd->CmdX }), F("{0:0.000}", { cmd->CmdY2 }), F("{0:0.00}", { cmd->CmdA }),
+                            F("{0:0.000}", { cmd->CmdX }), F("{0:0.000}", { cmd->CmdY2 }), AxisAngle::SignedText(cmd->CmdA, 2),
                             F("{0:+0.00;-0.00}", { cmd->DiagDA }) });
                     if (cmd->Route == EVmRoute::Skip) note = Loc::F("Readout.SkipCell", OneLine(cmd->Why));
                     else if (cmd->Route != EVmRoute::Ok) note = Loc::F("Readout.NotPlaced", OneLine(cmd->Why));

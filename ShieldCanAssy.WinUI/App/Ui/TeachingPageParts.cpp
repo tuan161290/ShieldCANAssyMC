@@ -198,6 +198,29 @@ namespace ui::teaching
             head.Fill(brush);
             canvas.Children().Append(head);
         }
+
+        /// <summary>Nhãn "P1"… nền accent, cỡ cố định (không cần đo chữ) — đặt sát góc (<paramref name="right"/>,
+        /// <paramref name="bottom"/>) của ô có góc trên trái (x, y).</summary>
+        void DrawPointBadge(Canvas const& canvas, wchar_t const* name, double x, double y, double cw, double ch, bool right, bool bottom)
+        {
+            constexpr double bw = 22, bh = 15, gap = 3;
+            Border badge;
+            badge.Width(bw);
+            badge.Height(bh);
+            badge.CornerRadius(CornerRadiusHelper::FromUniformRadius(3));
+            badge.Background(Res(L"AccentBrush"));
+            TextBlock text;
+            text.Text(name);
+            text.FontSize(10);
+            text.FontWeight(winrt::Windows::UI::Text::FontWeights::SemiBold());
+            text.Foreground(Res(L"TextOnAccentBrush"));
+            text.HorizontalAlignment(HorizontalAlignment::Center);
+            text.VerticalAlignment(VerticalAlignment::Center);
+            badge.Child(text);
+            Canvas::SetLeft(badge, right ? x + cw - bw - gap : x + gap);
+            Canvas::SetTop(badge, bottom ? y + ch - bh - gap : y + gap);
+            canvas.Children().Append(badge);
+        }
     }
 
     void DrawTraversal(Canvas const& canvas, bool zigzag)
@@ -218,7 +241,12 @@ namespace ui::teaching
                 points[sca::TrayState::VisitIndex(r, c, PreviewCols, order)] =
                     WF::Point((float)(c * cw + cw / 2), (float)(r * ch + ch / 2));
 
+        // Ba ô teach xác định lưới (Tuấn 2026-10-29): P1 = ô (1,1), P2 = cuối hàng 1, P3 = cuối cột 1 — nền accent nhạt.
+        auto isTeachCell = [](int r, int c) {
+            return (r == 0 && c == 0) || (r == 0 && c == PreviewCols - 1) || (r == PreviewRows - 1 && c == 0);
+        };
         auto gray = Solid(0xFF808080);
+        auto teachFill = Solid(0x1F0078D4);   // AccentBrush 12 %
         for (int r = 0; r < PreviewRows; ++r)
         {
             for (int c = 0; c < PreviewCols; ++c)
@@ -228,6 +256,7 @@ namespace ui::teaching
                 rect.Height(ch);
                 rect.Stroke(gray);
                 rect.StrokeThickness(1);
+                if (isTeachCell(r, c)) rect.Fill(teachFill);
                 Canvas::SetLeft(rect, c * cw);
                 Canvas::SetTop(rect, r * ch);
                 canvas.Children().Append(rect);
@@ -255,5 +284,10 @@ namespace ui::teaching
             Canvas::SetTop(box, points[i].Y - ch / 2);
             canvas.Children().Append(box);
         }
+
+        // Nhãn ở góc NGOÀI của lưới — chỉ ra ba góc mà lưới nội suy từ đó; không đè số (giữa ô) hay mũi tên (giữa hàng/cột).
+        DrawPointBadge(canvas, L"P1", 0, 0, cw, ch, false, false);
+        DrawPointBadge(canvas, L"P2", (PreviewCols - 1) * cw, 0, cw, ch, true, false);
+        DrawPointBadge(canvas, L"P3", 0, (PreviewRows - 1) * ch, cw, ch, false, true);
     }
 }

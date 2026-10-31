@@ -175,8 +175,8 @@
                                 <x:String>Sequential</x:String>
                                 <x:String>Zig zag</x:String>
                             </RadioButtons>
-                            <!-- TE-14 -->
-                            <Canvas x:Name="TraversalCanvas" Height="80" Margin="0,8,0,0"/>
+                            <!-- TE-14 — thứ tự quét + ba ô teach P1/P2/P3 (cao 96: nhãn góc ô không chạm mũi tên) -->
+                            <Canvas x:Name="TraversalCanvas" Height="96" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>

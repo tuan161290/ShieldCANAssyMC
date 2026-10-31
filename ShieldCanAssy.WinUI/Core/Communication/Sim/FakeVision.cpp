@@ -341,6 +341,7 @@ namespace sca
         o[VmOut::EchoY2] = F32(y2);
 
         bool found = m_rng.NextDouble() <= FoundRate();
+        if (TopMissTimes() > 0) { SetTopMissTimes(TopMissTimes() - 1); found = false; }
         double px, py, pa;
         if (SimulateOptics())
         {

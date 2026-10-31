@@ -2,6 +2,7 @@
 #include "Ui/ManualPageAxisRow.h"
 
 #include "Base/Async.h"
+#include "Communication/AxisAngle.h"
 #include "Communication/IAxis.h"
 #include "Controller/McControl.h"
 #include "Infor/AxisId.h"
@@ -286,7 +287,10 @@ namespace ui::manualpage
         {
             Border cell = GroupCell(AxisColumns::MoveAbs);
             StackPanel group = Horizontal();
-            m_targetBox = CompactNumberBox(70, cfg ? cfg->StandbyPos : 0.0, 3, T("Manual.TargetPosTip").c_str());
+            // A1/A2: mặc định có dấu như cột toạ độ; gõ -1 hay 359 cũng tới cùng chỗ (trục tự đi đường ngắn).
+            double standby = cfg ? cfg->StandbyPos : 0.0;
+            if (cfg && cfg->WrapDegrees) standby = sca::AxisAngle::Signed(standby);
+            m_targetBox = CompactNumberBox(70, standby, 3, T("Manual.TargetPosTip").c_str());
             m_moveButton = ManualCompactButton(L"Move", 58, T("Manual.MoveTip").c_str());
             m_moveButton.Margin(Left(3));
             m_moveButton.Click([weak](auto&&, auto&&) { if (auto self = weak.lock()) self->OnMove(); });
@@ -316,7 +320,7 @@ namespace ui::manualpage
         if (!m_root) return;
         const sca::IAxis& axis = *m_axis;
 
-        winrt::hstring pos = Num(axis.CurrentPos(), 3);
+        winrt::hstring pos = AxisPos(axis, 3);   // A1/A2 có dấu: 359 → -1.000
         if (pos != m_shownPos)
         {
             m_shownPos = pos;

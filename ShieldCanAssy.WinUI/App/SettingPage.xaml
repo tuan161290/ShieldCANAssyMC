@@ -112,6 +112,9 @@
                 <NavigationViewItem x:Name="NavLog" Content="Log" Tag="4">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE8FD;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem x:Name="NavUsers" Content="Users" Tag="5">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE72E;"/></NavigationViewItem.Icon>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
 
             <!-- ══════════ Khối Lưu (SE-1…SE-6) ══════════ -->
@@ -284,17 +287,22 @@
                                 <Border Style="{StaticResource RowDividerStyle}"/>
                                 <!-- 3 cách quét trước tray lắp ráp (Tuấn thêm By pair 2026-10-28) — SystemData::ScanAssy. -->
                                 <Grid Style="{StaticResource SettingRowStyle}"
-                                      ToolTipService.ToolTip="Top CAM captures empty Assy cells before picking. Whole tray (default): all cells first. By row: cells of CURRENT ROW, places them, then next row. By pair: only the 2 cells of this round, picks and places, then next 2. Row / pair: use if Y2 travel shifts Assy tray.">
+                                      ToolTipService.ToolTip="Top CAM captures empty Assy cells before picking. Whole tray (default): all cells first. By row: cells of CURRENT ROW, places them, then next row. By pair: only the 2 cells of this round, picks and places, then next 2; one cell NG = pick 1, no extra capture. Row / pair: use if Y2 travel shifts Assy tray.">
                                     <TextBlock Text="Scan Assy tray" Style="{StaticResource RowTitleStyle}"/>
                                     <ComboBox x:Name="ScanAssyCombo" Width="160" MinHeight="36" FontSize="13"
                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
+                    </StackPanel>
+                </ScrollViewer>
 
-                        <!-- USER ACCESS (Tuấn 2026-10-21): mật khẩu theo cấp, chỉ Vision Edit đòi Engineer. Đăng nhập / đăng xuất ở
-                             nút góc phải thanh điều hướng. Card này chỉ Engineer sửa được và ghi thẳng Config\users.json — không
-                             qua Save System. -->
+                <!-- ══════════ USERS — mục riêng từ 2026-10-29 (Tuấn: "chưa thấy cơ chế đổi pass" khi card nằm cuối System) ══════════ -->
+                <ScrollViewer x:Name="UsersSection" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                    <StackPanel Spacing="8" Padding="0,0,12,12">
+                        <!-- USER ACCESS (Tuấn 2026-10-21, Master 2026-10-29): mật khẩu theo cấp. Đăng nhập / đăng xuất ở nút góc
+                             phải thanh điều hướng. Card này chỉ Engineer / Master sửa được và ghi thẳng Config\users.json —
+                             không qua Save System. Mật khẩu Master cố định, không có ở đây. -->
                         <Border Style="{StaticResource CardBorderStyle}" Padding="0">
                             <StackPanel>
                                 <Border Style="{StaticResource CardHeaderStyle}">
@@ -319,7 +327,7 @@
                                 </Grid>
                                 <Border Style="{StaticResource RowDividerStyle}"/>
                                 <TextBlock Style="{StaticResource GroupNoteStyle}" Margin="16,8,16,12" TextWrapping="Wrap"
-                                           Text="Vision Edit needs Engineer: Login at top right. Only Engineer edits this card; changes save at once to Config\users.json."/>
+                                           Text="Login at top right, one box for both levels. Engineer: Vision Edit shows 3 CAM views + calib. Master (fixed password, not changeable): also edits the VisionMaster job. Log in first to edit this card; changes save at once to Config\users.json. Forgot Engineer password: close app, delete users.json, reopen (back to 1234)."/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

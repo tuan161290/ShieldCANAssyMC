@@ -88,11 +88,12 @@
     <SolidColorBrush x:Key="NotUseBrush" Color="#FF464646"/>
     <SolidColorBrush x:Key="BypassBrush" Color="#FFA5A5A5"/>
     <SolidColorBrush x:Key="VisionOkBrush" Color="#FFC8EBC8"/>
-    <!-- Ô sơ đồ tray trang Main (như TrayCell*Brush của ShieldCANAssy, Themes/Palette.xaml): trống trắng, có hàng xanh nhạt,
-         đang làm vàng, OK / NG theo palette nghiệp vụ, tray vắng xám. -->
+    <!-- Ô sơ đồ tray trang Main (như TrayCell*Brush của ShieldCANAssy, Themes/Palette.xaml): trống trắng, đang làm vàng,
+         OK / NG theo palette nghiệp vụ, tray vắng xám. Ô có hàng (tray đầu vào) cũng TRẮNG — Tuấn 2026-10-30: sau Clear Tray
+         cả tray xanh nhạt khó nhìn (WPF xanh nhạt #CFE3F7). Xanh nhạt chỉ còn cho ô trống đã quét trước của tray lắp ráp. -->
     <SolidColorBrush x:Key="TrayCellEmptyBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="TrayCellScannedBrush" Color="#FFCFE3F7"/>
-    <SolidColorBrush x:Key="TrayCellLoadedBrush" Color="#FFCFE3F7"/>
+    <SolidColorBrush x:Key="TrayCellLoadedBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="TrayCellProcessingBrush" Color="#FFFFE080"/>
     <SolidColorBrush x:Key="TrayCellOkBrush" Color="#FF86C691"/>
     <SolidColorBrush x:Key="TrayCellNgBrush" Color="#FFE94949"/>

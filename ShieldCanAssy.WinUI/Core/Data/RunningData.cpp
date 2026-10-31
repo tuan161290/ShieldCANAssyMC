@@ -70,6 +70,17 @@ namespace sca
         else m_selected.push_back(index);
     }
 
+    void TrayState::SetSelected(const std::vector<int>& indices, bool on)
+    {
+        std::lock_guard<std::mutex> lock(m_selMutex);
+        for (int index : indices)
+        {
+            auto it = std::find(m_selected.begin(), m_selected.end(), index);
+            if (on && it == m_selected.end()) m_selected.push_back(index);
+            else if (!on && it != m_selected.end()) m_selected.erase(it);
+        }
+    }
+
     void TrayState::ClearSelection()
     {
         std::lock_guard<std::mutex> lock(m_selMutex);
@@ -175,6 +186,45 @@ namespace sca
             if ((cells[(size_t)i] == ECellState::Loaded && in.InScope(i)) || cells[(size_t)i] == ECellState::Processing) return true;
         }
         return false;
+    }
+
+    void RunningData::ClearInputTray(int tray)
+    {
+        auto& in = *InputTray;
+        int n = in.CellsPerTray();
+        if (tray < 0 || n <= 0) return;
+        const int from = tray * n, to = std::min((tray + 1) * n, (int)in.Cells.size());
+        for (int i = from; i < to; i++) in.Cells[(size_t)i] = ECellState::Empty;
+        for (auto* nz : { Nozzle1.get(), Nozzle2.get() })
+            if (nz->SourceCellIndex >= from && nz->SourceCellIndex < to) nz->SourceCellIndex = -1;
+        if (in.CurrentIndex >= from && in.CurrentIndex < to)
+        {
+            auto it = std::find(in.Cells.begin(), in.Cells.end(), ECellState::Loaded);
+            in.CurrentIndex = it == in.Cells.end() ? -1 : (int)(it - in.Cells.begin());
+        }
+    }
+
+    int RunningData::RefillEmptyInputTrays(int mask)
+    {
+        auto& in = *InputTray;
+        int n = in.CellsPerTray();
+        int refilled = 0;
+        for (int t = 0; t < in.Trays && t < 31 && n > 0; t++)
+        {
+            const int from = t * n, to = std::min((t + 1) * n, (int)in.Cells.size());
+            if ((mask & (1 << t)) == 0 || from >= to) continue;
+            auto first = in.Cells.begin() + from, last = in.Cells.begin() + to;
+            if (!std::all_of(first, last, [](ECellState c) { return c == ECellState::Empty; })) continue;
+            std::fill(first, last, ECellState::Loaded);
+            refilled |= 1 << t;
+        }
+        if (refilled != 0 && (in.CurrentIndex < 0 || in.CurrentIndex >= (int)in.Cells.size() ||
+                              in.Cells[(size_t)in.CurrentIndex] != ECellState::Loaded))
+        {
+            auto it = std::find(in.Cells.begin(), in.Cells.end(), ECellState::Loaded);
+            in.CurrentIndex = it == in.Cells.end() ? -1 : (int)(it - in.Cells.begin());
+        }
+        return refilled;
     }
 
     void RunningData::RecordCycle(double sec, int products)

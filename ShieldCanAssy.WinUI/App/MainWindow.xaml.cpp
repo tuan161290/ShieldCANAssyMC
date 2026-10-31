@@ -269,7 +269,7 @@ namespace winrt::ShieldCanAssy::implementation
                     current.IsChecked(true);
                     m_navSync = false;
                 }
-                ui::LoginDialog::ShowLogin([weak = get_weak(), target](bool ok) {
+                ui::LoginDialog::ShowLogin(sca::EUserLevel::Engineer, [weak = get_weak(), target](bool ok) {
                     auto self = weak.get();
                     if (!self || self->m_shutdown) return;
                     self->UpdateUserState();
@@ -299,7 +299,8 @@ namespace winrt::ShieldCanAssy::implementation
         sca::McControl::RequestReset();
     }
 
-    // Login → hộp mật khẩu Engineer; đang là Engineer → đăng xuất ngay (không hỏi lại), rời trang bị khoá.
+    // Login → hộp mật khẩu (Engineer hay Master, theo mật khẩu gõ); đang đăng nhập → đăng xuất ngay (không hỏi lại), rời trang
+    // bị khoá.
     void MainWindow::OnUserClick(WF::IInspectable const&, RoutedEventArgs const&)
     {
         if (sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer))
@@ -309,7 +310,7 @@ namespace winrt::ShieldCanAssy::implementation
             UpdateUserState();
             return;
         }
-        ui::LoginDialog::ShowLogin([weak = get_weak()](bool) {
+        ui::LoginDialog::ShowLogin(sca::EUserLevel::Engineer, [weak = get_weak()](bool) {
             if (auto self = weak.get(); self && !self->m_shutdown) self->UpdateUserState();
         });
     }
@@ -321,7 +322,8 @@ namespace winrt::ShieldCanAssy::implementation
         ui::SetText(UserText(), engineer ? L"Logout" : L"Login");
         // Xanh đặc khi đang ở cấp cao — nhìn là biết máy đang mở quyền (như Origin xong ở trang Main: không quầng).
         ui::SetTint(UserButton(), engineer ? ui::Tint::Blue : ui::Tint::None, false);
-        ToolTipService::SetToolTip(UserButton(), box_value(engineer ? ui::H(sca::Loc::F("User.LoggedInTip", sca::UserAccess::IdleLogoutMin()))
+        ToolTipService::SetToolTip(UserButton(), box_value(engineer ? ui::H(sca::Loc::F("User.LoggedInTip", sca::ToString(sca::UserAccess::Level()),
+                                                                                        sca::UserAccess::IdleLogoutMin()))
                                                                     : ui::T("User.LoginTip")));
         VisionEditLockIcon().Glyph(engineer ? L"\xE785" : L"\xE72E");   // Unlock / Lock
         ToolTipService::SetToolTip(NavVisionEdit(), engineer ? nullptr : box_value(ui::T("User.VisionEditLockedTip")));
@@ -371,12 +373,12 @@ namespace winrt::ShieldCanAssy::implementation
             TitleBarArea().BorderBrush(ui::Solid(ui::TowerLampColor(lamp)));
         }
 
-        // SH-5 toạ độ 7 trục — danh sách trục chỉ đọc được sau McControl::Init.
+        // SH-5 toạ độ 7 trục — danh sách trục chỉ đọc được sau McControl::Init. A1/A2 có dấu (ui::AxisPos).
         if (m_coreReady)
         {
             const auto& axes = sca::McControl::Motion().AxisList();
             for (size_t i = 0; i < m_axisValues.size() && i < axes.size(); ++i)
-                if (axes[i]) ui::SetText(m_axisValues[i], ui::Num(axes[i]->CurrentPos(), 3));
+                if (axes[i]) ui::SetText(m_axisValues[i], ui::AxisPos(*axes[i], 3));
         }
 
         // SH-13 / SH-14 thanh trạng thái.

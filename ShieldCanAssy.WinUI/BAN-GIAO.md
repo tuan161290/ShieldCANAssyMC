@@ -213,17 +213,30 @@ Giao diện: `ShieldCanAssy.exe --root <tạm>\data --shot <tạm>\png` rồi xe
 
 ## 9. Khác biệt và chỗ còn hở so với bản WPF
 
-- **Phân quyền** (chỉ bản WinUI, Tuấn chốt 2026-10-21 — `Core\SysConfig\UserAccess.*`, `App\Ui\LoginDialog.*`):
-  - Hai cấp: Operator (mở app luôn ở cấp này) và Engineer. Chỉ trang Vision Edit đòi Engineer; tab có biểu tượng khoá, bấm vào thì
-    hỏi mật khẩu. Nút Login / Logout nằm cạnh RESET.
-  - Mật khẩu theo cấp, không có tài khoản từng người. Mật khẩu Engineer mặc định là `1234`; đổi ở Setting → System → USER ACCESS
-    (chỉ Engineer). File `Config\users.json` chỉ giữ bản băm PBKDF2-HMAC-SHA256 kèm muối, không giữ chữ thật.
-  - Tự đăng xuất sau 10 phút không thao tác (đổi được 1..120 phút ở cùng card). Đo bằng `GetLastInputInfo` nên thao tác bên trong
-    control VisionMaster cũng được tính. Không tính lúc có hộp thoại mở hay Vision Edit đang chạy một chuỗi hiệu chuẩn.
-  - **Quên mật khẩu:** đóng app, xoá `Config\users.json`, mở lại — mật khẩu về `1234`. File hỏng thì app tự đổi tên thành
-    `users.json.bad` và cũng về mặc định.
+- **Phân quyền** (chỉ bản WinUI, Tuấn chốt 2026-10-21, thêm Master 2026-10-29 — `Core\SysConfig\UserAccess.*`,
+  `App\Ui\LoginDialog.*`):
+  - Ba cấp: Operator (mở app luôn ở cấp này), Engineer, Master. Chỉ trang Vision Edit đòi đăng nhập; tab có biểu tượng khoá, bấm
+    vào thì hỏi mật khẩu. Nút Login / Logout nằm cạnh RESET. Một ô mật khẩu cho cả hai cấp — mật khẩu gõ vào quyết định cấp.
+  - **Engineer** (mặc định `1234`, đổi được): Vision Edit chỉ hiện ba khung CAM như trang Main (`ui::CamViews`, tách từ
+    MainPage) cùng thanh Jog và cột hiệu chuẩn — không sửa được job VisionMaster. Nút **Edit Job** hỏi mật khẩu Master.
+  - **Master** (cố định, Tuấn giữ; CoreTests `TestUserAccess` kiểm đúng chữ đó — Tuấn: "master password luôn dùng"): Vision Edit
+    hiện trình soạn job (VmGlobalToolControl +
+    VmMainViewConfigControl) như trước. Không nằm trong `users.json`, xoá file vẫn dùng được; exe chỉ chứa bản băm
+    (`UserAccess.cpp`, `MasterSecret`, có cách tính lại khi muốn đổi). Không đặt được làm mật khẩu Engineer.
+  - Mật khẩu theo cấp, không có tài khoản từng người. Đổi mật khẩu Engineer ở **Setting → Users** (mục riêng từ 2026-10-29,
+    trước nằm cuối Setting → System, phải cuộn mới thấy), từ Engineer trở lên. File `Config\users.json` chỉ giữ bản băm
+    PBKDF2-HMAC-SHA256 kèm muối, không giữ chữ thật.
+  - Tự đăng xuất sau 10 phút không thao tác (đổi được 1..120 phút ở cùng card), cả Engineer lẫn Master. Đo bằng `GetLastInputInfo`
+    nên thao tác bên trong control VisionMaster cũng được tính. Không tính lúc có hộp thoại mở hay Vision Edit đang chạy một chuỗi
+    hiệu chuẩn.
+  - **Quên mật khẩu Engineer:** đóng app, xoá `Config\users.json`, mở lại — mật khẩu về `1234` (hoặc đăng nhập Master rồi đổi).
+    File hỏng thì app tự đổi tên thành `users.json.bad` và cũng về mặc định.
+  - Ba khung CAM ở Vision Edit là bộ VmRenderControl riêng, gắn cùng các module với trang Main. Bộ nào hiện ra mà bộ kia đã gắn
+    sau nó thì gắn lại (đếm lần gắn chung) — không phụ thuộc việc SDK có cho hai control cùng vẽ một module. CHƯA thử trên máy
+    thật: nếu khung trang Main trống sau khi xem Vision Edit, xem log "Main: CAM views …" / "Vision Edit: CAM views …".
   - Mỗi lần đăng nhập, gõ sai, đăng xuất, đổi mật khẩu đều ghi log mục `User`. Bản WPF không có phân quyền, không đọc `users.json`.
-  - PLAN.md §9 còn dự kiến cấp Technician (Manual, Teaching): thêm vào `EUserLevel` giữa hai cấp và sửa `MainWindow::CanOpen`.
+  - PLAN.md §9 còn dự kiến cấp Technician (Manual, Teaching): thêm vào `EUserLevel` giữa Operator và Engineer và sửa
+    `MainWindow::CanOpen`.
 
 - **Popup Origin ở trang Main** (chỉ bản WinUI, Tuấn 2026-10-21 — `MainPage::OnOriginClick`, `McControl::ServoOnAndReleaseBrakes`):
   - Z1/Z2 chưa nhả phanh mà không còn lý do chặn nào khác (`McControl::OriginBlockReason` rỗng) thì bấm Origin hiện hộp Yes/No:
@@ -276,11 +289,50 @@ Giao diện: `ShieldCanAssy.exe --root <tạm>\data --shot <tạm>\png` rồi xe
 
 - **Quét tray lắp ráp từng cặp** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-28): Setting > "Scan Assy tray" nay là hộp chọn
   Whole tray / By row / By pair (thay công tắc "by row"). By pair: S05 chỉ chụp HAI ô trống đầu tiên — đúng hai ô vòng này
-  đặt — rồi mới hút, đặt xong mới chụp hai ô kế (`Routine_Auto::NextUnscannedCell`). Ô chụp không thấy thành NG thì ô
-  trống kế vào cặp. Tổng số lần chụp không đổi; khoảng cách đo → đặt ngắn nhất. Chạy rà đi đúng đường đó
+  đặt — rồi mới hút, đặt xong mới chụp hai ô kế (`Routine_Auto::NextUnscannedCell`). Cặp CỐ ĐỊNH (`m_pair`, Tuấn
+  2026-10-30): ô chụp không thấy thành NG thì cặp còn một ô — chỉ hút MỘT sản phẩm, không chụp bù ô trống kế (trước đó
+  ô kế vào cặp). Cả cặp NG thì sang cặp mới ngay. Cặp bỏ khi tray lắp ráp đổi; Init/về gốc giữ. Tắt App giữa cặp thì cặp
+  lập lại từ hai ô trống đầu tiên. Tổng số lần chụp không đổi; khoảng cách đo → đặt ngắn nhất. Chạy rà đi đúng đường đó
   (`Routine_DryCycle::SweepCells`). Lưu ở khoá mới `ScanAssyByPair` trong system.json (bản WPF bỏ qua khoá lạ);
   `SystemData::ScanAssy()` gộp hai cờ, cặp thắng hàng. CoreTests kiểm: lần hút đầu sau đúng 2 LocateTop, mọi lần hút số ô
-  đã chụp mà chưa đặt ≤ 2.
+  đã chụp mà chưa đặt ≤ 2; một ô của cặp NG (`FakeVision::TopMissTimes`) thì trước lần đặt đầu chỉ hút một lần.
+
+- **Kéo chọn vùng ô trên card tray trang Main** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-30): lúc AUTO, nhấn giữ một ô rồi
+  kéo sang ô khác = cả vùng chữ nhật giữa hai ô. Ô bắt đầu chưa chọn thì chọn cả vùng (ô không chọn được — ô đã làm xong
+  — bỏ qua lặng lẽ, chỉ báo khi không ô nào chọn được), đã chọn thì bỏ chọn cả vùng. Lúc kéo viền chọn hiện trước,
+  nhả mới áp; chạm một ô vẫn bật/tắt như cũ. Vùng theo hàng của sổ nên kéo được từ khối Tray 1 sang Tray 2. Bắt con trỏ
+  trên thân lưới (`TrayCard::OnPressed/OnMoved/OnReleased`), thân lưới đặt ManipulationMode để TrayScroll không giành thao
+  tác kéo bằng ngón tay. Core: `McControl::SetCellsSelected`, `CanSelectCell`, `TrayState::SetSelected(indices, on)`
+  (một lần khoá). CoreTests kiểm phần Core; thao tác kéo CHƯA thử trên máy thật.
+
+- **Nút RUN trang Main = nút Start cứng** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-31): `MainPage::OnRunClick` gọi
+  `McControl::RequestGo` (DoGo) thay `RequestArm` — trước đó cố ý chỉ vào Armed (2026-08-20). Máy đứng ở AUTO → vào sẵn
+  sàng rồi chạy; Armed → chạy; tạm dừng → chạy tiếp; đang chạy/chờ tray → nhận tray. Mọi điều kiện của DoGo giữ nguyên
+  (rèm, alarm chưa RESET, SafeToMove, Init sau dừng giữa hành trình, hàng trên tay). Log và chữ báo vẫn ghi "Start".
+
+- **NG Production cộng NG ô lắp ráp** (Tuấn 2026-10-31): Top CAM không thấy chi tiết đích và đích lệch lưới (nhánh G) —
+  ô thành NG — trước chỉ cộng `AssyCountNg` (card tray lắp ráp); nay `Routine_Auto::CountCellNg` cộng cả `CountNg` và
+  `CountTotal` (bảng PRODUCTION, NG rate). Không cộng `ConsecutiveNg` (chuỗi NG / ngưỡng 5010 vẫn chỉ của sản phẩm hỏng)
+  và không vào cycle time (bù `m_cycleStartTotal`). NG Bottom CAM (không thấy sản phẩm, bù vượt ngưỡng) vốn đã đếm.
+
+- **Toạ độ trục A1/A2 hiển thị có dấu** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-30): (−180, +180] thay [0, 360) — 359 →
+  "-1.000", 1 → "+1.000", 0 → "0.000" (`AxisAngle::Signed` / `SignedText`, `ui::AxisPos`). Chỉ phần HIỂN THỊ: dữ liệu lưu,
+  phép tính và lệnh trục vẫn [0, 360); gõ -1 hay 359 vào Move Abs tới cùng chỗ (trục tự đi đường ngắn). Áp ở: thanh toạ
+  độ đầu cửa sổ, cột toạ độ + ô Move Abs mặc định trang Manual, dòng trục + góc hút A1/A2 trang Teaching, hàng Tgt θ / cột
+  Teaching và Đích của bảng tách khung CAM, chữ "Tgt … A1 …°", "angle Ref" hand-eye trang Vision Edit. CHƯA đổi: các dòng
+  bước hiệu chuẩn (Calib.*, VmCycle.*), log, ô cấu hình trục trang Setting (StandbyPos/HomeOffset). Lưu ý: cột comp θ là
+  góc BÙ (có dấu từ trước) — không phải toạ độ.
+
+- **Lấy tray ra ở vị trí chờ = tự Clear Tray** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-30): vòng quét McControl theo dõi ba
+  cảm biến tray (`TrayRemovalWatch`, mỗi cảm biến một bộ; `McControl::Impl::WatchTrays`). Chỉ khi trục hàng đã về gốc,
+  đứng yên ở StandbyPos (±`TraySensorWindowMm`) và I/O kết nối; trục về tới nơi thì lấy trạng thái lúc đó làm mốc. Cảm biến
+  từ có sang không, đứng vững 500 ms → `McControl::TrayRemovedAtStandby`: tray đầu vào k → ô của tray đó thành trống
+  (`RunningData::ClearInputTray`, hàng trên tay từ tray đó mất ô nguồn), tray lắp ráp → `ResetAssyTray(false)` (ô trống,
+  bỏ số đo quét trước, chu trình làm lại từ S00). Khác nút Clear Tray: GIỮ ô đang chọn (chọn trước rồi mới thay tray là
+  chọn cho tray mới). Đặt tray vào không làm gì; Start nhận tray: sổ đầu vào còn dở mà tray cảm biến thấy trống hết trong
+  sổ thì nạp tray đó như tray mới (`RefillEmptyInputTrays` trong `TakeTrayLoads`) — tray đã làm xong (OK/NG) nằm lại trên
+  bàn thì vẫn giữ sổ như cũ. CoreTests kiểm logic sườn/chập chờn, ClearInputTray/Refill, và kịch bản lấy hai tray ra sau
+  "Cycle complete". CHƯA thử trên máy thật.
 
 - **Chụp ô X lớn trước** (chỉ bản WinUI, Tuấn yêu cầu 2026-10-28): trong cặp (By pair) và trong hàng (By row, và hàng đầu
   soi trước lúc chờ tray đầu vào), S05 chụp ô có X chỗ đứng chụp (`CamPosFor`) lớn nhất trước — gương của luật hút ô X nhỏ

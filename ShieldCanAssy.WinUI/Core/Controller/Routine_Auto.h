@@ -291,6 +291,7 @@ namespace sca
         void ReleaseOrphanCells();
         static void Release(TrayState& tray, ECellState back, int keep1, int keep2);
         void CountNg(const std::string& what);
+        void CountCellNg();
         bool CheckConsecutiveNg();
         void RequireNozzleClear(const std::string& reason);
         void Save();
@@ -309,7 +310,8 @@ namespace sca
         /// và lúc chờ tray, nên cycle time không lẫn thời gian đứng.</summary>
         RunClock m_cycleSw;
 
-        /// <summary>Bộ đếm sản phẩm lúc bắt đầu lượt — hết lượt thì hiệu là số sản phẩm của lượt.</summary>
+        /// <summary>Bộ đếm sản phẩm lúc bắt đầu lượt — hết lượt thì hiệu là số sản phẩm của lượt. Ô NG vision cộng cả hai
+        /// phía (CountCellNg) nên không lọt vào hiệu.</summary>
         int m_cycleStartTotal{ 0 };
 
         /// <summary>Lần đặt đang chạy đã bắt đầu nhả hút chưa — khối "finally" của <c>S3x_Place</c> dựa vào đây để biết ô
@@ -324,7 +326,7 @@ namespace sca
 
         /// <summary>
         /// Khoá các trường "bộ nhớ đệm vision" mà luồng UI (InvalidateAssyScan, TraysOut, AssyScannedCells) và luồng chu
-        /// trình cùng đụng: <c>m_assyScan</c>, <c>m_assyScannedCells</c>, <c>m_scanOneCell</c>, <c>m_held</c>. Đệ quy để
+        /// trình cùng đụng: <c>m_assyScan</c>, <c>m_assyScannedCells</c>, <c>m_scanOneCell</c>, <c>m_pair</c>, <c>m_held</c>. Đệ quy để
         /// hàm giữ khoá gọi được hàm khác cũng giữ khoá. KHÔNG giữ khoá này trong lúc chạy trục hay gọi Flow.
         /// </summary>
         mutable std::recursive_mutex m_cacheMutex;
@@ -341,6 +343,11 @@ namespace sca
         /// <summary>Ô mà bước soi CAM dưới vừa đòi số đo nhưng chưa có — S05 soi đúng ô này trước, bất kể tuỳ chọn quét
         /// từng hàng (không có nó thì quét từng hàng kẹt vòng S2x ↔ S05). −1 = không có. (m_cacheMutex)</summary>
         int m_scanOneCell{ -1 };
+        /// <summary>Cặp ô đang làm khi quét từng cặp (SystemData::EScanAssy::Pair) — tối đa hai chỉ số ô của
+        /// <c>Run.AssyTray</c>. Cố định tới khi mọi ô của cặp xong: ô soi NG không kéo ô trống kế vào soi bù, cặp còn một
+        /// ô thì chỉ hút một sản phẩm (Tuấn 2026-10-30). Bỏ khi tray lắp ráp đổi (InvalidateAssyScan); Init/về gốc vẫn
+        /// giữ — tray vẫn là tray đó. (m_cacheMutex)</summary>
+        std::vector<int> m_pair;
         /// <summary>Lệnh đặt đang giữ của tay 1, 2 (chỉ số 0 không dùng). (m_cacheMutex)</summary>
         std::array<std::optional<VmHeld>, 3> m_held;
 

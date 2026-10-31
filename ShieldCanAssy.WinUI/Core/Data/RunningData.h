@@ -62,6 +62,10 @@ namespace sca
 
         void ToggleSelected(int index);
 
+        /// <summary>Chọn (<paramref name="on"/>) hoặc bỏ chọn cả nhóm ô trong một lần khoá — kéo chọn vùng ở trang Main.
+        /// Ô đã ở đúng trạng thái thì bỏ qua (không thêm trùng).</summary>
+        void SetSelected(const std::vector<int>& indices, bool on);
+
         void ClearSelection();
 
         void Resize(int rows, int cols);
@@ -176,6 +180,16 @@ namespace sca
         /// không nạp thì vắng cũng không sao.</summary>
         bool InputTrayNeeded(int tray) const;
 
+        /// <summary>Tray đầu vào thứ <paramref name="tray"/> vừa bị lấy ra ở vị trí chờ (Tuấn 2026-10-30): ô của tray đó thành
+        /// trống — kể cả ô nguồn của hàng đang trên tay, hàng đó thành "không rõ ô nguồn" (như ReloadTrays). Ô đang chọn giữ
+        /// nguyên. Start kế tiếp nạp tray đặt vào như tray mới (<see cref="RefillEmptyInputTrays"/>).</summary>
+        void ClearInputTray(int tray);
+
+        /// <summary>Start nhận tray đầu vào lúc sổ còn dở: tray có trong <paramref name="mask"/> (cảm biến thấy) mà mọi ô trong
+        /// sổ đều trống — vừa lấy ra ở vị trí chờ, hoặc lần Start trước vắng — là tray mới đặt vào: ô thành có hàng. Tray đã
+        /// làm xong (ô OK/NG) không đụng — tray xong nằm lại trên bàn không thành tray mới. Trả các tray đã nạp.</summary>
+        int RefillEmptyInputTrays(int mask);
+
         std::shared_ptr<NozzleState> Nozzle1 = MakeNozzle(1);
         std::shared_ptr<NozzleState> Nozzle2 = MakeNozzle(2);
 
@@ -188,7 +202,8 @@ namespace sca
 
         // ── Bộ đếm theo tray, hiện trong card tray trang Main (Tuấn 2026-10-07) — nạp lại tray KHÔNG xoá, chỉ Clear
         //    sản lượng (ResetCounters) mới xoá. Tray đầu vào: OK = sản phẩm đặt xong, NG = sản phẩm tính NG. Tray lắp
-        //    ráp: OK = ô đặt xong, NG = ô bị bỏ qua (không thấy chi tiết đích, điểm đặt lệch lưới). ──
+        //    ráp: OK = ô đặt xong, NG = ô bị bỏ qua (không thấy chi tiết đích, điểm đặt lệch lưới). CountNg/CountTotal
+        //    của bảng Production = NG sản phẩm + NG ô lắp ráp (Tuấn 2026-10-31). ──
         int InputCountOk = 0;
         int InputCountNg = 0;
         int AssyCountOk = 0;

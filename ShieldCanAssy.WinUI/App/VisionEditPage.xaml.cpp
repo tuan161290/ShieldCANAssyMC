@@ -9,6 +9,7 @@
 
 #include "Base/Async.h"
 #include "Base/Text.h"
+#include "Communication/AxisAngle.h"
 #include "Controller/McControl.h"
 #include "Controller/VmCycle.h"
 #include "Data/McDataManager.h"
@@ -19,6 +20,7 @@
 #include "Ui/Controls.h"
 #include "Ui/Dialogs.h"
 #include "Ui/JogControl.h"
+#include "Ui/LoginDialog.h"
 #include "Ui/UiUtil.h"
 #include "Ui/VisionEditPageParts.h"
 #include "Ui/VmDotNet.h"
@@ -86,9 +88,10 @@ namespace winrt::ShieldCanAssy::implementation
         SetSequenceStatus({});
         ApplyBusy();
         ApplyCalibColumn();
+        m_cams.Build(Tool1CamHost(), Tool2CamHost(), TopCamHost());
+        ApplyVmMode();   // OnShown(true) tới trước Loaded thì việc tạo control VM đã bỏ qua — xếp lại ở đây
 
         if (m_coreReady) OnTick();
-        if (m_visible) QueueVmWork();   // OnShown(true) tới trước Loaded thì EnsureVmPanes đã bỏ qua
     }
 
     // Lưới 3 cột × 2 hàng: X, Z1, Z2 / Y2, A1, A2 — cột 1 gantry, cột 2 tay #1, cột 3 tay #2 (Tuấn sắp 2026-09-26).
@@ -195,10 +198,12 @@ namespace winrt::ShieldCanAssy::implementation
             { AcceptNoteText(), "Vision.AcceptNote" },
             { SeqHeaderText(), "Vision.SeqHeader" },
             { SeqNoteText(), "Vision.SeqNote" },
+            { CamViewHintText(), "Vision.CamViewHint" },
         };
         for (auto& [block, key] : texts) block.Text(ui::T(key));
 
         std::pair<DependencyObject, const char*> tips[] = {
+            { EditJobButton(), "Vision.EditJobTip" },
             { Z1SafeButton(), "Vision.Z1SafeTip" },
             { Z2SafeButton(), "Vision.Z2SafeTip" },
             { Vac1Button(), "Vision.Vacuum1Tip" },
@@ -362,12 +367,20 @@ namespace winrt::ShieldCanAssy::implementation
     {
         m_coreReady = true;
         LoadInputs();
+        m_cams.SetCoreReady();
     }
 
     void VisionEditPage::OnTick()
     {
         if (!m_loaded || !m_coreReady) return;
         ApplyBusy();
+
+        if (m_userVersion != sca::UserAccess::Version()) ApplyVmMode();
+        if (m_vmModeShown == 0)
+        {
+            if (ui::AppHost::Options().ShotMode()) m_cams.InjectShotSample();
+            m_cams.Update();
+        }
 
         // Mức Chậm/Nhanh dùng chung với trang Teaching — có thể vừa đổi ở đó.
         auto func = McControl::Func();
@@ -445,7 +458,8 @@ namespace winrt::ShieldCanAssy::implementation
             std::string he;
             if (c.IsHandEyeOutdated(n)) he = Loc::T("Vision.HandEyeOutdated");
             else if (!c.IsHandEyeMeasured(n)) he = Loc::T("Vision.HandEyeNotMeasured");
-            else he = Loc::F("Vision.HandEyeStatus", c.HandEyeDx(n), c.HandEyeDy(n), c.HandEyeMeasuredAt(n), c.HandEyeAngleRef(n));
+            else he = Loc::F("Vision.HandEyeStatus", c.HandEyeDx(n), c.HandEyeDy(n), c.HandEyeMeasuredAt(n),
+                             sca::AxisAngle::SignedText(c.HandEyeAngleRef(n), 2));
             ui::SetClampedText(HandEyeStatusText(), he);
         }
     }
@@ -684,6 +698,48 @@ namespace winrt::ShieldCanAssy::implementation
         VmCard().Margin(ThicknessHelper::FromLengths(0, 0, m_calibHidden ? 0 : 8, 0));
         CalibToggleButton().Content(box_value(m_calibHidden ? L"Show Calib" : L"Hide Calib"));
         Tip(CalibToggleButton(), m_calibHidden ? "Vision.CalibShowTip" : "Vision.CalibHideTip");
+    }
+
+    // Edit Job (chỉ ở CAM VIEW): hỏi mật khẩu Master; đúng thì OnTick thấy UserAccess đổi và chuyển sang soạn job.
+    void VisionEditPage::OnEditJobClick(WF::IInspectable const&, RoutedEventArgs const&)
+    {
+        ui::LoginDialog::ShowLogin(sca::EUserLevel::Master, [weak = get_weak()](bool ok) {
+            auto self = weak.get();
+            if (self && ok && !self->m_closing) self->ApplyVmMode();
+        });
+    }
+
+    // Cấp đăng nhập chọn khung bên trái (Tuấn 2026-10-29): Master soạn job VisionMaster, Engineer chỉ xem ba khung CAM như
+    // trang Main. Control của chế độ kia chỉ ẩn, không huỷ — mỗi bộ tạo lần đầu chế độ của nó hiện ra.
+    void VisionEditPage::ApplyVmMode()
+    {
+        m_userVersion = sca::UserAccess::Version();
+        const bool edit = sca::UserAccess::IsAtLeast(sca::EUserLevel::Master);
+        if (m_vmModeShown != (edit ? 1 : 0))
+        {
+            m_vmModeShown = edit ? 1 : 0;
+            ui::Show(GlobalToolHost(), edit);
+            ui::Show(ConfigHost(), edit);
+            ui::Show(VmPlaceholderText(), edit);
+            ui::Show(CamViewTitle(), !edit);
+            ui::Show(EditJobButton(), !edit);
+            ui::Show(CamViewGrid(), !edit);
+            // CAM VIEW: ba khung đã là card — card ngoài trong suốt, không viền, khỏi lồng card trong card.
+            if (edit)
+            {
+                VmCard().ClearValue(Border::BackgroundProperty());
+                VmCard().ClearValue(Border::BorderThicknessProperty());
+            }
+            else
+            {
+                VmCard().Background(ui::Solid(0x00000000));
+                VmCard().BorderThickness(ThicknessHelper::FromUniformLength(0));
+            }
+        }
+        m_globalTool.SetVisible(m_visible && edit);
+        m_config.SetVisible(m_visible && edit);
+        m_cams.SetVisible(m_visible && !edit);
+        if (m_visible && edit) QueueVmWork();
     }
 
     // ═════════════════════════ 6.4 top-down ═════════════════════════
@@ -1015,8 +1071,9 @@ namespace winrt::ShieldCanAssy::implementation
                        ui::Dialogs::Warn(Loc::F("Vision.HeCommitFail", nozzle, r->Reason) + NoteSuffix(r->Note, "\n\n"));
                        return;
                    }
-                   p.SetHandEyeStep(Loc::F("Vision.HeCommitLine", nozzle, r->Dx, r->Dy, r->AngleRef));
-                   ui::Dialogs::Info(Loc::F("Vision.HeCommitDone", nozzle, r->Dx, r->Dy, r->AngleRef) + NoteSuffix(r->Note, "\n\n"));
+                   std::string angleRef = sca::AxisAngle::SignedText(r->AngleRef, 2);
+                   p.SetHandEyeStep(Loc::F("Vision.HeCommitLine", nozzle, r->Dx, r->Dy, angleRef));
+                   ui::Dialogs::Info(Loc::F("Vision.HeCommitDone", nozzle, r->Dx, r->Dy, angleRef) + NoteSuffix(r->Note, "\n\n"));
                });
     }
 
@@ -1180,11 +1237,9 @@ namespace winrt::ShieldCanAssy::implementation
         {
             LoadInputs();   // tham số có thể vừa đổi ở trang Setting
             m_bindOnShow = true;   // WPF: BindMultiProcedure mỗi lần trang Loaded
-            QueueVmWork();
         }
         else CommitAlignLists();
-        m_globalTool.SetVisible(visible);
-        m_config.SetVisible(visible);
+        if (m_loaded) ApplyVmMode();   // hiện/ẩn bộ control của cấp đang đăng nhập, xếp việc tạo/gắn
     }
 
     // Control VM là .NET và gọi sang vServerApp; trong lúc chờ, COM bơm thông điệp. Gọi nó ngay trong sự kiện XAML là app tự
@@ -1197,7 +1252,8 @@ namespace winrt::ShieldCanAssy::implementation
             auto self = weak.get();
             if (!self) return;
             self->m_vmQueued = false;
-            if (self->m_vmBusy || self->m_closing || !self->m_visible || !self->m_loaded) return;
+            // Trình soạn job chỉ ở cấp Master (ApplyVmMode) — CAM VIEW có hàng đợi riêng (ui::CamViews).
+            if (self->m_vmBusy || self->m_closing || !self->m_visible || !self->m_loaded || self->m_vmModeShown != 1) return;
             self->m_vmBusy = true;
             try
             {
@@ -1278,12 +1334,14 @@ namespace winrt::ShieldCanAssy::implementation
     {
         m_globalTool.Sync();
         m_config.Sync();
+        m_cams.OnWindowMoved();
     }
 
     void VisionEditPage::OnModalChanged(bool modalOpen)
     {
         m_globalTool.SetEnabled(!modalOpen);
         m_config.SetEnabled(!modalOpen);
+        m_cams.OnModalChanged(modalOpen);
     }
 
     void VisionEditPage::OnClosing()
@@ -1292,5 +1350,6 @@ namespace winrt::ShieldCanAssy::implementation
         if (m_cellFlyout) m_cellFlyout.Hide();
         m_config.Dispose();
         m_globalTool.Dispose();
+        m_cams.Dispose();
     }
 }

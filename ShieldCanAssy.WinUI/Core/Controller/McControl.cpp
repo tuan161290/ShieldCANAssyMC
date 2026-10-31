@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <format>
 #include <mutex>
 #include <thread>
@@ -20,6 +21,7 @@
 #include "Communication/Sim/FakeIo.h"
 #include "Communication/Sim/FakeVision.h"
 #include "Communication/VisionConnect.h"
+#include "Controller/TrayRemovalWatch.h"
 #include "Controller/VmCycle.h"
 #include "Data/McDataManager.h"
 #include "Infor/AlarmManager.h"
@@ -72,6 +74,9 @@ namespace sca
             /// đọc ra so sánh với Status.Mode.
             std::atomic<int> requestedMode{ (int)EMcMode::Manual };
             std::atomic<int> visionLoadCount{ 0 };
+
+            /// Cảm biến tray đầu vào 1, 2, tray lắp ráp — chỉ vòng quét đọc/ghi (WatchTrays).
+            TrayRemovalWatch trayWatch[3];
 
             // Token của chuỗi chạy tay trang Vision — xem McControl::ManualToken.
             std::mutex manualLock;
@@ -252,6 +257,7 @@ namespace sca
 
                     UpdateMode(s);
                     HandleButtons(s);
+                    WatchTrays(s);
                     UpdateState(s);
                     EMcState state = s.status.State();
                     // Tạm dừng mà vào LỖI/EMG thì bỏ chu trình — sau RESET không còn gì để Start chạy tiếp.
@@ -383,6 +389,31 @@ namespace sca
 
             // reqStart/DoStart: xem RequestStart — chỉ còn bài tự kiểm dùng.
             if (s.reqStart.exchange(0) == 1) DoStart(s);
+        }
+
+        /// Lấy tray ra ở vị trí chờ = Clear Tray cho tray đó (Tuấn 2026-10-30) — TrayRemovalWatch, McControl::TrayRemovedAtStandby.
+        /// Tray 2 chỉ khi đã có trong sổ (đã teach).
+        static void WatchTrays(State& s)
+        {
+            auto model = McDataManager::Model();
+            if (!model || !s.func) return;
+            bool ioOk = s.io && s.io->IsConnected();
+            bool inputAt = ioOk && ParkedAtStandby(s, model->InputTray->AxisRow);
+            bool assyAt = ioOk && ParkedAtStandby(s, model->AssyTray->AxisRow);
+            int trays = McDataManager::RunData()->InputTray->Trays;
+            long long now = s.clock.ElapsedMilliseconds();
+            for (int t = 0; t < 2; t++)
+                if (s.trayWatch[t].Update(inputAt && t < trays, s.func->HasTrayIn(t), now)) McControl::TrayRemovedAtStandby(t);
+            if (s.trayWatch[2].Update(assyAt, s.func->HasTrayAssy(), now)) McControl::TrayRemovedAtStandby(2);
+        }
+
+        /// Trục hàng đã về gốc, đứng yên ở vị trí chờ — chỗ cảm biến tray đọc được (Routine_Auto::TrayMissingAt).
+        static bool ParkedAtStandby(State& s, const std::string& axisName)
+        {
+            auto axis = s.motion[axisName];
+            if (!axis || !axis->IsConnected() || !axis->OrgOk() || axis->Busy()) return false;
+            auto cfg = McDataManager::SysData()->GetAxis(axisName);
+            return cfg && std::fabs(axis->CurrentPos() - cfg->StandbyPos) <= Routine_Auto::TraySensorWindowMm;
         }
 
         static void CancelManualSequences(State& s)
@@ -1375,14 +1406,35 @@ namespace sca
 
     void McControl::ReloadInputTray()
     {
-        McDataManager::RunData()->LoadInputTrays(McDataManager::Model()->UsableInputTrays());
+        auto run = McDataManager::RunData();
+        run->LoadInputTrays(McDataManager::Model()->UsableInputTrays());
+        // Clear Tray bỏ luôn ô đang chọn (Tuấn 2026-10-30). Bộ đếm OK/NG giữ nguyên.
+        run->InputTray->ClearSelection();
         McDataManager::SaveRunningData();
     }
 
-    void McControl::ResetAssyTray()
+    void McControl::TrayRemovedAtStandby(int tray)
+    {
+        if (tray == 2)
+        {
+            Log("Assy tray removed at standby — tray cleared (as Clear Tray, cell selection kept)", LogLevel::Info);
+            ResetAssyTray(false);
+            return;
+        }
+        auto run = McDataManager::RunData();
+        if (tray < 0 || tray >= run->InputTray->Trays) return;
+        run->ClearInputTray(tray);
+        McDataManager::SaveRunningData();
+        Log(std::format("Input tray {} removed at standby — tray cleared (as Clear Tray, cell selection kept); "
+                        "next Start loads the tray put in as new", tray + 1),
+            LogLevel::Info);
+    }
+
+    void McControl::ResetAssyTray(bool clearSelection)
     {
         auto run = McDataManager::RunData();
         run->AssyTray->ResetAll(ECellState::Empty);
+        if (clearSelection) run->AssyTray->ClearSelection();   // như ReloadInputTray
         // Tray mới — đồng hồ thực tế đếm lại từ lần chạy kế tiếp với tray trong máy (Routine_Auto).
         run->AssyTrayStartedAt.reset();
         InvalidateAssyScan();
@@ -1405,19 +1457,45 @@ namespace sca
         auto run = McDataManager::RunData();
         auto tray = input ? run->InputTray : run->AssyTray;
         if (index < 0 || index >= tray->CellCount()) return;
-        if (!tray->IsSelected(index))
+        if (!tray->IsSelected(index) && !CanSelectCell(input, index))
         {
-            ECellState open = input ? ECellState::Loaded : ECellState::Empty;
-            const auto& cells = tray->Cells;
-            bool trayDone = std::find(cells.begin(), cells.end(), open) == cells.end() &&
-                            std::find(cells.begin(), cells.end(), ECellState::Processing) == cells.end();
-            if (tray->Get(index) != open && !trayDone)
-            {
-                Status().SetMessage(Loc::T(input ? "Mc.InputCellNotSelectable" : "Mc.AssyCellNotSelectable"));
-                return;
-            }
+            Status().SetMessage(Loc::T(input ? "Mc.InputCellNotSelectable" : "Mc.AssyCellNotSelectable"));
+            return;
         }
         tray->ToggleSelected(index);
+    }
+
+    void McControl::SetCellsSelected(bool input, const std::vector<int>& indices, bool select)
+    {
+        if (Status().Mode() != EMcMode::Auto) return;
+        auto run = McDataManager::RunData();
+        auto tray = input ? run->InputTray : run->AssyTray;
+        std::vector<int> cells;
+        bool refused = false;
+        for (int i : indices)
+        {
+            if (i < 0 || i >= tray->CellCount()) continue;
+            if (!select || CanSelectCell(input, i)) cells.push_back(i);
+            else refused = true;
+        }
+        if (select && cells.empty() && refused)
+        {
+            Status().SetMessage(Loc::T(input ? "Mc.InputCellNotSelectable" : "Mc.AssyCellNotSelectable"));
+            return;
+        }
+        tray->SetSelected(cells, select);
+    }
+
+    bool McControl::CanSelectCell(bool input, int index)
+    {
+        auto run = McDataManager::RunData();
+        auto tray = input ? run->InputTray : run->AssyTray;
+        if (index < 0 || index >= tray->CellCount()) return false;
+        ECellState open = input ? ECellState::Loaded : ECellState::Empty;
+        if (tray->Get(index) == open) return true;
+        const auto& cells = tray->Cells;
+        return std::find(cells.begin(), cells.end(), open) == cells.end() &&
+               std::find(cells.begin(), cells.end(), ECellState::Processing) == cells.end();
     }
 
     void McControl::ClearCellSelection(bool input)

@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Trang Vision Edit (UI-SPEC §6) — port của VisionEditView.xaml + VisionCalibViewModel (WPF).
-     Hàng trên: thanh Jog toàn bề ngang. Cột trái: VmGlobalToolControl + VmMainViewConfigControl (popup ActiveX, ui::VmPane).
+     Hàng trên: thanh Jog toàn bề ngang. Cột trái: VmGlobalToolControl + VmMainViewConfigControl (popup ActiveX, ui::VmPane)
+     ở cấp Master, ba khung CAM như trang Main (ui::CamViews) ở cấp Engineer.
      Cột phải (320): cột hiệu chuẩn vision — cổng Auto, dòng tiến trình, chọn Tool, chọn bước (ComboBox), khung của bước.
      Chữ dài (chú thích, tooltip) lấy từ Loc trong code (cùng khoá resx), không chép tay vào đây. -->
 <UserControl
@@ -190,7 +191,11 @@
             </Grid>
         </Border>
 
-        <!-- ══════════ 6.2 VisionMaster (trái) ══════════ -->
+        <!-- ══════════ 6.2 VisionMaster (trái) ══════════
+             Theo cấp đăng nhập (Tuấn 2026-10-29, ApplyVmMode):
+             · Master   — soạn job: VmGlobalToolControl + VmMainViewConfigControl trong một card (như trước).
+             · Engineer — CAM VIEW: ba khung CAM giống trang Main (ui::CamViews), card ngoài trong suốt; nút Edit Job hỏi
+                          mật khẩu Master. -->
         <Border x:Name="VmCard" Grid.Row="1" Grid.Column="0" Style="{StaticResource CardBorderStyle}" Padding="0" Margin="0,0,8,0">
             <Grid>
                 <Grid.RowDefinitions>
@@ -202,12 +207,22 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border x:Name="GlobalToolHost" Height="40" Margin="2" HorizontalAlignment="Stretch"/>
+                    <StackPanel x:Name="CamViewTitle" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,0,0"
+                                Visibility="Collapsed">
+                        <TextBlock Text="CAM VIEW" Style="{StaticResource SectionHeaderStyle}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="CamViewHintText" Style="{StaticResource CaptionStyle}" VerticalAlignment="Center"
+                                   Margin="12,0,0,0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                    <!-- Chỉ ở CAM VIEW: hỏi mật khẩu Master rồi chuyển sang soạn job. -->
+                    <Button x:Name="EditJobButton" Grid.Column="1" Content="Edit Job" MinWidth="110" Height="36"
+                            Margin="4,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" Click="OnEditJobClick"/>
                     <!-- Ẩn/hiện cột hiệu chuẩn — ẩn thì VisionMaster lấy cả bề ngang để sửa job (Tuấn 2026-10-28). Mép phải
                          hàng thanh công cụ VM, sát cột nó điều khiển; ngoài cột nên ẩn rồi vẫn bấm lại được (thanh Jog
                          không còn chỗ ở màn 1280). Không khoá theo Busy: chỉ đổi bố cục, chuỗi đang chạy vẫn chạy. -->
-                    <Button x:Name="CalibToggleButton" Grid.Column="1" MinWidth="110" Height="36" Margin="4,0,4,0"
+                    <Button x:Name="CalibToggleButton" Grid.Column="2" MinWidth="110" Height="36" Margin="4,0,4,0"
                             VerticalAlignment="Center" Click="OnCalibToggleClick"/>
                 </Grid>
                 <Border Grid.Row="1" Style="{StaticResource DividerStyle}"/>
@@ -215,6 +230,17 @@
                     <Border x:Name="ConfigHost"/>
                     <TextBlock x:Name="VmPlaceholderText" Style="{StaticResource HintStyle}" Margin="24"
                                HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" MaxWidth="560"/>
+                    <!-- CAM VIEW: ba khung như hàng CAM trang Main -->
+                    <Grid x:Name="CamViewGrid" ColumnSpacing="8" Margin="0,8,0,0" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="Tool1CamHost"/>
+                        <Border x:Name="Tool2CamHost" Grid.Column="1"/>
+                        <Border x:Name="TopCamHost" Grid.Column="2"/>
+                    </Grid>
                 </Grid>
             </Grid>
         </Border>

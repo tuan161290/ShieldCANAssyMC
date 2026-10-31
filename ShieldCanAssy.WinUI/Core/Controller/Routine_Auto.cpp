@@ -110,6 +110,7 @@ namespace sca
             m_assyScan.clear();
             PublishAssyScan();
             m_scanOneCell = -1;
+            m_pair.clear();   // tray lắp ráp khác — cặp lập lại từ ô trống đầu tiên
             m_held[1].reset();
             m_held[2].reset();
         }
@@ -386,10 +387,23 @@ namespace sca
     {
         AlarmManager::Raise(AlarmCode::VisionNotFound, "Vision", detail);
         tray.Set(index, ECellState::Ng);
-        RunData()->AssyCountNg++;
+        CountCellNg();
         AlarmManager::Dismiss(AlarmCode::VisionNotFound);
         Save();
         return true;
+    }
+
+    /// Ô lắp ráp NG vì vision (Top CAM không thấy chi tiết đích, đích lệch lưới — nhánh G): một cụm lắp ráp hỏng, tính cả
+    /// vào NG/Total bảng Production (Tuấn 2026-10-31; trước đó chỉ card tray lắp ráp đếm). Không cộng chuỗi NG liên tiếp
+    /// (MaxConsecutiveNg là của sản phẩm hỏng; lệch lưới có m_guardSkipStreak riêng) và không vào cycle time — ô NG không
+    /// có sản phẩm nào được làm (RecordCycle chia cho CountTotal − m_cycleStartTotal).
+    void Routine_Auto::CountCellNg()
+    {
+        auto run = RunData();
+        run->AssyCountNg++;
+        run->CountNg++;
+        run->CountTotal++;
+        m_cycleStartTotal++;
     }
 
     /// Ô S05 soi lượt này: ưu tiên ô mà bước soi CAM dưới vừa đòi (m_scanOneCell), sau đó mới tới ô chưa quét theo
@@ -408,10 +422,11 @@ namespace sca
     /// đầu tiên, tức hàng mà AssignCell sắp giao tới. Tray đầu vào chưa vào cũng chỉ xét hàng đó: soi trước hàng đầu
     /// trong lúc chờ tray đầu vào (Tuấn chốt 2026-09-26).
     ///
-    /// Quét từng cặp (Tuấn 2026-10-28) chỉ xét HAI ô trống đầu tiên — đúng hai ô AssignCell sắp giao cho hai tay (ô tay
-    /// đang giữ lệnh vẫn Empty tới lúc đặt nên vẫn nằm trong hai ô này). Ô soi không thấy thành NG, ô trống kế vào cặp và
-    /// được soi tiếp, nên cặp luôn là hai ô đặt được (hoặc ít hơn khi tray sắp đầy). CountFreeCells khi đó ≤ 2: S1x hút
-    /// đúng số ô đã soi.
+    /// Quét từng cặp (Tuấn 2026-10-28) chỉ xét cặp ô m_pair — lập từ HAI ô trống đầu tiên, đúng hai ô AssignCell sắp giao
+    /// cho hai tay (ô tay đang giữ lệnh vẫn Empty tới lúc đặt nên vẫn nằm trong cặp). Cặp CỐ ĐỊNH tới khi mọi ô của nó
+    /// xong (Tuấn 2026-10-30): ô soi không thấy thành NG và cặp còn một ô — KHÔNG kéo ô trống kế vào soi bù. CountFreeCells
+    /// khi đó ≤ 2 và bằng số ô soi OK của cặp: S1x hút đúng chừng ấy sản phẩm (một ô NG → chỉ hút một). Cả cặp NG thì
+    /// lập cặp mới ngay.
     ///
     /// Trong cặp / hàng, ô X lớn chụp trước (FirstToScan, Tuấn 2026-10-28). Cả tray thì giữ thứ tự đi ô (rắn bò): quét một
     /// lượt mỗi tray, đảo chiều từng hàng ở đó chỉ thêm đường đi.
@@ -421,13 +436,17 @@ namespace sca
         if (m_sys()->ScanAssy() == SystemData::EScanAssy::Pair)
         {
             std::lock_guard<std::recursive_mutex> l(m_cacheMutex);
-            int seen = 0;
-            for (int i = 0; i < tray.CellCount() && seen < 2; i++)
+            auto open = [&tray](int i) {
+                return i >= 0 && i < tray.CellCount() && tray.Get(i) == ECellState::Empty && tray.InScope(i);
+            };
+            if (std::none_of(m_pair.begin(), m_pair.end(), open))
             {
-                if (tray.Get(i) != ECellState::Empty || !tray.InScope(i)) continue;
-                seen++;
-                if (m_assyScan.find(i) == m_assyScan.end()) group.push_back(i);
+                m_pair.clear();
+                for (int i = 0; i < tray.CellCount() && m_pair.size() < 2; i++)
+                    if (open(i)) m_pair.push_back(i);
             }
+            for (int i : m_pair)
+                if (open(i) && m_assyScan.find(i) == m_assyScan.end()) group.push_back(i);
             return FirstScanCell(tray, group);
         }
 
@@ -820,7 +839,7 @@ namespace sca
             // G — lỗi nằm ở ô đích chứ không ở sản phẩm: bỏ ô, soi lại với ô kế (tay vẫn đứng trên camera). Ô thành
             // NG, lưới trang Main tô đỏ như ô LocateTop không thấy (Tuấn 2026-10-17; trước đó Skipped, màu xám).
             tray->Set(index, ECellState::Ng);
-            run->AssyCountNg++;
+            CountCellNg();
             m_guardSkipStreak++;
             AlarmManager::Raise(AlarmCode::PlaceTargetGuard, "Auto", Loc::F("Auto.NozzleCellWhy", nozzle, cellText, cmd.Why));
             AlarmManager::Dismiss(AlarmCode::PlaceTargetGuard);
@@ -1400,13 +1419,18 @@ namespace sca
         bool newInput = input && NextLoadedCell(*run->InputTray) < 0;
         bool newAssy = assy && NextFreeCell(*run->AssyTray) < 0;
         ReloadTrays(newInput ? inputMask : 0, newAssy);
+        // Sổ còn dở nhưng một tray có mặt mà trống hết trong sổ (lấy ra ở vị trí chờ rồi đặt tray mới — Tuấn 2026-10-30):
+        // tray đó là tray mới. Tray đã xong nằm lại trên bàn vẫn giữ sổ như trên.
+        int refilled = input && !newInput ? run->RefillEmptyInputTrays(inputMask) : 0;
         if (input) m_inputIn = true;
         if (assy) m_assyIn = true;
         Save();
 
         if (input)
             Log(std::string("Input tray received (Start)") +
-                (newInput ? " — new tray: " + InputTraysText(inputMask) : std::string(" — tray partly done, keeping records")),
+                (newInput ? " — new tray: " + InputTraysText(inputMask)
+                 : refilled != 0 ? " — new tray: " + InputTraysText(refilled) + ", other tray partly done, keeping its records"
+                                 : std::string(" — tray partly done, keeping records")),
                 LogLevel::Info);
         if (assy)
             Log(std::string("Assy tray received (Start)") + (newAssy ? " — new tray" : " — tray partly done, keeping records"),

@@ -28,6 +28,7 @@ namespace sca
         switch (level)
         {
         case EUserLevel::Engineer: return "Engineer";
+        case EUserLevel::Master:   return "Master";
         default:                   return "Operator";
         }
     }
@@ -144,6 +145,27 @@ namespace sca
             return diff == 0;
         }
 
+        /// <summary>
+        /// Mật khẩu Master cố định (Tuấn 2026-10-29) — chỉ giữ bản băm, cùng công thức với mật khẩu Engineer. Đổi mật khẩu
+        /// Master = tính lại muối + băm rồi build lại, vd. PowerShell:
+        /// <c>$s = New-Object byte[] 16; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($s);
+        /// (New-Object Security.Cryptography.Rfc2898DeriveBytes("&lt;mật khẩu&gt;", $s, 50000,
+        /// [Security.Cryptography.HashAlgorithmName]::SHA256)).GetBytes(32)</c> (in hai mảng dạng hex). Sửa cả câu kiểm
+        /// trong InfraTests (TestUserAccess).
+        /// </summary>
+        const Secret& MasterSecret()
+        {
+            static const Secret s = [] {
+                Secret m;
+                FromHex("9c6f149348b6cd680bc1c2d247b2ca0e", m.Salt);
+                FromHex("01a400cc61cea6c208109c3124b47b3c24d67ac110279325718b03ccc2eda0c7", m.Hash);
+                m.Iterations = HashIterations;
+                m.IsDefault = false;
+                return m;
+            }();
+            return s;
+        }
+
         json ToJson(const Secret& s)
         {
             json j;
@@ -252,23 +274,19 @@ namespace sca
 
     bool UserAccess::IsAtLeast(EUserLevel level) { return S().level.load() >= (int)level; }
 
-    bool UserAccess::Login(EUserLevel level, std::string_view password)
+    bool UserAccess::Login(std::string_view password)
     {
-        if (level == EUserLevel::Operator)
-        {
-            Logout("login as Operator");
-            return true;
-        }
-
         auto& st = S();
-        bool ok;
+        EUserLevel level = EUserLevel::Operator;
+        if (Verify(MasterSecret(), password)) level = EUserLevel::Master;
+        else
         {
             std::lock_guard<std::mutex> lock(st.mutex);
-            ok = Verify(st.engineer, password);
+            if (Verify(st.engineer, password)) level = EUserLevel::Engineer;
         }
-        if (!ok)
+        if (level == EUserLevel::Operator)
         {
-            Log(std::string("Login failed: ") + ToString(level) + " — wrong password", LogLevel::Warning);
+            Log("Login failed — wrong password", LogLevel::Warning);
             return false;
         }
         st.level = (int)level;
@@ -329,6 +347,7 @@ namespace sca
         if (level != EUserLevel::Engineer) return Loc::F("User.NoPassword", ToString(level));
         if (!IsAtLeast(EUserLevel::Engineer)) return Loc::T("User.EngineerRequired");
         if ((int)newPassword.size() < MinPasswordLength) return Loc::F("User.PasswordTooShort", MinPasswordLength);
+        if (Verify(MasterSecret(), newPassword)) return Loc::T("User.PasswordIsMaster");
 
         Secret secret;
         if (!MakeSecret(newPassword, newPassword == DefaultEngineerPassword, secret)) return Loc::T("User.HashFailed");

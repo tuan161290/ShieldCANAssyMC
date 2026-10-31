@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 
+namespace sca { class IAxis; }
+
 namespace ui
 {
     // ── Chuỗi và số ──
@@ -16,6 +18,9 @@ namespace ui
     winrt::hstring T(std::string_view key);
     /// <summary>Số thực với số chữ số thập phân cố định, dấu chấm — vd. Num(1.5) = "1.500".</summary>
     winrt::hstring Num(double value, int decimals = 3);
+    /// <summary>Toạ độ trục để hiển thị: trục quay (A1/A2, AxisConfig.WrapDegrees) có dấu (−180, +180] — 359 thành "-1.000"
+    /// (sca::AxisAngle::SignedText, Tuấn 2026-10-30); trục thẳng như Num.</summary>
+    winrt::hstring AxisPos(sca::IAxis const& axis, int decimals = 3);
     /// <summary>Đọc số người dùng gõ; nhận cả dấu phẩy lẫn dấu chấm thập phân. False nếu không phải số.</summary>
     bool ParseDouble(winrt::hstring const& text, double& value);
     bool ParseInt(winrt::hstring const& text, int& value);

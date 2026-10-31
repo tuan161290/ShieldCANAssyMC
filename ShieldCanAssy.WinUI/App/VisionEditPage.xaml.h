@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Controller/Routine_Calib.h"
+#include "Ui/CamViews.h"
 #include "Ui/Page.h"
 #include "Ui/VmPane.h"
 
@@ -17,7 +18,8 @@ namespace winrt::ShieldCanAssy::implementation
     /// <summary>
     /// Trang Vision Edit (UI-SPEC §6) — port của <c>VisionEditView</c> + <c>VisionCalibViewModel</c> (WPF): thanh Jog toàn bề
     /// ngang, khung soạn Flow của VisionMaster (VmGlobalToolControl + VmMainViewConfigControl, popup ActiveX qua ui::VmPane)
-    /// và cột hiệu chuẩn vision.
+    /// và cột hiệu chuẩn vision. Khung soạn Flow chỉ ở cấp Master; Engineer thấy ba khung CAM như trang Main (ui::CamViews,
+    /// Tuấn 2026-10-29).
     ///
     /// <para><b>Phép hiệu chuẩn nằm trong VisionMaster, không nằm ở đây</b> (Tuấn chốt 2026-09-12). Các nút chỉ nạp điểm,
     /// chạy trục cho các phép kiểm tra và đo hand-eye; logic và trạng thái giữa các nút ở <c>sca::Routine_Calib</c>. Mọi
@@ -43,6 +45,7 @@ namespace winrt::ShieldCanAssy::implementation
         void OnJogFastClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnStopAllClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnCalibToggleClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnEditJobClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
         // ── cột hiệu chuẩn: luôn hiện ──
         void OnToolChecked(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
@@ -91,6 +94,9 @@ namespace winrt::ShieldCanAssy::implementation
         void ApplyBusy();
         /// <summary>Hiện/ẩn cột hiệu chuẩn theo m_calibHidden (nút Hide Calib / Show Calib).</summary>
         void ApplyCalibColumn();
+        /// <summary>Khung bên trái theo cấp đăng nhập: Master = soạn job VisionMaster, dưới Master = CAM VIEW (ba khung CAM).
+        /// Gọi khi trang hiện/ẩn và khi UserAccess::Version đổi.</summary>
+        void ApplyVmMode();
         void SetSequenceStatus(std::string text);
         void SetVerifyResult(std::string text);
         void SetHandEyeStep(std::string text);
@@ -208,6 +214,13 @@ namespace winrt::ShieldCanAssy::implementation
         bool m_bindOnShow{ false };
         /// <summary>Kết quả ghi đường dẫn cho nút Save của thanh công cụ đã log lần gần nhất (file|lỗi).</summary>
         std::string m_toolbarSaveLogged;
+
+        // ── CAM VIEW (dưới cấp Master) ──
+        ui::CamViews m_cams{ "Vision Edit" };
+        /// <summary>Khung bên trái đang hiện: 1 = soạn job (Master), 0 = CAM VIEW, -1 = chưa đặt.</summary>
+        int m_vmModeShown{ -1 };
+        /// <summary>UserAccess::Version lúc ApplyVmMode gần nhất.</summary>
+        uint64_t m_userVersion{ 0 };
     };
 }
 

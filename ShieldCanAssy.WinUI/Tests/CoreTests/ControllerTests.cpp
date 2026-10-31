@@ -25,6 +25,7 @@
 #include "Controller/McControl.h"
 #include "Controller/Routine_Auto.h"
 #include "Controller/Routine_DryCycle.h"
+#include "Controller/TrayRemovalWatch.h"
 #include "Controller/VmCycle.h"
 #include "Data/McDataManager.h"
 #include "Infor/AlarmCatalog.h"
@@ -742,15 +743,24 @@ namespace
         if (!f.ok) return;
         auto run = Run();
 
+        // Clear Tray: bỏ luôn ô đang chọn, bộ đếm giữ nguyên (Tuấn 2026-10-30).
         run->InputTray->ResetAll(ECellState::Ng);
+        run->InputTray->ToggleSelected(2);
+        run->InputCountOk = 7;
+        run->InputCountNg = 1;
         McControl::ReloadInputTray();
         CHECK_MSG(AllCells(*run->InputTray, ECellState::Loaded), TrayText(*run->InputTray));
+        CHECK(!run->InputTray->HasSelection() && run->InputCountOk == 7 && run->InputCountNg == 1);
 
         run->AssyTray->ResetAll(ECellState::Ok);
+        run->AssyTray->ToggleSelected(3);
+        run->AssyCountOk = 5;
+        run->AssyCountNg = 2;
         run->AssyTrayStartedAt = std::chrono::system_clock::now();
         St().SetMessage({});
         McControl::ResetAssyTray();
         CHECK(AllCells(*run->AssyTray, ECellState::Empty) && !run->AssyTrayStartedAt.has_value());
+        CHECK(!run->AssyTray->HasSelection() && run->AssyCountOk == 5 && run->AssyCountNg == 2);
         CHECK(Msg().empty());
         Func()->SetVacuum(1, true);
         WaitUntil([] { return Func()->HasProduct(1); }, 500);
@@ -774,6 +784,7 @@ namespace
         McControl::ClearCellSelection(true);
         McControl::ClearCellSelection(false);
         McControl::ToggleCellSelection(true, 0);
+        McControl::SetCellsSelected(true, { 1, 2 }, true);
         CHECK(!run->InputTray->HasSelection());
 
         ServoAndBrakes();
@@ -810,14 +821,31 @@ namespace
         auto sa = run->AssyTray->Selected(); std::sort(sa.begin(), sa.end());
         CHECK(si == std::vector<int>({ 3, 6 }) && sa == std::vector<int>({ 2, 9 }));
 
+        // Kéo chọn vùng (Tuấn 2026-10-30): ô không chọn được bỏ qua lặng lẽ, trùng không thêm; không ô nào chọn được mới
+        // báo; bỏ chọn cả vùng chỉ bỏ ô đang chọn.
+        McControl::ClearCellSelection(true);
+        CHECK(!McControl::CanSelectCell(true, 0) && McControl::CanSelectCell(true, 1) && !McControl::CanSelectCell(true, -1) &&
+              !McControl::CanSelectCell(false, 0) && McControl::CanSelectCell(false, 1));
+        St().SetMessage({});
+        McControl::SetCellsSelected(true, { 0, 1, 2, 3, 1, -1 }, true);
+        si = run->InputTray->Selected(); std::sort(si.begin(), si.end());
+        CHECK_MSG(si == std::vector<int>({ 1, 2, 3 }) && !Has(Msg(), "no part"), Msg());
+        McControl::SetCellsSelected(true, { 0 }, true);
+        CHECK_MSG(Has(Msg(), "no part") && run->InputTray->Selected().size() == 3, Msg());
+        McControl::SetCellsSelected(true, { 2, 3, 7 }, false);
+        CHECK(run->InputTray->Selected() == std::vector<int>({ 1 }));
+
         // Tray đã hết (không còn ô có hàng/đang làm): ô nào cũng chọn được — chọn trước cho tray sắp đặt vào.
         McControl::ClearCellSelection(true);
         run->InputTray->ResetAll(ECellState::Ok);
         McControl::ToggleCellSelection(true, 0);
         CHECK(run->InputTray->IsSelected(0));
+        // Clear (n) chỉ bỏ chọn — màu ô (kết quả) và bộ đếm giữ nguyên (Tuấn 2026-10-30).
+        int okBefore = run->InputCountOk;
         McControl::ClearCellSelection(true);
         McControl::ClearCellSelection(false);
         CHECK(!run->InputTray->HasSelection() && !run->AssyTray->HasSelection());
+        CHECK(AllCells(*run->InputTray, ECellState::Ok) && run->InputCountOk == okBefore);
         McControl::RequestSetMode(EMcMode::Manual);
     }
 
@@ -1297,6 +1325,33 @@ namespace
         bool pairDesc = pairX.size() >= 6;
         for (size_t k = 0; pairDesc && k + 1 < 6; k += 2) pairDesc = pairX[k] > pairX[k + 1];
         CHECK_MSG(pairDesc, "pair capture X: " + joinX(pairX));
+
+        // Một ô của cặp soi NG (Tuấn 2026-10-30): cặp còn một ô — chỉ hút MỘT sản phẩm, không chụp bù ô kế. Lần hút đầu
+        // vẫn tới sau đúng 2 LocateTop, trước lần đặt đầu chỉ mở van hút một lần; cặp sau lại đủ hai.
+        run->ResetCounters();
+        Prep(ECellState::Loaded, ECellState::Empty);
+        fv->SetTopMissTimes(1);
+        int locateBeforeMiss = fv->LocateTopCount();
+        std::atomic<int> missFirstPickLocates{ -1 }, picksBeforeOk{ 0 }, picksTotal{ 0 };
+        io->AfterSetDo = [&](int bit, bool on)
+        {
+            if (!on || (bit != IoMap::DoVacuum1 && bit != IoMap::DoVacuum2)) return;
+            if (picksTotal++ == 0) missFirstPickLocates = fv->LocateTopCount() - locateBeforeMiss;
+            if (run->CountOk == 0) picksBeforeOk++;   // luồng chu trình: CountOk cùng luồng
+        };
+        McControl::RequestStart();
+        bool placedAfterMiss = WaitUntil([&] { return run->CountOk >= 3; }, 120000);
+        PauseToStop();
+        io->AfterSetDo = nullptr;
+        fv->SetTopMissTimes(0);
+        auto& missTray = *run->AssyTray;
+        int ngCell = -1, ngCount = 0;
+        for (int i = 0; i < missTray.CellCount(); i++)
+            if (missTray.Get(i) == ECellState::Ng) { ngCell = i; ngCount++; }
+        CHECK_MSG(placedAfterMiss && missFirstPickLocates == 2 && picksBeforeOk == 1 && ngCount == 1 && ngCell >= 0 && ngCell < 2 &&
+                  missTray.Get(1 - ngCell) == ECellState::Ok && missTray.Get(2) == ECellState::Ok && missTray.Get(3) == ECellState::Ok,
+                  std::format("OK={}, LocateTop before 1st pick {}, picks before 1st OK {}, NG cells {} (cell {}) — {}", run->CountOk,
+                              missFirstPickLocates.load(), picksBeforeOk.load(), ngCount, ngCell, TrayText(missTray)));
         sys->SetScanAssy(SystemData::EScanAssy::Tray);
 
         // Chỉ một tay hút: chọn chỉ tay #2 — tay #1 không mở van hút lần nào mà máy vẫn đặt ra sản phẩm.
@@ -1563,11 +1618,26 @@ namespace
         CHECK_MSG(CountCells(*run->InputTray, ECellState::Skipped) == run->InputTray->CellCount(), TrayText(*run->InputTray));
         McControl::RequestReset();
         WaitUntil([] { return !AlarmManager::PendingReset(); }, 2000);
+        // Lấy hai tray ra ở vị trí chờ = Clear Tray cho từng tray (Tuấn 2026-10-30): tray lắp ráp trống hết (giữ ô đang
+        // chọn), tray đầu vào trống hết; chập chờn ngắn hơn DebounceMs không tính.
+        run->AssyTray->ToggleSelected(3);
         io->SimSet(IoMap::TrayAssyPresent, false);
+        Sleep(100);
+        io->SimSet(IoMap::TrayAssyPresent, true);
+        Sleep(TrayRemovalWatch::DebounceMs + 200);
+        CHECK_MSG(CountCells(*run->AssyTray, ECellState::Ok) == run->AssyTray->CellCount(), TrayText(*run->AssyTray));
+        io->SimSet(IoMap::TrayAssyPresent, false);
+        io->SimSet(IoMap::TrayIn1Present, false);
+        bool cleared = WaitUntil([&] { return AllCells(*run->AssyTray, ECellState::Empty) && AllCells(*run->InputTray, ECellState::Empty); },
+                                 TrayRemovalWatch::DebounceMs + 2000);
+        CHECK_MSG(cleared && run->AssyTray->IsSelected(3) && WaitingOp(),
+                  TrayText(*run->InputTray) + " | " + TrayText(*run->AssyTray) + " — " + VmState());
+        run->AssyTray->ClearSelection();
+        io->SimSet(IoMap::TrayIn1Present, true);
         St().SetMessage({});
         // Start khi mới thay tray đầu vào: nạp tray đầu vào (tray mới, đủ hàng), chạy vào máy, chờ tray lắp ráp.
         io->SimPress(IoMap::BtnGoB1);
-        CHECK_MSG(WaitUntil([] { return WaitingOp() && Has(Msg(), "Assy tray full"); }, 30000) && !Has(Msg(), "Cycle complete"),
+        CHECK_MSG(WaitUntil([] { return WaitingOp() && Has(Msg(), "Wait assy tray"); }, 30000) && !Has(Msg(), "Cycle complete"),
                   VmState());
         CHECK_MSG(CountCells(*run->InputTray, ECellState::Loaded) == run->InputTray->CellCount() && !AtStandby(rowIn),
                   TrayText(*run->InputTray) + " — " + PosText(rowIn));
@@ -1879,7 +1949,9 @@ namespace
         CHECK_MSG(run->AssyTray->Get(last) == ECellState::Ng, ToString(run->AssyTray->Get(last)));
         CHECK_MSG(waiting3 && aligned3 == 0 && !run->Nozzle1->HasProduct && !run->Nozzle2->HasProduct && Has(Msg(), "assy tray"),
                   std::format("AlignBottom +{} — ", aligned3) + VmState());
-        CHECK(AllCells(*run->InputTray, ECellState::Skipped) && run->CountNg == ngBefore3);   // xong lượt: hàng còn lại Skipped
+        // Xong lượt: hàng còn lại Skipped. Ô lắp ráp NG (Top CAM không thấy) tính vào NG Production (Tuấn 2026-10-31).
+        CHECK_MSG(AllCells(*run->InputTray, ECellState::Skipped) && run->CountNg == ngBefore3 + 1,
+                  std::format("NG {} → {}", ngBefore3, run->CountNg));
         McControl::RequestStart();
         WaitUntil([] { return State() == EMcState::Running; }, 5000);
         McControl::RequestPause();
@@ -2107,7 +2179,11 @@ namespace
         CHECK_MSG(Start(), VmState());
         bool placedSkip = WaitUntil([&] { return run->CountOk >= 1; }, 120000);
         int skipped = CountCells(*run->AssyTray, ECellState::Ng);
-        CHECK_MSG(placedSkip && skipped == 1 && run->CountNg == 0, std::format("ng cells {}, OK={}, NG={}", skipped, run->CountOk, run->CountNg));
+        // Ô lệch lưới thành NG và tính vào NG/Total Production; sản phẩm không NG (đặt sang ô kế), không vào chuỗi NG.
+        CHECK_MSG(placedSkip && skipped == 1 && run->CountNg == 1 && run->AssyCountNg == 1 && run->InputCountNg == 0 &&
+                  run->ConsecutiveNg == 0 && run->CountTotal == run->CountOk + run->CountNg,
+                  std::format("ng cells {}, OK={}, NG={}, total {}, streak {}", skipped, run->CountOk, run->CountNg, run->CountTotal,
+                              run->ConsecutiveNg));
         AlarmManager::AlarmRaised().Unsubscribe(tok);
         {
             std::lock_guard<std::mutex> l(mx);

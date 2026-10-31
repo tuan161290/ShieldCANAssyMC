@@ -189,13 +189,15 @@ namespace ui
         }
     }
 
-    void LoginDialog::ShowLogin(std::function<void(bool)> onDone)
+    void LoginDialog::ShowLogin(sca::EUserLevel need, std::function<void(bool)> onDone)
     {
-        Open(sca::Loc::T("User.LoginTitle"), sca::Loc::F("User.LoginHint", sca::UserAccess::IdleLogoutMin()), { L"Password" },
-             L"Login",
-             [](std::vector<std::string> const& values) -> std::string {
-                 return sca::UserAccess::Login(sca::EUserLevel::Engineer, values.at(0)) ? std::string()
-                                                                                         : sca::Loc::T("User.WrongPassword");
+        const bool master = need == sca::EUserLevel::Master;
+        Open(sca::Loc::T(master ? "User.MasterTitle" : "User.LoginTitle"),
+             master ? sca::Loc::T("User.MasterHint") : sca::Loc::F("User.LoginHint", sca::UserAccess::IdleLogoutMin()),
+             { L"Password" }, L"Login",
+             [need](std::vector<std::string> const& values) -> std::string {
+                 if (!sca::UserAccess::Login(values.at(0))) return sca::Loc::T("User.WrongPassword");
+                 return sca::UserAccess::IsAtLeast(need) ? std::string() : sca::Loc::T("User.MasterRequired");
              },
              std::move(onDone));
     }

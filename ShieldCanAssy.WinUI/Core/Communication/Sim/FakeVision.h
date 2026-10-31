@@ -95,6 +95,8 @@ namespace sca
         /// <summary>Cộng vào đích và lệnh X trong <see cref="TargetShiftTimes"/> lần tính lệnh tới — dựng nhánh G.</summary>
         SCA_FAKE_PROP(double, TargetShiftMm, 0.0)
         SCA_FAKE_PROP(int, TargetShiftTimes, 0)
+        /// <summary>LocateTop không thấy chi tiết đích trong <see cref="TopMissTimes"/> lần chụp tới — dựng ô soi NG ở S05.</summary>
+        SCA_FAKE_PROP(int, TopMissTimes, 0)
         /// <summary>Lần AlignBottom_ToolN kèm ô đích kế tiếp trả EchoRunId sai.</summary>
         SCA_FAKE_PROP(bool, CorruptEchoOnce, false)
 #undef SCA_FAKE_PROP

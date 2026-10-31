@@ -8,10 +8,11 @@ namespace sca
 {
     /// <summary>
     /// Cấp người dùng — mật khẩu theo CẤP, không có tài khoản từng người (Tuấn chốt 2026-10-21). Mở app là Operator; chỉ
-    /// trang Vision Edit đòi Engineer, mọi trang khác mở cho mọi cấp. PLAN.md §9 dự kiến thêm Technician (Manual,
-    /// Teaching): khi cần thì chèn vào GIỮA hai cấp này — quyền so theo số (<see cref="UserAccess::IsAtLeast"/>).
+    /// trang Vision Edit đòi Engineer, mọi trang khác mở cho mọi cấp. Ở Vision Edit, Engineer chỉ xem ba khung CAM, Master
+    /// mới sửa job VisionMaster (Tuấn 2026-10-29). PLAN.md §9 dự kiến thêm Technician (Manual, Teaching): khi cần thì chèn
+    /// vào GIỮA Operator và Engineer — quyền so theo số (<see cref="UserAccess::IsAtLeast"/>).
     /// </summary>
-    enum class EUserLevel { Operator = 0, Engineer = 1 };
+    enum class EUserLevel { Operator = 0, Engineer = 1, Master = 2 };
 
     const char* ToString(EUserLevel level);
 
@@ -20,6 +21,9 @@ namespace sca
     /// muối ngẫu nhiên (Windows CNG), không bao giờ lưu chữ thật. Chưa có file thì tạo với mật khẩu Engineer mặc định
     /// (<see cref="DefaultEngineerPassword"/>), trang Setting nhắc đổi. Quên mật khẩu: xoá users.json rồi mở lại app — về
     /// mặc định.
+    ///
+    /// <para><b>Mật khẩu Master cố định</b> (Tuấn 2026-10-29: "master password luôn dùng"): không đổi được, không nằm trong
+    /// users.json — xoá file vẫn dùng được. Trong exe chỉ có bản băm (UserAccess.cpp, MasterSecret), không có chữ thật.</para>
     ///
     /// <para>Mỗi lần đăng nhập, gõ sai, đăng xuất, đổi mật khẩu hay đổi thời gian tự đăng xuất đều ghi log mục "User".
     /// Gọi được từ luồng bất kỳ.</para>
@@ -42,8 +46,9 @@ namespace sca
         static EUserLevel Level();
         static bool IsAtLeast(EUserLevel level);
 
-        /// <summary>Đúng mật khẩu thì lên cấp đó và trả true. Sai thì giữ nguyên cấp, ghi log Warning, trả false.</summary>
-        static bool Login(EUserLevel level, std::string_view password);
+        /// <summary>Một ô mật khẩu cho mọi cấp: mật khẩu Master → Master, mật khẩu Engineer → Engineer, trả true. Sai thì
+        /// giữ nguyên cấp, ghi log Warning, trả false.</summary>
+        static bool Login(std::string_view password);
 
         /// <summary>Về Operator; <paramref name="reason"/> vào log ("by user", "idle 10 min"…). Đang là Operator thì thôi.</summary>
         static void Logout(const std::string& reason);
@@ -56,7 +61,8 @@ namespace sca
         /// <summary>Chỉ Engineer đổi được; ngoài khoảng Min..Max thì từ chối. Trả câu lỗi, rỗng = đã đổi và lưu.</summary>
         static std::string SetIdleLogoutMin(int minutes);
 
-        /// <summary>Đổi mật khẩu của <paramref name="level"/> — chỉ khi đang là Engineer. Trả câu lỗi, rỗng = đã đổi và lưu.</summary>
+        /// <summary>Đổi mật khẩu của <paramref name="level"/> — chỉ mật khẩu Engineer, chỉ khi đang từ Engineer trở lên;
+        /// không nhận đúng mật khẩu Master (gõ vào sẽ lên Master). Trả câu lỗi, rỗng = đã đổi và lưu.</summary>
         static std::string ChangePassword(EUserLevel level, std::string_view newPassword);
 
         /// <summary>Mật khẩu của cấp vẫn là mặc định (chưa ai đổi).</summary>

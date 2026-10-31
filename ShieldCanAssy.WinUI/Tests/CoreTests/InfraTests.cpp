@@ -1174,6 +1174,29 @@ namespace
         CHECK(!run->InputTrayNeeded(0) && run->InputTrayNeeded(1));
         run->InputTray->ClearSelection();
 
+        // Lấy Tray 1 ra ở vị trí chờ (Tuấn 2026-10-30): ô Tray 1 trống, hàng trên tay từ Tray 1 mất ô nguồn, Tray 2 giữ nguyên;
+        // Start thấy Tray 1 (tray mới) thì nạp lại — tray đã làm xong thì không.
+        run->LoadInputTrays(3);
+        run->InputTray->Set(1, ECellState::Ok);
+        run->InputTray->Set(2, ECellState::Processing);
+        run->InputTray->Set(n, ECellState::Ok);
+        run->Nozzle1->SourceCellIndex = 2;
+        run->Nozzle2->SourceCellIndex = n + 1;
+        run->InputTray->CurrentIndex = 2;
+        run->ClearInputTray(0);
+        bool tray1Empty = true;
+        for (int i = 0; i < n; i++) if (run->InputTray->Get(i) != ECellState::Empty) tray1Empty = false;
+        CHECK(tray1Empty && run->InputTray->Get(n) == ECellState::Ok && run->InputTray->Get(n + 1) == ECellState::Loaded);
+        CHECK(run->Nozzle1->SourceCellIndex == -1 && run->Nozzle2->SourceCellIndex == n + 1 && run->InputTray->CurrentIndex == n + 1);
+        CHECK(!run->InputTrayNeeded(0) && run->InputTrayNeeded(1));
+        CHECK(run->RefillEmptyInputTrays(2) == 0 && run->InputTray->Get(n) == ECellState::Ok);   // Tray 2 còn dở: giữ sổ
+        CHECK(run->RefillEmptyInputTrays(3) == 1 && run->InputTray->Get(0) == ECellState::Loaded &&
+              run->InputTray->Get(n - 1) == ECellState::Loaded && run->InputTray->Get(n) == ECellState::Ok);
+        for (int i = n; i < 2 * n; i++) run->InputTray->Set(i, ECellState::Ok);
+        CHECK(run->RefillEmptyInputTrays(3) == 0);   // Tray 2 làm xong (OK) nằm lại trên bàn: không thành tray mới
+        run->Nozzle2->SourceCellIndex = -1;
+        run->LoadInputTrays(3);
+
         // ── VisionCalib ──
         VisionCalib c;
         CHECK(!c.IsHandEyeMeasured(1) && !c.IsHandEyeOutdated(1) && !c.IsAlignVerified(1) && !c.IsUsable() && !c.IsTopDownVerified());
@@ -1643,10 +1666,10 @@ namespace
 
         // Sai mật khẩu: giữ Operator. Đúng: lên Engineer, Version tăng.
         uint64_t v0 = UserAccess::Version();
-        CHECK(!UserAccess::Login(EUserLevel::Engineer, "123"));
-        CHECK(!UserAccess::Login(EUserLevel::Engineer, ""));
+        CHECK(!UserAccess::Login("123"));
+        CHECK(!UserAccess::Login(""));
         CHECK(UserAccess::Level() == EUserLevel::Operator && UserAccess::Version() == v0);
-        CHECK(UserAccess::Login(EUserLevel::Engineer, UserAccess::DefaultEngineerPassword));
+        CHECK(UserAccess::Login(UserAccess::DefaultEngineerPassword));
         CHECK(UserAccess::IsAtLeast(EUserLevel::Engineer) && UserAccess::Version() > v0);
 
         // Tự đăng xuất đúng ngưỡng.
@@ -1654,30 +1677,39 @@ namespace
         CHECK(UserAccess::LogoutIfIdle(10min) && UserAccess::Level() == EUserLevel::Operator);
         CHECK(!UserAccess::LogoutIfIdle(60min));   // đã là Operator
 
+        // Mật khẩu Master cố định (Tuấn 2026-10-29): cùng ô đăng nhập, lên Master; sai thì giữ cấp; không có trong
+        // users.json; không đặt làm mật khẩu Engineer được; cũng tự đăng xuất.
+        CHECK(UserAccess::Login("22446688") && UserAccess::Level() == EUserLevel::Master);
+        CHECK(UserAccess::IsAtLeast(EUserLevel::Engineer) && std::string(ToString(EUserLevel::Master)) == "Master");
+        CHECK(!UserAccess::Login("2244668") && UserAccess::Level() == EUserLevel::Master);
+        CHECK(!UserAccess::ChangePassword(EUserLevel::Engineer, "22446688").empty() && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
+        CHECK(RawFile(file).find("22446688") == std::string::npos);
+        CHECK(UserAccess::LogoutIfIdle(10min) && UserAccess::Level() == EUserLevel::Operator);
+
         // Thời gian tự đăng xuất: chỉ Engineer, trong khoảng cho phép.
         CHECK(!UserAccess::SetIdleLogoutMin(5).empty() && UserAccess::IdleLogoutMin() == 10);
-        CHECK(UserAccess::Login(EUserLevel::Engineer, "1234"));
+        CHECK(UserAccess::Login("1234"));
         CHECK(!UserAccess::SetIdleLogoutMin(0).empty() && !UserAccess::SetIdleLogoutMin(121).empty());
         CHECK(UserAccess::SetIdleLogoutMin(5).empty() && UserAccess::IdleLogoutMin() == 5);
         CHECK(UserAccess::LogoutIfIdle(5min) && UserAccess::Level() == EUserLevel::Operator);
 
         // Đổi mật khẩu: chỉ Engineer, tối thiểu 4 ký tự; mật khẩu cũ hết dùng được.
         CHECK(!UserAccess::ChangePassword(EUserLevel::Engineer, "abcd").empty());
-        CHECK(UserAccess::Login(EUserLevel::Engineer, "1234"));
+        CHECK(UserAccess::Login("1234"));
         CHECK(!UserAccess::ChangePassword(EUserLevel::Engineer, "abc").empty());
         CHECK(!UserAccess::ChangePassword(EUserLevel::Operator, "abcd").empty());
         CHECK(UserAccess::ChangePassword(EUserLevel::Engineer, "Ab c9").empty());
         CHECK(!UserAccess::IsDefaultPassword(EUserLevel::Engineer) && !UserAccess::PasswordChangedAt(EUserLevel::Engineer).empty());
         UserAccess::Logout("test");
         CHECK(UserAccess::Level() == EUserLevel::Operator);
-        CHECK(!UserAccess::Login(EUserLevel::Engineer, "1234"));
-        CHECK(UserAccess::Login(EUserLevel::Engineer, "Ab c9"));
+        CHECK(!UserAccess::Login("1234"));
+        CHECK(UserAccess::Login("Ab c9"));
 
         // Nạp lại: về Operator, mật khẩu mới và thời gian tự đăng xuất còn nguyên.
         UserAccess::Load();
         CHECK(UserAccess::Level() == EUserLevel::Operator && UserAccess::IdleLogoutMin() == 5);
         CHECK(!UserAccess::IsDefaultPassword(EUserLevel::Engineer));
-        CHECK(!UserAccess::Login(EUserLevel::Engineer, "1234") && UserAccess::Login(EUserLevel::Engineer, "Ab c9"));
+        CHECK(!UserAccess::Login("1234") && UserAccess::Login("Ab c9"));
 
         // Đặt lại đúng mật khẩu mặc định thì lại là "mặc định".
         CHECK(UserAccess::ChangePassword(EUserLevel::Engineer, "1234").empty() && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
@@ -1690,7 +1722,8 @@ namespace
         bad += ".bad";
         CHECK(fs::exists(bad) && fs::exists(file));
         CHECK(UserAccess::IdleLogoutMin() == 10 && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
-        CHECK(UserAccess::Login(EUserLevel::Engineer, "1234"));
+        CHECK(UserAccess::Login("1234") && UserAccess::Level() == EUserLevel::Engineer);
+        CHECK(UserAccess::Login("22446688") && UserAccess::Level() == EUserLevel::Master);   // không phụ thuộc users.json
         UserAccess::Logout({});
     }
 }

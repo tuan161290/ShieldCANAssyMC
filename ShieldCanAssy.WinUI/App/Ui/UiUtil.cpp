@@ -5,6 +5,8 @@
 
 #include "Base/Async.h"
 #include "Base/Text.h"
+#include "Communication/AxisAngle.h"
+#include "Communication/IAxis.h"
 #include "Lang/Loc.h"
 
 using namespace winrt;
@@ -82,6 +84,13 @@ namespace ui
     {
         if (decimals < 0) decimals = 0;
         return hstring(std::format(L"{:.{}f}", value, decimals));
+    }
+
+    hstring AxisPos(sca::IAxis const& axis, int decimals)
+    {
+        auto cfg = axis.Config();
+        double pos = axis.CurrentPos();
+        return cfg && cfg->WrapDegrees ? H(sca::AxisAngle::SignedText(pos, decimals)) : Num(pos, decimals);
     }
 
     bool ParseDouble(hstring const& text, double& value)

@@ -71,7 +71,8 @@ namespace ui::teaching
     /// <summary>
     /// Minh hoạ thứ tự quét trên lưới mẫu CỐ ĐỊNH 2×4 (không theo Rows/Cols thật — chỉ để hình dung nhanh hai chế độ cạnh
     /// nút chọn): ô xám, số thứ tự 1–8, mũi tên SteelBlue nối các ô liên tiếp theo thứ tự ghé (rút ngắn hai đầu để không đè
-    /// lên số, đầu mũi tên 7 px). Vẽ theo kích thước thật của Canvas — gọi lại khi SizeChanged.
+    /// lên số, đầu mũi tên 7 px). Ba ô teach tô accent nhạt kèm nhãn ở góc ngoài: P1 = ô (1,1), P2 = cuối hàng 1, P3 = cuối
+    /// cột 1 (Tuấn 2026-10-29). Vẽ theo kích thước thật của Canvas — gọi lại khi SizeChanged.
     /// </summary>
     void DrawTraversal(winrt::Microsoft::UI::Xaml::Controls::Canvas const& canvas, bool zigzag);
 }

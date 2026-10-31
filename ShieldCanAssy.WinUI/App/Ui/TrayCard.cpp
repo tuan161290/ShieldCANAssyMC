@@ -10,6 +10,7 @@
 using namespace winrt;
 using namespace winrt::Microsoft::UI::Xaml;
 using namespace winrt::Microsoft::UI::Xaml::Controls;
+using namespace winrt::Microsoft::UI::Xaml::Input;
 using namespace winrt::Microsoft::UI::Xaml::Media;
 
 namespace ui
@@ -129,6 +130,14 @@ namespace ui
         m_body.Margin(ThicknessHelper::FromUniformLength(12));
         m_body.RowSpacing(8);
         Grid::SetRow(m_body, 2);
+        // Chạm / kéo chọn ô bắt trên cả thân lưới (xem đầu TrayCard.h). ManipulationMode khác System: kéo bằng ngón tay
+        // bắt đầu trên lưới không bị TrayScroll giành để cuộn giữa chừng.
+        m_body.ManipulationMode(ManipulationModes::TranslateX | ManipulationModes::TranslateY);
+        m_body.PointerPressed([this](auto&&, PointerRoutedEventArgs const& e) { OnPressed(e); });
+        m_body.PointerMoved([this](auto&&, PointerRoutedEventArgs const& e) { OnMoved(e); });
+        m_body.PointerReleased([this](auto&&, PointerRoutedEventArgs const& e) { OnReleased(e); });
+        m_body.PointerCanceled([this](auto&&, auto&&) { CancelDrag(); });
+        m_body.PointerCaptureLost([this](auto&&, auto&&) { CancelDrag(); });
 
         Border divider2;
         divider2.Style(ResStyle(L"DividerStyle"));
@@ -192,6 +201,7 @@ namespace ui
 
     void TrayCard::Rebuild(const sca::TrayState& tray, int rowsPerTray)
     {
+        CancelDrag();   // Anchor/End trỏ vào ô sắp bị xoá
         m_builtRows = rowsPerTray;
         m_builtCols = tray.Cols;
         m_builtOrder = (int)tray.ScanOrder;
@@ -245,6 +255,8 @@ namespace ui
                 {
                     Cell cell;
                     cell.Index = tray.IndexOf(r0 + r, c);
+                    cell.Row = r0 + r;
+                    cell.Col = c;
                     cell.Root = Grid();
                     cell.Root.MinWidth(30);
                     cell.Root.MinHeight(34);
@@ -271,11 +283,6 @@ namespace ui
                     cell.Root.Children().Append(cell.Glow);
                     cell.Root.Children().Append(cell.Fill);
                     cell.Root.Children().Append(cell.Selection);
-                    const int index = cell.Index;
-                    cell.Root.Tapped([this, index](auto&&, auto&&) {
-                        if (!m_canSelect || index < 0) return;
-                        if (OnCellTapped) OnCellTapped(index);
-                    });
                     Grid::SetRow(cell.Root, r);
                     Grid::SetColumn(cell.Root, c);
                     g.Cells.Children().Append(cell.Root);
@@ -290,10 +297,12 @@ namespace ui
         }
     }
 
-    void TrayCard::Sync(const sca::TrayState& tray, const std::vector<int>* scanned, bool canSelect)
+    void TrayCard::Sync(const sca::TrayState& tray, const std::vector<int>* scanned, bool canSelect, bool showCurrent)
     {
         if (!m_body) return;
         m_canSelect = canSelect;
+        if (!canSelect) CancelDrag();
+        m_cellCount = (int)tray.Cells.size();
 
         const int trays = std::max(1, tray.Trays);      // tray có trong sổ — Tray 2 chỉ khi đã teach
         const int rows = tray.RowsPerTray();
@@ -304,9 +313,9 @@ namespace ui
             (int)m_groups.size() != m_slots)
             Rebuild(tray, rows);
 
-        std::vector<int> selected = tray.Selected();
-        std::sort(selected.begin(), selected.end());
-        const bool anySelected = !selected.empty();
+        m_selected = tray.Selected();
+        std::sort(m_selected.begin(), m_selected.end());
+        const bool anySelected = !m_selected.empty();
 
         for (int t = 0; t < (int)m_groups.size(); ++t)
         {
@@ -321,23 +330,13 @@ namespace ui
                     cell.ShownLook = look;
                     cell.Fill.Background(Res(TrayCellBrushKey((TrayCellLook)look)));
                 }
-                int current = cell.Index == tray.CurrentIndex ? 1 : 0;
+                // Quầng ô hiện tại chỉ khi chu trình đang dở — máy đứng yên thì CurrentIndex (vd. 0 sau Clear Tray) chỉ là ô
+                // sẽ làm tiếp, quầng xanh nằm mãi ở ô 1-1 (Tuấn 2026-10-30).
+                int current = showCurrent && cell.Index == tray.CurrentIndex ? 1 : 0;
                 if (current != cell.ShownCurrent)
                 {
                     cell.ShownCurrent = current;
                     SetGlow(cell.Glow, current ? 0xFF0078D4 : 0, 9.0f, 0.9f);
-                }
-                int sel = anySelected && std::binary_search(selected.begin(), selected.end(), cell.Index) ? 1 : 0;
-                if (sel != cell.ShownSelected)
-                {
-                    cell.ShownSelected = sel;
-                    Show(cell.Selection, sel != 0);
-                }
-                int out = anySelected && !sel ? 1 : 0;
-                if (out != cell.ShownOut)
-                {
-                    cell.ShownOut = out;
-                    cell.Root.Opacity(out ? 0.35 : 1.0);
                 }
             }
 
@@ -363,8 +362,9 @@ namespace ui
             }
         }
 
+        RefreshSelection();
         Show(m_clearSel, anySelected);
-        if (anySelected) SetContent(m_clearSel, H(sca::Loc::F("Tray.ClearSelection", (int)selected.size())));
+        if (anySelected) SetContent(m_clearSel, H(sca::Loc::F("Tray.ClearSelection", (int)m_selected.size())));
 
         std::string summary;
         if (m_slots == 1)
@@ -378,6 +378,110 @@ namespace ui
                                                     tray.CurrentIndex - active * perTray + 1, perTray))
                           : sca::Loc::F("Tray.SummaryDone", rows, tray.Cols);
         SetText(m_summary, summary);
+    }
+
+    void TrayCard::RefreshSelection()
+    {
+        // Ô chọn chỉ có viền — KHÔNG làm mờ ô còn lại (Tuấn 2026-10-30). Mờ 0.35 còn để lộ khối màu của quầng ô hiện tại
+        // qua nền ô (Opacity của Grid áp riêng từng visual con), ô 1-1 thành xanh đặc.
+        for (Group& g : m_groups)
+        {
+            for (Cell& cell : g.Items)
+            {
+                if (cell.Index < 0 || cell.Index >= m_cellCount) continue;
+                bool sel = std::binary_search(m_selected.begin(), m_selected.end(), cell.Index);
+                if (InDragRect(cell)) sel = m_drag.Add && (sel || cell.Selectable);
+                int shown = sel ? 1 : 0;
+                if (shown != cell.ShownSelected)
+                {
+                    cell.ShownSelected = shown;
+                    Show(cell.Selection, sel);
+                }
+            }
+        }
+    }
+
+    TrayCard::Cell const* TrayCard::CellAt(winrt::Windows::Foundation::Point p) const
+    {
+        for (const Group& g : m_groups)
+            for (const Cell& cell : g.Items)
+            {
+                const auto& b = cell.Bounds;
+                if (cell.Index >= 0 && cell.Index < m_cellCount && p.X >= b.X && p.X < b.X + b.Width && p.Y >= b.Y &&
+                    p.Y < b.Y + b.Height)
+                    return &cell;
+            }
+        return nullptr;
+    }
+
+    bool TrayCard::InDragRect(const Cell& cell) const
+    {
+        if (!m_drag.Active || cell.Index < 0 || cell.Index >= m_cellCount) return false;
+        auto [r0, r1] = std::minmax(m_drag.Anchor->Row, m_drag.End->Row);
+        auto [c0, c1] = std::minmax(m_drag.Anchor->Col, m_drag.End->Col);
+        return cell.Row >= r0 && cell.Row <= r1 && cell.Col >= c0 && cell.Col <= c1;
+    }
+
+    void TrayCard::OnPressed(PointerRoutedEventArgs const& e)
+    {
+        if (!m_canSelect || m_drag.Active) return;   // ngón tay thứ hai lúc đang kéo: bỏ qua
+        auto point = e.GetCurrentPoint(m_body);
+        if (e.Pointer().PointerDeviceType() == winrt::Microsoft::UI::Input::PointerDeviceType::Mouse &&
+            !point.Properties().IsLeftButtonPressed())
+            return;
+        for (Group& g : m_groups)
+            for (Cell& cell : g.Items)
+            {
+                cell.Bounds = cell.Root.TransformToVisual(m_body).TransformBounds(
+                    { 0, 0, (float)cell.Root.ActualWidth(), (float)cell.Root.ActualHeight() });
+                cell.Selectable = cell.Index >= 0 && cell.Index < m_cellCount && (!CanSelectCell || CanSelectCell(cell.Index));
+            }
+        const Cell* cell = CellAt(point.Position());
+        if (!cell) return;   // khe giữa ô
+        m_drag.Active = true;
+        m_drag.PointerId = e.Pointer().PointerId();
+        m_drag.Anchor = m_drag.End = cell;
+        m_drag.Add = !std::binary_search(m_selected.begin(), m_selected.end(), cell->Index);
+        m_body.CapturePointer(e.Pointer());   // kéo ra ngoài lưới / nhả ở ngoài vẫn nhận được
+        e.Handled(true);
+        RefreshSelection();
+    }
+
+    void TrayCard::OnMoved(PointerRoutedEventArgs const& e)
+    {
+        if (!m_drag.Active || e.Pointer().PointerId() != m_drag.PointerId) return;
+        e.Handled(true);
+        const Cell* cell = CellAt(e.GetCurrentPoint(m_body).Position());
+        if (!cell || cell == m_drag.End) return;   // khe / ngoài lưới: giữ ô cuối
+        m_drag.End = cell;
+        RefreshSelection();
+    }
+
+    void TrayCard::OnReleased(PointerRoutedEventArgs const& e)
+    {
+        if (!m_drag.Active || e.Pointer().PointerId() != m_drag.PointerId) return;
+        e.Handled(true);
+        const bool tap = m_drag.Anchor == m_drag.End;
+        const int anchor = m_drag.Anchor->Index;
+        const bool add = m_drag.Add;
+        std::vector<int> indices;
+        for (const Group& g : m_groups)
+            for (const Cell& cell : g.Items)
+                if (InDragRect(cell)) indices.push_back(cell.Index);
+        m_drag = {};   // trước khi nhả bắt chuột — PointerCaptureLost → CancelDrag thấy không còn kéo
+        m_body.ReleasePointerCapture(e.Pointer());
+        // Trang gọi McControl rồi Sync lại ngay (có thể dựng lại lưới) — không dùng ô của lần kéo sau dòng này.
+        if (tap) { if (OnCellTapped) OnCellTapped(anchor); }
+        else if (OnCellsDragged) OnCellsDragged(indices, add);
+        RefreshSelection();
+    }
+
+    void TrayCard::CancelDrag()
+    {
+        if (!m_drag.Active) return;
+        m_drag = {};
+        if (m_body) m_body.ReleasePointerCaptures();
+        RefreshSelection();
     }
 
     void TrayCard::SetCounts(int ok, int ng)

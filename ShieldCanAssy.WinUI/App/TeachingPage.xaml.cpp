@@ -471,7 +471,7 @@ namespace winrt::ShieldCanAssy::implementation
         for (JogAxisRow& row : m_jogRows)
         {
             if (!row.Axis) continue;
-            ui::SetText(row.Pos, ui::Num(row.Axis->CurrentPos(), 3));
+            ui::SetText(row.Pos, ui::AxisPos(*row.Axis, 3));
             auto cfg = row.Axis->Config();
             ui::SetText(row.Unit, cfg ? cfg->Unit : std::string());
         }
@@ -915,8 +915,9 @@ namespace winrt::ShieldCanAssy::implementation
 
         // ── góc hút (chỉ tray đầu vào — góc ĐẶT do vision tính) ──
         ui::Show(PickAngleCard(), input);
-        ui::SetText(PickA1Text(), Fv(model->PickAngleA1, "0.00") + "°");
-        ui::SetText(PickA2Text(), Fv(model->PickAngleA2, "0.00") + "°");
+        // Góc hút lưu [0, 360), hiển thị có dấu như toạ độ trục A ở đầu trang (Tuấn 2026-10-30).
+        ui::SetText(PickA1Text(), sca::AxisAngle::SignedText(model->PickAngleA1, 2) + "°");
+        ui::SetText(PickA2Text(), sca::AxisAngle::SignedText(model->PickAngleA2, 2) + "°");
 
         // ── cao độ hút/đặt + điểm giảm tốc: cùng cặp Z1/Z2 trên mỗi lưới, nghĩa vật lý theo tray; Tray 2 teach Z riêng ──
         ui::SetText(ZPickTitleText(), Loc::T(input ? "Teach.ZPickTitle" : "Teach.ZPlaceTitle"));
@@ -1164,7 +1165,9 @@ namespace winrt::ShieldCanAssy::implementation
             double a = sca::AxisAngle::Wrap(axis->CurrentPos());
             auto model = McDataManager::Model();
             double old = nozzle == 1 ? model->PickAngleA1 : model->PickAngleA2;
-            if (!co_await ConfirmTeach(Loc::F("Teach.WhatPickAngle", aAxis), Fv(old, "0.00") + "°", Fv(a, "0.00") + "°")) co_return;
+            if (!co_await ConfirmTeach(Loc::F("Teach.WhatPickAngle", aAxis), sca::AxisAngle::SignedText(old, 2) + "°",
+                                       sca::AxisAngle::SignedText(a, 2) + "°"))
+                co_return;
             NoteTeachWithoutOrigin("pick angle " + aAxis);
             if (nozzle == 1) model->PickAngleA1 = a; else model->PickAngleA2 = a;
             RefreshTexts();

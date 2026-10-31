@@ -52,7 +52,7 @@ namespace winrt::ShieldCanAssy::implementation
         void ShowShotVariant(int index) override { SelectSection(index); }
 
     private:
-        enum { SectionSystem = 0, SectionVision, SectionServo, SectionDelay, SectionLog, SectionCount };
+        enum { SectionSystem = 0, SectionVision, SectionServo, SectionDelay, SectionLog, SectionUsers, SectionCount };
 
         void SelectSection(int section);
         void SetupNumberBoxes();

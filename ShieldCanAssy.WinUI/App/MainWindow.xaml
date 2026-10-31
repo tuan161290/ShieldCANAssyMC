@@ -77,13 +77,13 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal">
-                    <RadioButton x:Name="NavMain" Content="Main" IsChecked="True" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
-                    <RadioButton x:Name="NavManual" Content="Manual" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
-                    <RadioButton x:Name="NavTeaching" Content="Teaching" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
-                    <RadioButton x:Name="NavSetting" Content="Setting" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavMain" Content="Main" IsChecked="True" GroupName="ShellNav" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavManual" Content="Manual" GroupName="ShellNav" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavTeaching" Content="Teaching" GroupName="ShellNav" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
+                    <RadioButton x:Name="NavSetting" Content="Setting" GroupName="ShellNav" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked"/>
                     <!-- Vision Edit đòi Engineer (Tuấn 2026-10-21): khoá khi chưa đăng nhập, mở khoá khi đã — biểu tượng luôn
                          có mặt, chỉ đổi glyph, nên tab không đổi bề ngang. -->
-                    <RadioButton x:Name="NavVisionEdit" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked">
+                    <RadioButton x:Name="NavVisionEdit" GroupName="ShellNav" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon x:Name="VisionEditLockIcon" Glyph="&#xE72E;" FontSize="14"
                                       FontFamily="{StaticResource SegoeIcons}"/>
@@ -91,11 +91,13 @@
                         </StackPanel>
                     </RadioButton>
                     <!-- SH-10 Alarm: có alarm thì nền RedOn + quầng #FF4D5E phủ cả tab, chữ và biểu tượng trắng. Nền đặt ở Border
-                         phía sau nút (như Border bọc ngoài của WPF). -->
+                         phía sau nút (như Border bọc ngoài của WPF). Nút nằm trong Grid riêng nên mọi tab phải có GroupName
+                         chung: không có thì WinUI nhóm RadioButton theo khung chứa — tab Alarm thành nhóm riêng, chọn rồi
+                         không bỏ chọn được, lần thứ hai bấm không vào được trang Alarm (Tuấn báo 2026-10-29). -->
                     <Grid Margin="2,0">
                         <Border x:Name="AlarmTabGlow" CornerRadius="5"/>
                         <Border x:Name="AlarmTabFill" CornerRadius="5"/>
-                        <RadioButton x:Name="NavAlarm" Margin="0" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked">
+                        <RadioButton x:Name="NavAlarm" Margin="0" GroupName="ShellNav" Style="{StaticResource NavTabStyle}" Checked="OnNavChecked">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon x:Name="AlarmTabIcon" Glyph="&#xE7BA;" FontSize="15"
                                           FontFamily="{StaticResource SegoeIcons}"/>

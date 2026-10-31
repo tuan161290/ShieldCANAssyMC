@@ -6,12 +6,10 @@
 #include <memory>
 #include <string>
 
+#include "Ui/CamViews.h"
 #include "Ui/Controls.h"
-#include "Ui/MainPageCamFrame.h"
 #include "Ui/Page.h"
 #include "Ui/TrayCard.h"
-
-namespace sca { struct ReadoutCard; class VisionMasterDevice; }
 
 namespace winrt::ShieldCanAssy::implementation
 {
@@ -21,9 +19,9 @@ namespace winrt::ShieldCanAssy::implementation
     /// tiếp. Bản WPF: Views\MainView.xaml(.cs) + ViewModels\MainViewModel.cs + TrayGridViewModel.cs — property của
     /// view-model là thành viên ở đây, cập nhật trong OnTick().
     ///
-    /// <para>Khung CAM: ảnh gần nhất của Vision luôn được cập nhật; khi vision là VisionMaster thật (VisionConnect không mô
-    /// phỏng, không chế độ --shot) thêm một VmRenderControl (ui::VmPane) phủ trên ảnh, gắn vào Flow/module đặt ở trang
-    /// Setting như MainView.xaml.cs.</para>
+    /// <para>Khung CAM (ui::CamViews, dùng chung với Vision Edit): ảnh gần nhất của Vision luôn được cập nhật; khi vision là
+    /// VisionMaster thật (VisionConnect không mô phỏng, không chế độ --shot) thêm một VmRenderControl (ui::VmPane) phủ trên
+    /// ảnh, gắn vào Flow/module đặt ở trang Setting như MainView.xaml.cs.</para>
     /// </summary>
     struct MainPage : MainPageT<MainPage>, ui::IPage
     {
@@ -48,8 +46,6 @@ namespace winrt::ShieldCanAssy::implementation
         void OnClosing() override;
 
     private:
-        enum { CamTool1 = 0, CamTool2 = 1, CamTop = 2 };
-
         void UpdateOperation();
         void UpdateRunButton(int state);
         /// <summary>Con trượt AUTO/MANUAL sang nửa ứng với chế độ ĐANG áp dụng — trượt 150 ms khi chế độ đổi, đặt thẳng khi
@@ -60,21 +56,6 @@ namespace winrt::ShieldCanAssy::implementation
         void RefreshAssyTrayClock();
         void UpdateTrays();
         void SyncTray(bool input);
-        void UpdateCams();
-        /// <summary>Bảng của hai khung bottom-up theo kiểu đang chọn (Ofs/Tgt ↔ bảng tách Đích) — SyncToolCards.</summary>
-        void SyncToolCards();
-        std::shared_ptr<const sca::ReadoutCard> Shown(std::shared_ptr<const sca::ReadoutCard> const& card) const;
-        void InjectShotSample();
-
-        // ── VisionMaster: mọi lời gọi vào control đi qua QueueVm (ngoài sự kiện XAML, xem Ui/VmPane.h) ──
-        void QueueVm(bool force);
-        void EnsureVmPanes();
-        void ApplyPaneVisibility();
-        void UpdateRenderBindings(bool force);
-        bool BindOne(int index, sca::VisionMasterDevice& device, std::string const& path, int loadCount);
-        /// <summary>Nền đặc màu card + thanh công cụ theo nút ở góc card (ApplyRenderLook của WPF).</summary>
-        void ApplyRenderLook(int index);
-        void ToggleToolbar(int index);
 
         bool m_loaded{ false };
         bool m_coreReady{ false };
@@ -94,25 +75,10 @@ namespace winrt::ShieldCanAssy::implementation
         // Tray + CAM + log
         ui::TrayCard m_inputCard;
         ui::TrayCard m_assyCard;
-        std::array<ui::MainCamFrame, 3> m_cams;
+        ui::CamViews m_cams{ "Main" };
         ui::LogListView m_log;
         bool m_logShown{ false };   // mở app là ẩn (Tuấn 2026-10-21) — khớp trạng thái đầu trong MainPage.xaml
         Microsoft::UI::Xaml::Media::Animation::Storyboard m_logAnim{ nullptr };
-        /// <summary>Bảng "Not triggered" (WaitingCard của MainViewModel).</summary>
-        std::shared_ptr<const sca::ReadoutCard> m_waitingCard;
-        /// <summary>Bấm tiêu đề bảng bottom-up: Đích tách phần — chung cho cả hai tay, không lưu.</summary>
-        bool m_showBreakdown{ false };
-        std::shared_ptr<const sca::ReadoutCard> m_shotSample;
-
-        // VisionMaster
-        bool m_vmAttempted{ false };
-        bool m_vmActive{ false };
-        bool m_vmQueued{ false };
-        bool m_vmForce{ false };
-        bool m_vmBusy{ false };
-        std::chrono::steady_clock::time_point m_lastBindTry{};
-        std::string m_loggedVisionDiagnostic;
-        std::string m_loggedRenderLookError;
     };
 }
 
