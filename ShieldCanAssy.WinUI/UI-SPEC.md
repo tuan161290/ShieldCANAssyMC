@@ -530,6 +530,9 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 | SE-17 | Re-Origin after EMG | `RequireHomeSwitch` | Re-Origin after EMG | `SysData.RequireHomeAfterEmg` | — |
 | SE-18 | Origin A1/A2 in sequence | `HomeSeqSwitch` | Origin A1/A2 in sequence | `SysData.HomeRotateSequential` | — |
 | SE-19 | Curtain fitted (DI13) | `CurtainSwitch` | Curtain fitted (DI13) | `SysData.HasLightCurtain` | Tip `Setting.HasLightCurtainTip` (important). |
+| SE-19a | Card SOFTWARE UPDATE: Installed / Latest on GitHub | `TextBlock` · `InstalledVersionText`, `LatestVersionText`, `UpdateNotesText`, `UpdateStatusText` | `Update.*` | `AppUpdate::CurrentVersion`, last `FetchLatest` | Added 2026-11-07, card below SYSTEM PARAMS. Status red on error. |
+| SE-19b | Check | `Button` · `CheckUpdateButton` | Check | `AppUpdate::FetchLatest` (background) | Only on click, the App never polls GitHub by itself. |
+| SE-19c | Update | `Button` (Primary) · `InstallUpdateButton` | Update | Confirm `Update.Confirm` → `AppUpdate::Download` (background, % in status) → `AppUpdate::StartUpdater` → `WM_CLOSE` to the main window | Visible Engineer+; enabled when the latest release is newer. Refused unless MANUAL and not running (`Update.StopFirst`), checked again after the download. |
 | SE-20 | Scan Assy tray by row (toggle) | `ComboBox` · `ScanAssyCombo` W 160 (WinUI 2026-10-28: toggle → 3 choices) | Scan Assy tray: Whole tray · By row · By pair | `SysData.ScanAssy()` / `SetScanAssy()` over `ScanAssyByRow` + `ScanAssyByPair` (WinUI-only JSON key; pair wins if both set) | By pair: S05 captures only the 2 cells of this round, then picks and places; a NG cell leaves a 1-cell pair — one pick, no extra capture (2026-10-30). Tooltip literal in XAML explains all three. |
 
 ### 5.3 Vision section (3 cards as WPF)

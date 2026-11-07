@@ -223,6 +223,19 @@ Giao diện: `ShieldCanAssy.exe --root <tạm>\data --shot <tạm>\png` rồi xe
   `system.json` vẫn giữ hai giá trị này làm bản sao: model lưu trước ngày đó, lần nạp đầu nhận giá trị trong `system.json` rồi
   ghi luôn vào file model. Setting › Save System và Reload ghi vào model đang dùng. Đổi Z_SAFE thì cao độ chụp CAM dưới đổi:
   model nào có Z_SAFE riêng thì Bottom CAM calib, Run Test và hand-eye cũng làm riêng cho solution của model đó.
+- **Cập nhật qua GitHub** (chỉ bản WinUI, Tuấn 2026-11-07 — `Core\SysConfig\AppUpdate.*`, `AppVersion.h`,
+  `App\Update\Updater.ps1`, `tools\Publish-Release.ps1`; repo `tuan161290/ShieldCANAssyMC`):
+  - **Phát hành** (trên máy có VS + VisionMaster SDK, cây sạch đã commit, `gh auth login` xong):
+    `powershell -ExecutionPolicy Bypass -File ShieldCanAssy.WinUI\tools\Publish-Release.ps1 -Notes "…"`. Script ghi số phiên
+    bản (mặc định ngày, `yyyy.M.d`) vào `AppVersion.h`, build App vào thư mục sạch trong %TEMP% (App đang mở cũng được), đóng
+    zip đầu ra build (không .pdb/.lib, không `_RunData`) kèm `.sha256`, commit "Release vX", gắn tag, push `origin` + `github`,
+    tạo GitHub Release. `-PackageOnly` chỉ build và đóng zip.
+  - **Cài trên máy**: Setting › System › SOFTWARE UPDATE. **Check** hỏi Release mới nhất (chỉ khi bấm). **Update** chỉ
+    Engineer trở lên, máy dừng ở MANUAL: tải zip, kiểm SHA-256, chạy `Update\Updater.ps1` (bản sao trong
+    `%TEMP%\ShieldCanAssyUpdate`) rồi đóng App. Updater chờ App thoát, chép file mới, giữ bản cũ ở `_Update\backup-<số cũ>-…`
+    (giữ 2 bản gần nhất), mở App mới; App mới thoát trong 20 s thì tự trả bản cũ. Nhật ký: `_RunData\Log\update.log`.
+  - Không đụng `_RunData` và các thư mục VisionMaster tự tạo cạnh exe (log, ImageTemp…). Muốn quay lại tay: chép nội dung
+    `_Update\backup-…` đè lên thư mục exe lúc App đang đóng.
 - **Dry Run tính Cycle/Tack Time** (Tuấn 2026-11-07 — `Routine_DryCycle::Lap`): một lượt tray lắp ráp của chạy rà là một tray,
   mỗi lần đặt là một sản phẩm; hết lượt thì lượt sau chạy ngay nên số lượt vừa xong xuống hàng Last. Số giữ riêng, không ghi vào
   `running.json`: tắt chạy rà thì bảng hiện lại số của Auto. Clear ở trang Main hỏi xác nhận trước khi xoá.

@@ -25,6 +25,7 @@
 #include "Infor/StartupProgress.h"
 #include "Lang/Loc.h"
 #include "SysConfig/AppPaths.h"
+#include "SysConfig/AppUpdate.h"
 #include "SysConfig/UserAccess.h"
 #include "Utility/Log/LogWorker.h"
 #include "Utility/SingleInstanceGuard.h"
@@ -1559,6 +1560,56 @@ namespace
 
     // ───────────────────────── Alarm ─────────────────────────
 
+    /// <summary>Cập nhật qua GitHub (Tuấn 2026-11-07): so số phiên bản, đọc trang releases/latest, SHA-256 của file tải về.
+    /// Phần mạng (FetchLatest / Download) không kiểm ở đây.</summary>
+    void TestAppUpdate(const fs::path& root)
+    {
+        CHECK(AppUpdate::CompareVersions("2026.11.8", "2026.11.7") > 0);
+        CHECK(AppUpdate::CompareVersions("v2026.11.7", "2026.11.7.0") == 0);
+        CHECK(AppUpdate::CompareVersions("2026.11.7.2", "2026.11.7") > 0);
+        CHECK(AppUpdate::CompareVersions("2026.11.30", "2026.12.1") < 0);   // so số, không so chữ
+        CHECK(AppUpdate::CompareVersions("2027.1.1", "2026.12.31") > 0);
+        std::string current = AppUpdate::CurrentVersion();
+        CHECK_MSG(!current.empty() && AppUpdate::CompareVersions(current, "2026.11.7") >= 0, current);
+
+        // GitHub có trường digest: lấy luôn SHA-256 ở đó.
+        const char* withDigest = R"({
+          "tag_name": "v2026.11.8", "name": "ShieldCanAssy 2026.11.8", "body": "Fix scan\r\nFaster origin",
+          "published_at": "2026-11-08T03:04:05Z",
+          "assets": [
+            { "name": "ShieldCanAssy-2026.11.8.zip.sha256", "size": 90,
+              "browser_download_url": "https://github.com/x/y/releases/download/v2026.11.8/ShieldCanAssy-2026.11.8.zip.sha256" },
+            { "name": "ShieldCanAssy-2026.11.8.zip", "size": 41234567, "digest": "sha256:ABCDEF0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+              "browser_download_url": "https://github.com/x/y/releases/download/v2026.11.8/ShieldCanAssy-2026.11.8.zip" } ] })";
+        ReleaseInfo r;
+        std::string error;
+        CHECK_MSG(AppUpdate::ParseLatestRelease(withDigest, r, error), error);
+        CHECK(r.Tag == "v2026.11.8" && r.Version == "2026.11.8" && r.AssetName == "ShieldCanAssy-2026.11.8.zip" && r.AssetSize == 41234567);
+        CHECK(r.Sha256 == "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789" && base::EndsWith(r.ShaUrl, ".zip.sha256"));
+        CHECK(r.PublishedAt.substr(0, 10) == "2026-11-08" && base::Contains(r.Notes, "Faster origin"));
+
+        // Không có digest: đọc file .sha256 đi kèm.
+        json noDigest = json::parse(withDigest);
+        noDigest["assets"][1].erase("digest");
+        CHECK_MSG(AppUpdate::ParseLatestRelease(noDigest.dump(), r, error) && r.Sha256.empty() && !r.ShaUrl.empty(), error);
+        // Không có gì để kiểm SHA-256 → từ chối, không tải file không kiểm được.
+        json noCheck = noDigest;
+        noCheck["assets"].erase(0);
+        CHECK(!AppUpdate::ParseLatestRelease(noCheck.dump(), r, error) && base::Contains(error, "SHA-256"));
+        // Release không có zip của App, JSON hỏng.
+        CHECK(!AppUpdate::ParseLatestRelease(R"({"tag_name":"v1","assets":[{"name":"notes.txt"}]})", r, error));
+        CHECK(!AppUpdate::ParseLatestRelease("{ not json", r, error) && !AppUpdate::ParseLatestRelease("", r, error));
+
+        // SHA-256: mẫu chuẩn FIPS 180-2 ("abc") và file rỗng.
+        fs::path abc = root / "sha-abc.bin";
+        base::WriteAllText(abc, "abc");
+        CHECK(AppUpdate::Sha256File(abc) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        fs::path empty = root / "sha-empty.bin";
+        base::WriteAllText(empty, "");
+        CHECK(AppUpdate::Sha256File(empty) == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+        CHECK(AppUpdate::Sha256File(root / "no-such-file.bin").empty());
+    }
+
     void TestAlarmCatalog(const fs::path& root)
     {
         // Bản mẫu thật của repo (C:\PGM\ShieldCANAssyMC\Config\alarms.json) đặt cạnh "exe" giả trong thư mục tạm.
@@ -1865,6 +1916,7 @@ int RunInfraTests()
     TestModelManagement();
     TestRunningData();
     TestStartupProgress();
+    TestAppUpdate(root);
     TestAlarmCatalog(root);
     TestAlarmManager();
     TestLogAndThreads();

@@ -272,13 +272,16 @@
       EziMOTIONPlusE.dll  thư viện Fastech (Ezi-SERVO Plus-E, Ezi-IO) — Core nạp động bằng LoadLibrary; thiếu thì trục/IO
                           Fastech báo lỗi rõ, app vẫn chạy mô phỏng
       Config\alarms.json  bản mẫu bảng mã alarm (AlarmCatalog rơi về đây khi %APP_PATH%\Config chưa có)
+      Update\Updater.ps1  cài bản tải từ GitHub Releases (sca::AppUpdate, Tuấn 2026-11-07)
   -->
   <Target Name="CopyRuntimeData" AfterTargets="Build">
     <ItemGroup>
       <_FastechDll Include="$(RootDir)..\Lib\EziMOTIONPlusE.dll" />
       <_AlarmTable Include="$(RootDir)..\Config\alarms.json" />
+      <_Updater Include="$(MSBuildThisFileDirectory)Update\Updater.ps1" />
     </ItemGroup>
     <Copy SourceFiles="@(_FastechDll)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(_AlarmTable)" DestinationFolder="$(OutDir)Config" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_Updater)" DestinationFolder="$(OutDir)Update" SkipUnchangedFiles="true" />
   </Target>
 </Project>

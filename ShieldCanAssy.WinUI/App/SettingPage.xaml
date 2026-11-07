@@ -295,6 +295,39 @@
                                 </Grid>
                             </StackPanel>
                         </Border>
+
+                        <!-- SOFTWARE UPDATE (Tuấn 2026-11-07) — sca::AppUpdate: Check hỏi GitHub Releases khi bấm (không tự hỏi);
+                             Update chỉ Engineer trở lên, máy dừng ở MANUAL. Tải zip, kiểm SHA-256, giao cho Update\Updater.ps1
+                             rồi đóng App; updater cài, giữ bản cũ, mở lại App. -->
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <StackPanel>
+                                <Border Style="{StaticResource CardHeaderStyle}">
+                                    <TextBlock Text="SOFTWARE UPDATE" Style="{StaticResource SectionHeaderStyle}"/>
+                                </Border>
+                                <Border Style="{StaticResource DividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Installed" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}">
+                                        <TextBlock x:Name="InstalledVersionText" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDividerStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}">
+                                    <TextBlock Text="Latest on GitHub" Style="{StaticResource RowTitleStyle}"/>
+                                    <StackPanel Style="{StaticResource RowValueStyle}" Spacing="8">
+                                        <TextBlock x:Name="LatestVersionText" VerticalAlignment="Center" Text="—"
+                                                   Style="{StaticResource CaptionStyle}"/>
+                                        <Button x:Name="CheckUpdateButton" Content="Check" Width="110" Click="OnCheckUpdateClick"/>
+                                        <Button x:Name="InstallUpdateButton" Content="Update" Width="110"
+                                                Style="{StaticResource PrimaryButton}" Click="OnInstallUpdateClick"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock x:Name="UpdateNotesText" Style="{StaticResource GroupNoteStyle}" Margin="16,4,16,0"
+                                           TextWrapping="Wrap" MaxLines="6" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                                <TextBlock x:Name="UpdateStatusText" Style="{StaticResource GroupNoteStyle}" Margin="16,4,16,12"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
 

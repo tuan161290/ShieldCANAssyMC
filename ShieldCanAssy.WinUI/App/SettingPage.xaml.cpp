@@ -20,6 +20,7 @@
 #include "Ui/Dialogs.h"
 #include "Ui/LoginDialog.h"
 #include "Ui/UiUtil.h"
+#include "Ui/VmPane.h"
 
 using namespace winrt;
 using namespace winrt::Microsoft::UI::Xaml;
@@ -63,6 +64,7 @@ namespace winrt::ShieldCanAssy::implementation
         UpdateStaticInfo();
         UpdateCommandStates();
         UpdateUserAccess(true);
+        UpdateUpdateCard();
         SelectSection(m_section);
     }
 
@@ -518,6 +520,129 @@ namespace winrt::ShieldCanAssy::implementation
         });
     }
 
+    // ══════════ Cập nhật qua GitHub (Tuấn 2026-11-07, sca::AppUpdate) ══════════
+    // Check chỉ khi bấm (App không tự hỏi mạng). Update: Engineer trở lên, máy dừng ở MANUAL; tải + kiểm SHA-256 trên luồng
+    // nền, xét lại máy vẫn dừng rồi mới giao cho updater và đóng App qua đường thường (lưu dữ liệu, trả thiết bị).
+
+    std::string SettingPage::UpdateBlockReason()
+    {
+        sca::McStatus& status = sca::McControl::Status();
+        const sca::EMcState state = status.State();
+        const bool moving = state == sca::EMcState::Running || state == sca::EMcState::Pausing || state == sca::EMcState::Held ||
+                            state == sca::EMcState::Homing || state == sca::EMcState::Armed || state == sca::EMcState::WaitOperator;
+        if (moving || sca::McControl::RoutineBusy() || status.Mode() != sca::EMcMode::Manual) return sca::Loc::T("Update.StopFirst");
+        return {};
+    }
+
+    void SettingPage::SetUpdateStatus(const std::string& text, bool error)
+    {
+        ui::SetText(UpdateStatusText(), text);
+        UpdateStatusText().Foreground(ui::Res(error ? L"CriticalBrush" : L"TextSecondaryBrush"));
+    }
+
+    void SettingPage::UpdateUpdateCard()
+    {
+        ui::SetText(InstalledVersionText(), sca::AppUpdate::CurrentVersion());
+        const bool newer = m_hasLatest && sca::AppUpdate::CompareVersions(m_latest.Version, sca::AppUpdate::CurrentVersion()) > 0;
+        ui::Show(InstallUpdateButton(), sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer));
+        ui::SetEnabled(InstallUpdateButton(), newer && m_coreReady && !m_updateBusy);
+        ui::SetEnabled(CheckUpdateButton(), !m_updateBusy);
+    }
+
+    void SettingPage::ShowLatestRelease()
+    {
+        std::string date = m_latest.PublishedAt.substr(0, std::min<size_t>(10, m_latest.PublishedAt.size()));
+        ui::SetText(LatestVersionText(), date.empty() ? m_latest.Version : m_latest.Version + "  ·  " + date);
+        ui::SetText(UpdateNotesText(), NormalizeNewLines(m_latest.Notes));
+        ui::Show(UpdateNotesText(), !::base::IsBlank(m_latest.Notes));
+        if (sca::AppUpdate::CompareVersions(m_latest.Version, sca::AppUpdate::CurrentVersion()) <= 0)
+            SetUpdateStatus(sca::Loc::T("Update.UpToDate"));
+        else if (!sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer))
+            SetUpdateStatus(sca::Loc::F("Update.NewVersion", m_latest.Version) + " " + sca::Loc::T("Update.LoginToInstall"));
+        else
+            SetUpdateStatus(sca::Loc::F("Update.NewVersion", m_latest.Version));
+        UpdateUpdateCard();
+    }
+
+    void SettingPage::OnCheckUpdateClick(WF::IInspectable const&, RoutedEventArgs const&)
+    {
+        if (m_updateBusy) return;
+        m_updateBusy = true;
+        SetUpdateStatus(sca::Loc::T("Update.Checking"));
+        UpdateUpdateCard();
+        auto info = std::make_shared<sca::ReleaseInfo>();
+        auto error = std::make_shared<std::string>();
+        auto ok = std::make_shared<bool>(false);
+        ui::RunBackgroundThenUi(
+            [info, error, ok] { *ok = sca::AppUpdate::FetchLatest(*info, *error); },
+            [weak = get_weak(), info, error, ok] {
+                auto self = weak.get();
+                if (!self) return;
+                self->m_updateBusy = false;
+                if (!*ok)
+                {
+                    self->SetUpdateStatus(sca::Loc::F("Update.CheckFailed", *error), true);
+                    self->UpdateUpdateCard();
+                    return;
+                }
+                self->m_latest = *info;
+                self->m_hasLatest = true;
+                self->ShowLatestRelease();
+            });
+    }
+
+    winrt::fire_and_forget SettingPage::OnInstallUpdateClick(WF::IInspectable const&, RoutedEventArgs const&)
+    {
+        auto weak = get_weak();
+        if (m_updateBusy || !m_hasLatest || !sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer)) co_return;
+        std::string blocked = UpdateBlockReason();
+        if (!blocked.empty()) { ui::Dialogs::Warn(blocked); co_return; }
+
+        const sca::ReleaseInfo release = m_latest;
+        if (!co_await ui::Dialogs::ConfirmAsync(sca::Loc::F("Update.Confirm", release.Version, sca::AppUpdate::CurrentVersion()),
+                                                sca::Loc::T("Update.Title")))
+            co_return;
+        auto self = weak.get();
+        if (!self) co_return;
+        self->m_updateBusy = true;
+        self->UpdateUpdateCard();
+        self->SetUpdateStatus(sca::Loc::F("Update.Downloading", 0));
+
+        auto file = std::make_shared<std::filesystem::path>(sca::AppUpdate::WorkDir() / ::base::U8Path(release.AssetName));
+        auto error = std::make_shared<std::string>();
+        auto ok = std::make_shared<bool>(false);
+        ui::RunBackgroundThenUi(
+            [release, file, error, ok, weak] {
+                int shown = -1;
+                *ok = sca::AppUpdate::Download(release, *file, [&shown, weak](long long done, long long total) {
+                    int percent = total > 0 ? (int)(done * 100 / total) : 0;
+                    if (percent == shown) return;
+                    shown = percent;
+                    ui::PostUi([weak, percent] {
+                        if (auto s = weak.get()) s->SetUpdateStatus(sca::Loc::F("Update.Downloading", percent));
+                    });
+                }, {}, *error);
+            },
+            [release, file, error, ok, weak] {
+                auto s = weak.get();
+                if (!s) return;
+                // Đang tải mà có người cho máy chạy: giữ App, bấm Update lại khi máy dừng.
+                std::string why = *ok ? UpdateBlockReason() : std::string();
+                if (*ok && why.empty()) *ok = sca::AppUpdate::StartUpdater(*file, release.Version, *error);
+                else if (*ok) { *ok = false; *error = why; }
+                if (!*ok)
+                {
+                    s->m_updateBusy = false;
+                    s->SetUpdateStatus(sca::Loc::F("Update.Failed", *error), true);
+                    s->UpdateUpdateCard();
+                    return;
+                }
+                s->SetUpdateStatus(sca::Loc::F("Update.Installing", release.Version));
+                // Updater đang chờ tiến trình này thoát — đóng như bấm ✕ (lưu dữ liệu, trả thiết bị).
+                PostMessageW(ui::MainHwnd(), WM_CLOSE, 0, 0);
+            });
+    }
+
     // ══════════ Vision (SE-21…SE-29) ══════════
 
     void SettingPage::SetReport(TextBlock const& block, const std::string& text)
@@ -687,6 +812,7 @@ namespace winrt::ShieldCanAssy::implementation
     {
         if (!m_loaded) return;
         UpdateUserAccess();
+        UpdateUpdateCard();
         if (!m_coreReady) return;
 
         UpdateAutoMode();

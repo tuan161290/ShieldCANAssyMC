@@ -2,6 +2,7 @@
 #include "SettingPage.g.h"
 
 #include "Data/Model/ModelData.h"
+#include "SysConfig/AppUpdate.h"
 
 #include "Ui/Page.h"
 #include "Ui/SettingPageFields.h"
@@ -37,6 +38,10 @@ namespace winrt::ShieldCanAssy::implementation
 
         // ── Phân quyền ──
         void OnChangePasswordClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+
+        // ── Cập nhật qua GitHub (Tuấn 2026-11-07) ──
+        void OnCheckUpdateClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        winrt::fire_and_forget OnInstallUpdateClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
         // ── Vision ──
         void OnSolutionPathChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::Controls::TextChangedEventArgs const&);
@@ -74,6 +79,13 @@ namespace winrt::ShieldCanAssy::implementation
         bool CommitEdits(bool includeZSafe, const std::string& action);
 
         void ShowSaveResult(bool ok, const std::string& text);
+
+        /// <summary>Card SOFTWARE UPDATE: số đang chạy, nút Update theo cấp đăng nhập và bản vừa hỏi được.</summary>
+        void UpdateUpdateCard();
+        void ShowLatestRelease();
+        void SetUpdateStatus(const std::string& text, bool error = false);
+        /// <summary>Lý do chưa cài được lúc này (máy đang chạy / chưa dừng ở MANUAL); rỗng = cài được.</summary>
+        static std::string UpdateBlockReason();
         void SetReport(Microsoft::UI::Xaml::Controls::TextBlock const& block, const std::string& text);
         winrt::fire_and_forget RunGlobalVarSync(bool apply);
 
@@ -81,6 +93,10 @@ namespace winrt::ShieldCanAssy::implementation
         bool m_coreReady{ false };
         /// <summary>Model của lần nạp ô Z_SAFE gần nhất — đổi model ở Teaching thì mở lại trang là thấy Z_SAFE của model mới.</summary>
         std::shared_ptr<sca::ModelData> m_zSafeModel;
+        /// <summary>Release mới nhất hỏi được ở lần bấm Check gần nhất; đang hỏi / tải thì m_updateBusy.</summary>
+        sca::ReleaseInfo m_latest;
+        bool m_hasLatest{ false };
+        bool m_updateBusy{ false };
         int m_section{ SectionSystem };
         /// <summary>Đang chạy Check Vars / Create Vars / Check Outputs — không cho chạy chồng.</summary>
         bool m_visionBusy{ false };
