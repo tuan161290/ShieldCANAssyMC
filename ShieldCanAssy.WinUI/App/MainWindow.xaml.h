@@ -5,6 +5,7 @@
 #include "Ui/AlarmTable.h"
 #include "Ui/Dialogs.h"
 #include "Ui/Page.h"
+#include "Ui/StartupBoard.h"
 
 namespace winrt::ShieldCanAssy::implementation
 {
@@ -25,6 +26,7 @@ namespace winrt::ShieldCanAssy::implementation
         void OnNavChecked(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnResetClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnUserClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnStartupContinueClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
     private:
         void ShowSection(Section section);
@@ -37,6 +39,9 @@ namespace winrt::ShieldCanAssy::implementation
         /// <summary>Tự đăng xuất khi không thao tác đủ số phút (UserAccess::LogoutIfIdle).</summary>
         void CheckIdleLogout();
         void OnCoreReady();
+        void UpdateStartup();
+        /// <summary>Đóng dashboard khởi động: mở khoá shell, trả popup VisionMaster về chỗ, banner alarm được hiện.</summary>
+        void FinishStartup();
         void UpdateShell();
         void BuildAxisCells();
         void ApplyCaptionInset();
@@ -63,6 +68,8 @@ namespace winrt::ShieldCanAssy::implementation
         Section m_section{ Section::Main };
         bool m_shutdown{ false };
         bool m_coreReady{ false };
+        bool m_startupActive{ false };
+        ui::StartupBoard m_startup;
         /// <summary>Đang đặt tab điều hướng từ code — Checked lúc đó không phải người bấm.</summary>
         bool m_navSync{ false };
         // DispatcherQueueTimer, KHÔNG phải DispatcherTimer của XAML: Tick của DispatcherTimer chạy bên trong vùng XAML chặn

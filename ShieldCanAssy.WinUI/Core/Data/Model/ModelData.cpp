@@ -335,6 +335,8 @@ namespace sca
         j["InputTraysInUse"] = InputTraysInUse();     // chỉ-đọc: Newtonsoft vẫn ghi
         j["UsableInputTrays"] = UsableInputTrays();
         j["Calib"] = ToJson(Calib);
+        PutOpt(j, "ZSafe", ZSafe);
+        if (!VisionSolutionPath.empty()) j["VisionSolutionPath"] = VisionSolutionPath;   // rỗng → không ghi
         j["AlignPosX_Nozzle1"] = Num(AlignPosX_Nozzle1);
         j["AlignPosX_Nozzle2"] = Num(AlignPosX_Nozzle2);
         j["PickAngleA1"] = Num(PickAngleA1);
@@ -358,6 +360,9 @@ namespace sca
         ReadLayout(j, "AssyTray", m->AssyTray, "AssyTray");
         ReadLayout(j, "InputTray2", m->InputTray2, "InputTray2");
         if (auto it = j.find("Calib"); it != j.end() && it->is_object()) FromJson(*it, m->Calib);
+        GetOpt(j, "ZSafe", m->ZSafe);
+        if (m->ZSafe && !std::isfinite(*m->ZSafe)) m->ZSafe.reset();   // số hỏng = chưa có, lần nạp sau nhận lại của máy
+        Get(j, "VisionSolutionPath", m->VisionSolutionPath);
         GetNum(j, "AlignPosX_Nozzle1", m->AlignPosX_Nozzle1);
         GetNum(j, "AlignPosX_Nozzle2", m->AlignPosX_Nozzle2);
         GetNum(j, "PickAngleA1", m->PickAngleA1);

@@ -72,5 +72,11 @@ namespace sca
 
         /// <summary>Tăng mỗi khi cấp, mật khẩu hay thời gian tự đăng xuất đổi — UI so để biết khi nào vẽ lại.</summary>
         static uint64_t Version();
+
+        /// <summary>Chỉ CoreTests: dùng mật khẩu giả thay mật khẩu Master trong tiến trình này (không ghi đi đâu); rỗng = về
+        /// bản thật. Chữ thật không được nằm trong bài kiểm nào (Tuấn 2026-11-02).</summary>
+        static void SetMasterPasswordForTests(std::string_view password);
+        /// <summary>Chỉ CoreTests: bản băm thật trong code đọc được — đổi mật khẩu mà chép sai hex thì bài kiểm báo.</summary>
+        static bool MasterSecretValidForTests();
     };
 }

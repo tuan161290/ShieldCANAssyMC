@@ -12,6 +12,7 @@
 #include "Infor/AlarmCatalog.h"
 #include "Infor/AlarmCode.h"
 #include "Infor/AlarmManager.h"
+#include "Infor/StartupProgress.h"
 #include "SysConfig/AppPaths.h"
 #include "SysConfig/UserAccess.h"
 #include "Ui/UiUtil.h"
@@ -134,11 +135,13 @@ namespace ui
                 // Lỗi driver/thiết bị không được chặn cả shell — thanh trạng thái đã hiện rõ thiết bị nào chưa kết nối.
                 LogWorker::Instance().RecordLog(std::string("McControl::Init failed: ") + ex.what(), LogLevel::Error);
                 sca::AlarmManager::Raise(sca::AlarmCode::ConfigInvalid, "System", ex.what());
+                sca::StartupProgress::FailUnfinished(ex.what());
             }
             catch (...)
             {
                 LogWorker::Instance().RecordLog("McControl::Init failed: unknown exception", LogLevel::Error);
                 sca::AlarmManager::Raise(sca::AlarmCode::ConfigInvalid, "System", "unknown exception");
+                sca::StartupProgress::FailUnfinished("unknown exception");
             }
             g_coreReady = true;
         });

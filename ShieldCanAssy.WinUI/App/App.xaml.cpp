@@ -2,6 +2,8 @@
 #include "App.xaml.h"
 #include "MainWindow.xaml.h"
 
+#include <dwmapi.h>
+
 #include "Ui/AppHost.h"
 #include "Ui/UiUtil.h"
 
@@ -33,6 +35,12 @@ namespace winrt::ShieldCanAssy::implementation
         window = make<MainWindow>();
         if (ui::AppHost::Options().ScreenshotDir.empty())
         {
+            // Giấu khỏi màn hình tới khi đã phóng to và vẽ xong dashboard (MainWindow::OnRootLoaded): không có khung xám cỡ
+            // mặc định lúc mới mở. Vẫn Activate bình thường, XAML vẫn dựng và vẽ.
+            HWND hwnd{};
+            window.as<::IWindowNative>()->get_WindowHandle(&hwnd);
+            BOOL cloak = TRUE;
+            DwmSetWindowAttribute(hwnd, DWMWA_CLOAK, &cloak, sizeof cloak);
             window.Activate();
         }
         else

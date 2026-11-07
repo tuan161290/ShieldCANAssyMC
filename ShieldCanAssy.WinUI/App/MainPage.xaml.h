@@ -35,7 +35,7 @@ namespace winrt::ShieldCanAssy::implementation
         winrt::fire_and_forget OnOriginClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnResetClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnMuteClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
-        void OnClearCountersClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        winrt::fire_and_forget OnClearCountersClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnToggleLogClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
         void OnCoreReady() override;
@@ -44,6 +44,8 @@ namespace winrt::ShieldCanAssy::implementation
         void OnWindowMoved() override;
         void OnModalChanged(bool modalOpen) override;
         void OnClosing() override;
+
+        ui::CamStartupState CamStartup(bool solutionFailed) const { return m_cams.StartupState(solutionFailed); }
 
     private:
         void UpdateOperation();

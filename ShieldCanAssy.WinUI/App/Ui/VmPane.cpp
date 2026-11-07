@@ -16,6 +16,8 @@ namespace
     AppAtlModule g_atlModule;
 
     HWND g_mainHwnd = nullptr;
+    bool g_holdOffscreen = false;
+    constexpr LONG OffscreenDx = -30000;
 }
 
 namespace ui
@@ -188,6 +190,11 @@ namespace ui
         // Toạ độ popup là toạ độ MÀN HÌNH, nên cửa sổ chính di chuyển cũng phải đặt lại dù khung trong
         // cửa sổ không đổi: so cả gốc client của cửa sổ chủ. So thêm khung đầy đủ r: cùng phần hiện nhưng control
         // lệch khác bên trong popup thì vẫn phải đặt lại.
+        if (g_holdOffscreen)
+        {
+            OffsetRect(&r, OffscreenDx, 0);
+            OffsetRect(&clip, OffscreenDx, 0);
+        }
         POINT origin{ 0, 0 };
         ClientToScreen(g_mainHwnd, &origin);
         RECT screen{ clip.left + origin.x, clip.top + origin.y, clip.right + origin.x, clip.bottom + origin.y };
@@ -204,6 +211,8 @@ namespace ui
         m_visible = visible;
         Sync();
     }
+
+    void VmPane::HoldOffscreen(bool hold) { g_holdOffscreen = hold; }
 
     void VmPane::SetEnabled(bool enabled)
     {

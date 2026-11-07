@@ -25,7 +25,9 @@
 #include "Controller/VmCycle.h"
 #include "Data/McDataManager.h"
 #include "Infor/AlarmManager.h"
+#include "Infor/AxisId.h"
 #include "Infor/IoMap.h"
+#include "Infor/StartupProgress.h"
 #include "Lang/Loc.h"
 #include "Utility/Log/LogWorker.h"
 
@@ -74,6 +76,8 @@ namespace sca
             /// đọc ra so sánh với Status.Mode.
             std::atomic<int> requestedMode{ (int)EMcMode::Manual };
             std::atomic<int> visionLoadCount{ 0 };
+            /// File .solw của lần nạp gần nhất (devMutex) — đổi model mà trùng file thì không nạp lại.
+            std::string requestedSolution;
 
             /// Cảm biến tray đầu vào 1, 2, tray lắp ráp — chỉ vòng quét đọc/ghi (WatchTrays).
             TrayRemovalWatch trayWatch[3];
@@ -165,14 +169,21 @@ namespace sca
         {
             std::string path = sys.VisionSolutionPath;
             std::shared_ptr<IVisionDevice> vision;
-            { std::lock_guard<std::mutex> l(s.devMutex); vision = s.vision; }
+            {
+                std::lock_guard<std::mutex> l(s.devMutex);
+                vision = s.vision;
+                if (vision) s.requestedSolution = path;
+            }
             if (!vision) return;
             State* sp = &s;
+            StartupProgress::Begin(StartupProgress::Solution);
             base::RunDetached([vision, path, sp]
             {
+                bool loaded = false;
                 try
                 {
                     bool ok = vision->LoadSolution(path);
+                    loaded = ok;
                     if (ok)
                     {
                         sp->visionLoadCount.fetch_add(1);
@@ -193,7 +204,33 @@ namespace sca
                 {
                     AlarmManager::Raise(AlarmCode::VisionLoadFailed, "Vision", ex.what());
                 }
+                StartupProgress::End(StartupProgress::Solution, loaded);
             });
+        }
+
+        /// <summary>
+        /// Danh sách dòng của dashboard khởi động, theo đúng thứ tự Init làm. Trọng số theo thời gian đo trên máy lắp ráp
+        /// (2026-11-02, mở nguội ~18 s): kết nối trục và I/O dưới 2 s, phần lớn là nạp solution và gắn khung CAM.
+        /// </summary>
+        static void DeclareStartupSteps(SystemData& sys, const ModelData* model)
+        {
+            std::vector<StartupStep> steps;
+            StartupStep data{ "DATA", "Config", model ? "Model " + model->Name : "No model" };
+            data.State = EStartupState::Ok;
+            steps.push_back(std::move(data));
+            for (const char* name : AxisId::All)
+            {
+                auto cfg = sys.GetAxis(name);
+                std::string address = cfg->Kind == EAxisKind::Fastech ? cfg->IpAddress : cfg->ComPort;
+                steps.push_back({ "MOTION", name, sys.SimulationMode ? "Simulated" : std::move(address) });
+            }
+            steps.push_back({ "I/O", StartupProgress::Io,
+                              sys.SimulationMode ? "Simulated" : sys.IoDiIpAddress + ", " + sys.IoDoIpAddress, 3 });
+            steps.push_back({ "VISION", StartupProgress::VisionMaster, sys.SimulationMode ? "Simulated" : "vServerApp", 10 });
+            steps.push_back({ "VISION", StartupProgress::Solution,
+                              base::PathToU8(base::U8Path(sys.VisionSolutionPath).filename()), 30 });
+            steps.push_back({ "VISION", StartupProgress::CamViews, {}, 49 });
+            StartupProgress::Reset(std::move(steps));
         }
 
         /// <summary>
@@ -1529,6 +1566,7 @@ namespace sca
         // nullopt = "(chưa nạp)" theo ngôn ngữ, xem McStatus::ModelName.
         s.status.SetModelName(model ? std::optional<std::string>(model->Name) : std::nullopt);
         s.status.SetState(EMcState::Init);
+        Impl::DeclareStartupSteps(*sys, model.get());
 
         s.motion.Init(*sys);
         s.motion.SetZSafe(sys->ZSafe);
@@ -1580,8 +1618,10 @@ namespace sca
         }
 
         s.motion.ConnectAll();
-        io->Connect();
-        vision->Connect();
+        StartupProgress::Begin(StartupProgress::Io);
+        StartupProgress::End(StartupProgress::Io, io->Connect());
+        StartupProgress::Begin(StartupProgress::VisionMaster);
+        StartupProgress::End(StartupProgress::VisionMaster, vision->Connect());
         Impl::LoadVisionSolution(s, *sys);
 
         if (sys->SimulationMode) Impl::InstallSimulationModel(s);
@@ -1601,6 +1641,25 @@ namespace sca
 
         Impl::StartLoop(s, sys->ControlTickMs);
         Log(sys->SimulationMode ? "Init done — SIMULATION MODE, no real hardware is driven" : "Init done", LogLevel::Info);
+    }
+
+    std::string McControl::ApplyModel()
+    {
+        State& s = St();
+        auto model = McDataManager::Model();
+        auto sys = McDataManager::SysData();
+        s.status.SetModelName(model ? std::optional<std::string>(model->Name) : std::nullopt);
+        s.motion.SetZSafe(sys->ZSafe);
+        if (!s.initialized) return {};
+        Log(std::format("Model '{}' in use: Z_SAFE {:.3f} mm", s.status.ModelName(), sys->ZSafe), LogLevel::Info);
+
+        std::string requested;
+        {
+            std::lock_guard<std::mutex> l(s.devMutex);
+            requested = s.requestedSolution;
+        }
+        if (base::EqualsIgnoreCase(requested, sys->VisionSolutionPath)) return {};
+        return ReloadVisionSolution();
     }
 
     std::string McControl::ReloadVisionSolution()

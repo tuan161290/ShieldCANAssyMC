@@ -16,11 +16,11 @@
 #include "Infor/AxisId.h"
 #include "Infor/IoMap.h"
 #include "Lang/Loc.h"
+#include "SysConfig/UserAccess.h"
 #include "Ui/AppHost.h"
 #include "Ui/Controls.h"
 #include "Ui/Dialogs.h"
 #include "Ui/JogControl.h"
-#include "Ui/LoginDialog.h"
 #include "Ui/UiUtil.h"
 #include "Ui/VisionEditPageParts.h"
 #include "Ui/VmDotNet.h"
@@ -203,7 +203,6 @@ namespace winrt::ShieldCanAssy::implementation
         for (auto& [block, key] : texts) block.Text(ui::T(key));
 
         std::pair<DependencyObject, const char*> tips[] = {
-            { EditJobButton(), "Vision.EditJobTip" },
             { Z1SafeButton(), "Vision.Z1SafeTip" },
             { Z2SafeButton(), "Vision.Z2SafeTip" },
             { Vac1Button(), "Vision.Vacuum1Tip" },
@@ -700,17 +699,9 @@ namespace winrt::ShieldCanAssy::implementation
         Tip(CalibToggleButton(), m_calibHidden ? "Vision.CalibShowTip" : "Vision.CalibHideTip");
     }
 
-    // Edit Job (chỉ ở CAM VIEW): hỏi mật khẩu Master; đúng thì OnTick thấy UserAccess đổi và chuyển sang soạn job.
-    void VisionEditPage::OnEditJobClick(WF::IInspectable const&, RoutedEventArgs const&)
-    {
-        ui::LoginDialog::ShowLogin(sca::EUserLevel::Master, [weak = get_weak()](bool ok) {
-            auto self = weak.get();
-            if (self && ok && !self->m_closing) self->ApplyVmMode();
-        });
-    }
-
     // Cấp đăng nhập chọn khung bên trái (Tuấn 2026-10-29): Master soạn job VisionMaster, Engineer chỉ xem ba khung CAM như
-    // trang Main. Control của chế độ kia chỉ ẩn, không huỷ — mỗi bộ tạo lần đầu chế độ của nó hiện ra.
+    // trang Main, không có nút sang soạn job (Tuấn 2026-11-02). Control của chế độ kia chỉ ẩn, không huỷ — mỗi bộ tạo lần
+    // đầu chế độ của nó hiện ra.
     void VisionEditPage::ApplyVmMode()
     {
         m_userVersion = sca::UserAccess::Version();
@@ -722,7 +713,6 @@ namespace winrt::ShieldCanAssy::implementation
             ui::Show(ConfigHost(), edit);
             ui::Show(VmPlaceholderText(), edit);
             ui::Show(CamViewTitle(), !edit);
-            ui::Show(EditJobButton(), !edit);
             ui::Show(CamViewGrid(), !edit);
             // CAM VIEW: ba khung đã là card — card ngoài trong suốt, không viền, khỏi lồng card trong card.
             if (edit)

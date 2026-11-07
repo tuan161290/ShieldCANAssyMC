@@ -64,6 +64,13 @@ namespace sca
         static bool SaveModel(const std::string& name = {});
 
         /// <summary>
+        /// Z_SAFE và file .solw của model đang dùng (Tuấn 2026-11-07): ghi vào model trong bộ nhớ, vào SystemData (giá trị máy
+        /// đang chạy) và CHỈ hai khoá đó vào file model trên đĩa — trang Setting gọi, không lưu kèm chỗ teach dở chưa bấm
+        /// Save ở trang Teaching. Không đụng MotionConnect hay solution đang nạp: đó là việc của McControl.
+        /// </summary>
+        static bool SaveModelMachineValues(double zSafe, const std::string& solutionPath);
+
+        /// <summary>
         /// Xoá một model khỏi đĩa. Không đụng tới <see cref="Model"/> đang nạp trong bộ nhớ dù
         /// tên trùng — gọi hàm này xong màn hình vẫn hiển thị dữ liệu cũ cho tới khi nạp model
         /// khác, tránh cảnh đang teach dở mà dữ liệu biến mất ngay dưới tay.

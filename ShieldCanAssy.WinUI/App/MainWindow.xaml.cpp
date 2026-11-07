@@ -4,6 +4,8 @@
 #include "MainWindow.g.cpp"
 #endif
 
+#include <dwmapi.h>
+#include <format>
 #include <fstream>
 
 #include "AlarmPage.xaml.h"
@@ -63,6 +65,28 @@ namespace winrt::ShieldCanAssy::implementation
 
         SetTitleBar(TitleBarArea());
         ApplyCaptionInset();
+
+        if (ui::AppHost::Options().ShotMode())
+        {
+            // Chụp ảnh chụp các trang, không có dashboard.
+            ui::Show(StartupBoard(), false);
+            ShellHost().IsEnabled(true);
+        }
+        else
+        {
+            m_startupActive = true;
+            ui::VmPane::HoldOffscreen(true);
+            ui::SetText(StartupMachineText(), sca::McDataManager::SysData()->MachineName);
+            // Ba nút cửa sổ đang theo màu chữ của thanh tiêu đề thật; trên dải trắng của dashboard phải là chữ đậm.
+            auto titleBar = AppWindow().TitleBar();
+            const winrt::Windows::UI::Color dark{ 0xFF, 0x1A, 0x1A, 0x1A };
+            titleBar.ButtonForegroundColor(dark);
+            titleBar.ButtonInactiveForegroundColor(dark);
+            titleBar.ButtonHoverForegroundColor(dark);
+            m_startup.Build({ StartupTitle(), StartupPercent(), StartupElapsed(), StartupBar(), StartupCurrent(),
+                              StartupContinue(), StartupSteps(), StartupLogHost() });
+        }
+
         ui::ModalOverlay::Attach(Root().XamlRoot());
         m_modalToken = ui::ModalOverlay::ModalChanged().Subscribe([this](bool open) {
             if (open) ui::StopActiveJogs();   // lớp phủ che nút jog trước khi kịp nhả
@@ -122,6 +146,13 @@ namespace winrt::ShieldCanAssy::implementation
                                                          maximized ? sca::LogLevel::Info : sca::LogLevel::Warning, "UI");
                 }
                 self->ApplyCaptionInset();
+                // Hiện cửa sổ (App::OnLaunched giấu nó) sau một lượt nữa: XAML đã vẽ xong ở cỡ phóng to.
+                self->DispatcherQueue().TryEnqueue(Microsoft::UI::Dispatching::DispatcherQueuePriority::Low, [weak] {
+                    auto self = weak.get();
+                    if (!self || self->m_shutdown) return;
+                    BOOL cloak = FALSE;
+                    DwmSetWindowAttribute(self->m_hwnd, DWMWA_CLOAK, &cloak, sizeof cloak);
+                });
             });
         }
         else
@@ -269,7 +300,7 @@ namespace winrt::ShieldCanAssy::implementation
                     current.IsChecked(true);
                     m_navSync = false;
                 }
-                ui::LoginDialog::ShowLogin(sca::EUserLevel::Engineer, [weak = get_weak(), target](bool ok) {
+                ui::LoginDialog::ShowLogin([weak = get_weak(), target](bool ok) {
                     auto self = weak.get();
                     if (!self || self->m_shutdown) return;
                     self->UpdateUserState();
@@ -299,8 +330,7 @@ namespace winrt::ShieldCanAssy::implementation
         sca::McControl::RequestReset();
     }
 
-    // Login → hộp mật khẩu (Engineer hay Master, theo mật khẩu gõ); đang đăng nhập → đăng xuất ngay (không hỏi lại), rời trang
-    // bị khoá.
+    // Login → hộp mật khẩu; đang đăng nhập → đăng xuất ngay (không hỏi lại), rời trang bị khoá.
     void MainWindow::OnUserClick(WF::IInspectable const&, RoutedEventArgs const&)
     {
         if (sca::UserAccess::IsAtLeast(sca::EUserLevel::Engineer))
@@ -310,7 +340,7 @@ namespace winrt::ShieldCanAssy::implementation
             UpdateUserState();
             return;
         }
-        ui::LoginDialog::ShowLogin(sca::EUserLevel::Engineer, [weak = get_weak()](bool) {
+        ui::LoginDialog::ShowLogin([weak = get_weak()](bool) {
             if (auto self = weak.get(); self && !self->m_shutdown) self->UpdateUserState();
         });
     }
@@ -343,10 +373,42 @@ namespace winrt::ShieldCanAssy::implementation
         if (sca::UserAccess::LogoutIfIdle(idle)) LeaveLockedSection();
     }
 
+    void MainWindow::UpdateStartup()
+    {
+        if (!m_startupActive) return;
+        ui::SetText(StartupModelText(), "Model: " + sca::McControl::Status().ModelName());
+        ui::CamStartupState cam;
+        if (m_coreReady) cam = get_self<MainPage>(PageMain())->CamStartup(m_startup.SolutionFailed());
+        if (m_startup.Update(m_coreReady, cam)) FinishStartup();
+    }
+
+    void MainWindow::FinishStartup()
+    {
+        m_startupActive = false;
+        sca::LogWorker::Instance().RecordLog(std::format("Startup finished in {:.1f} s, {} item(s) failed",
+                                                         m_startup.ElapsedSeconds(), m_startup.FailedCount()),
+                                             m_startup.FailedCount() > 0 ? sca::LogLevel::Warning : sca::LogLevel::Info, "UI");
+        auto titleBar = AppWindow().TitleBar();
+        titleBar.ButtonForegroundColor(nullptr);
+        titleBar.ButtonInactiveForegroundColor(nullptr);
+        titleBar.ButtonHoverForegroundColor(nullptr);
+        ui::Show(StartupBoard(), false);
+        ShellHost().IsEnabled(true);
+        ui::VmPane::HoldOffscreen(false);
+        if (auto page = PageOf(m_section)) page->OnWindowMoved();
+        // Alarm bật trong lúc khởi động: đồng hồ tự ẩn 10 giây tính từ lúc banner thật sự hiện.
+        if (m_bannerVisible) m_bannerTimer.Start();
+        UpdateBanner();
+    }
+
+    void MainWindow::OnStartupContinueClick(WF::IInspectable const&, RoutedEventArgs const&)
+    {
+        m_startup.Continue();
+    }
+
     void MainWindow::OnCoreReady()
     {
         m_coreReady = true;
-        ui::Show(StartupPanel(), false);
         for (int i = 0; i < (int)Section::Count; ++i)
             if (auto page = PageOf((Section)i)) page->OnCoreReady();
         if (auto page = PageOf(m_section))
@@ -502,7 +564,7 @@ namespace winrt::ShieldCanAssy::implementation
         m_bannerDisplay = alarm.Display();   // banner hiện đúng alarm vừa bật nó, không phải dòng đầu danh sách
         m_bannerVisible = true;
         m_bannerTimer.Stop();
-        m_bannerTimer.Start();
+        if (!m_startupActive) m_bannerTimer.Start();
         UpdateBanner();
     }
 
@@ -510,8 +572,9 @@ namespace winrt::ShieldCanAssy::implementation
     {
         if (!m_bannerPopup) return;
         int count = sca::AlarmManager::ActiveCount();
-        // Điều kiện hiện thật sự: còn alarm VÀ chưa bị ẩn/hết giờ. Chế độ chụp ảnh không mở cửa sổ nổi nào.
-        bool show = count > 0 && m_bannerVisible && !ui::AppHost::Options().ShotMode();
+        // Điều kiện hiện thật sự: còn alarm VÀ chưa bị ẩn/hết giờ. Chế độ chụp ảnh không mở cửa sổ nổi nào. Dashboard khởi
+        // động đã liệt kê lỗi và log: banner chờ tới khi nó đóng.
+        bool show = count > 0 && m_bannerVisible && !m_startupActive && !ui::AppHost::Options().ShotMode();
         if (!show && count == 0 && m_bannerVisible)
         {
             m_bannerVisible = false;
@@ -652,6 +715,7 @@ namespace winrt::ShieldCanAssy::implementation
         UpdateShell();
         if (m_coreReady)
             if (auto page = PageOf(m_section)) page->OnTick();
+        UpdateStartup();
     }
 
     void MainWindow::OnAppWindowChanged(Microsoft::UI::Windowing::AppWindow const&,

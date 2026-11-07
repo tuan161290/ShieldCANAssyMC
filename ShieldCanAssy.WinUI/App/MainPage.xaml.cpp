@@ -296,36 +296,58 @@ namespace winrt::ShieldCanAssy::implementation
 
     // MainViewModel.RefreshAssyTrayClock (nhịp 100 ms riêng ở WPF — ở đây là OnTick). Tray đang làm: đồng hồ = bây giờ −
     // mốc bắt đầu, Tack = đồng hồ ÷ số ô OK. Tray xong (AssyTrayDone): Cycle/Tack Time giữ số chốt tới khi bấm Start với
-    // tray mới thì số đó chuyển xuống hàng Last (RunningData::RestartAssyTrayClock).
+    // tray mới thì số đó chuyển xuống hàng Last (RunningData::RestartAssyTrayClock). Đang chạy rà: cùng bảng, số lấy từ đồng
+    // hồ lượt tray của chạy rà (Routine_DryCycle::Lap, Tuấn 2026-11-07) — mỗi lần đặt là một sản phẩm, hết lượt thì lượt
+    // sau bắt đầu ngay; số của chu trình thật giữ nguyên, tắt chạy rà là hiện lại.
     void MainPage::RefreshAssyTrayClock()
     {
         auto run = sca::McDataManager::RunData();
         if (!run) return;
-        const std::optional<sca::TimePoint> start = run->AssyTrayStartedAt;
 
-        const bool hasLast = run->LastAssyTrayTimeSec > 0;
-        ui::SetText(LastCycleTimeText(), hasLast ? Clock(run->LastAssyTrayTimeSec) : std::string(Dash));
-        ui::SetText(LastTackTimeText(), run->LastAssyTrayProducts > 0 ? Sec(run->LastAssyTrayPerProductSec()) : std::string(Dash));
+        std::optional<sca::TimePoint> start;   // tray (lượt) đang làm
+        int doneNow = 0;                        // số ô đặt OK (lần đặt) của tray đang làm
+        bool held = false;                      // tray xong, giữ số tới khi Start với tray mới
+        double heldSec = 0, lastSec = 0;
+        int heldProducts = 0, lastProducts = 0;
+        auto dry = m_coreReady && sca::McControl::Status().DryRun() ? sca::McControl::DryRoutine() : nullptr;
+        if (dry)
+        {
+            const sca::Routine_DryCycle::LapClock lap = dry->Lap();
+            start = lap.StartedAt;
+            doneNow = lap.Places;
+            lastSec = lap.LastSec;
+            lastProducts = lap.LastPlaces;
+        }
+        else
+        {
+            start = run->AssyTrayStartedAt;
+            if (auto tray = run->AssyTray; start && tray)
+            {
+                const std::vector<sca::ECellState> cells = tray->Cells;   // bản chụp (ToArray của WPF)
+                doneNow = (int)std::count(cells.begin(), cells.end(), sca::ECellState::Ok);
+            }
+            held = run->AssyTrayDone;
+            heldSec = run->AssyTrayDoneSec;
+            heldProducts = run->AssyTrayDoneProducts;
+            lastSec = run->LastAssyTrayTimeSec;
+            lastProducts = run->LastAssyTrayProducts;
+        }
+
+        ui::SetText(LastCycleTimeText(), lastSec > 0 ? Clock(lastSec) : std::string(Dash));
+        ui::SetText(LastTackTimeText(), lastProducts > 0 ? Sec(lastSec / lastProducts) : std::string(Dash));
 
         double currentAvg = 0;
         if (start)
         {
             const double sec = std::chrono::duration<double>(std::chrono::system_clock::now() - *start).count();
-            int done = 0;
-            auto tray = run->AssyTray;
-            if (tray)
-            {
-                const std::vector<sca::ECellState> cells = tray->Cells;   // bản chụp (ToArray của WPF)
-                done = (int)std::count(cells.begin(), cells.end(), sca::ECellState::Ok);
-            }
-            if (done > 0) currentAvg = sec / done;
+            if (doneNow > 0) currentAvg = sec / doneNow;
             ui::SetText(CycleTimeText(), Clock(sec));
-            ui::SetText(TackTimeText(), done > 0 ? Sec(currentAvg) : std::string(Dash));
+            ui::SetText(TackTimeText(), doneNow > 0 ? Sec(currentAvg) : std::string(Dash));
         }
-        else if (run->AssyTrayDone)
+        else if (held)
         {
-            ui::SetText(CycleTimeText(), Clock(run->AssyTrayDoneSec));
-            ui::SetText(TackTimeText(), run->AssyTrayDoneProducts > 0 ? Sec(run->AssyTrayDonePerProductSec()) : std::string(Dash));
+            ui::SetText(CycleTimeText(), Clock(heldSec));
+            ui::SetText(TackTimeText(), heldProducts > 0 ? Sec(heldSec / heldProducts) : std::string(Dash));
         }
         else
         {
@@ -334,8 +356,8 @@ namespace winrt::ShieldCanAssy::implementation
         }
 
         // Năng suất theo Tack Time của tray xong gần nhất — số đã trọn một tray; chưa có tray nào xong thì theo tray đang làm.
-        const double avg = run->AssyTrayDone && run->AssyTrayDoneProducts > 0 ? run->AssyTrayDonePerProductSec()
-                         : run->LastAssyTrayProducts > 0 ? run->LastAssyTrayPerProductSec() : currentAvg;
+        const double avg = held && heldProducts > 0 ? heldSec / heldProducts
+                         : lastProducts > 0 ? lastSec / lastProducts : currentAvg;
         ui::SetText(UphText(), avg > 0 ? sca::Loc::F("Main.Uph", 3600.0 / avg) : sca::Loc::T("Main.UphNone"));
     }
 
@@ -500,10 +522,16 @@ namespace winrt::ShieldCanAssy::implementation
             [busy] { busy->store(false); });
     }
 
-    // MA-12: không hỏi xác nhận (như WPF).
-    void MainPage::OnClearCountersClick(WF::IInspectable const&, RoutedEventArgs const&)
+    // MA-12: hỏi xác nhận trước khi xoá (Tuấn 2026-11-07; WPF không hỏi). Đang chạy rà thì xoá luôn lượt trước của chạy rà.
+    // Sau co_await chỉ đụng this qua weak.
+    winrt::fire_and_forget MainPage::OnClearCountersClick(WF::IInspectable const&, RoutedEventArgs const&)
     {
+        auto weak = get_weak();
+        if (!co_await ui::Dialogs::ConfirmAsync(sca::Loc::T("Main.ClearCountersConfirm"), sca::Loc::T("Main.ClearCountersTitle")))
+            co_return;
         if (auto run = sca::McDataManager::RunData()) run->ResetCounters();
-        if (m_coreReady) OnTick();
+        if (auto dry = sca::McControl::DryRoutine()) dry->ClearLastLap();
+        sca::LogWorker::Instance().RecordLog("Production counters cleared", sca::LogLevel::Info, "UI");
+        if (auto self = weak.get(); self && self->m_coreReady) self->OnTick();
     }
 }

@@ -102,6 +102,11 @@ namespace ui
         /// sau).</summary>
         void SetEnabled(bool enabled);
 
+        /// <summary>Dashboard khởi động đang che cửa sổ: popup là cửa sổ riêng nên nổi trên XAML, phải đưa ra ngoài màn
+        /// hình. Không ẩn hẳn: control vẫn đủ cỡ và vẫn "đang hiện" khi được gắn Flow, y như lúc chạy bình thường. Bỏ giữ
+        /// thì trang gọi OnWindowMoved để popup về chỗ.</summary>
+        static void HoldOffscreen(bool hold);
+
         /// <summary>Gọi Dispose của control rồi huỷ cửa sổ. Gọi được nhiều lần.</summary>
         void Dispose();
 

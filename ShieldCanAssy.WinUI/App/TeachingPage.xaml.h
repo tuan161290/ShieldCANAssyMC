@@ -18,12 +18,12 @@ namespace winrt::ShieldCanAssy::implementation
     ///
     /// <para><b>Chế độ tray</b> (Tuấn 2026-10-21): <b>Input</b> hiện CẢ HAI tray đầu vào cùng lúc — hai hàng P1/P2/P3, hai
     /// cột cao độ Z, hai lưới ô (Tray 1 trên, Tray 2 dưới) — thay cho chọn Input 1 / Input 2; <b>Assy</b> như cũ. Những
-    /// lệnh theo MỘT tray (Move, hạ Z, Set Offset, Go Pick, về gốc Z) lấy tray của ô đang chọn — xem m_selectedTray.</para>
+    /// lệnh theo MỘT tray (Move, hạ / nâng Z, Go Pick, về gốc Z) lấy tray của ô đang chọn — xem m_selectedTray.</para>
     ///
     /// <para><b>Quy trình:</b> chọn tray (Input / Assy) × Tool (1/2) → nhập Rows/Cols → jog X/Z/Y tới đúng ô
     /// bằng panel jog RÚT GỌN ngay trên trang (chỉ Jog −/+ và vị trí; Stop/Home/SVO/RST/Move ở lại trang Manual) → bấm P1,
-    /// P2, P3, (tuỳ chọn) điểm kiểm chứng → lưới nút ô bên phải hiện thứ tự ghé từng ô, có Move chạy thử, hạ Z, Set Offset
-    /// tinh chỉnh ô lệch và bù đặt (chỉ Assy).</para>
+    /// P2, P3, (tuỳ chọn) điểm kiểm chứng → lưới nút ô bên phải hiện thứ tự ghé từng ô, có Move chạy thử, hạ Z, nâng Z về
+    /// Z_SAFE và bù đặt (chỉ Assy). Không còn Set Offset từng ô (Tuấn 2026-11-07).</para>
     ///
     /// <para><b>Điểm teach chỉ đọc, không cho gõ tay:</b> <c>TeachPoint</c> chỉ bật <c>Taught</c> khi tạo bằng constructor
     /// có toạ độ — gõ tay đổi được số nhưng không bật cờ, và Routine_Auto chặn Auto vĩnh viễn. Mọi nút Teach đọc encoder,
@@ -145,8 +145,6 @@ namespace winrt::ShieldCanAssy::implementation
         winrt::fire_and_forget TeachHandEyePick(int nozzle);
         winrt::fire_and_forget TeachHandEyeCamPos();
         winrt::fire_and_forget TeachCamTopDownAnchor();
-        winrt::fire_and_forget SetOffset();
-        void ClearOffset();
         void ApplyPlaceTrim();
         void ClearPlaceTrim();
         void ApplyPlaceTrimAll();
@@ -159,6 +157,7 @@ namespace winrt::ShieldCanAssy::implementation
         void MoveToTrigger(int nozzle);
         void MoveToCell();
         void MoveZAtCell();
+        void MoveZSafeAtCell();
         void MoveCamToCell();
         void MoveToHandEyePick(int nozzle);
         void MoveToHandEyeCamPos();

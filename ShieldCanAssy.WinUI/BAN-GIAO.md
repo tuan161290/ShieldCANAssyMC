@@ -213,23 +213,37 @@ Giao diện: `ShieldCanAssy.exe --root <tạm>\data --shot <tạm>\png` rồi xe
 
 ## 9. Khác biệt và chỗ còn hở so với bản WPF
 
+- **Dashboard khởi động** (chỉ bản WinUI, Tuấn 2026-11-02 — `App\Ui\StartupBoard.*`, `Core\Infor\StartupProgress.*`): mở app là
+  thấy tiến trình từng thiết bị và log; xong mới hiện giao diện chính. Có dòng lỗi thì đứng lại chờ bấm Continue. Trong lúc đó
+  shell bị khoá và popup VisionMaster nằm ngoài màn hình (`VmPane::HoldOffscreen`); nút cứng vẫn đi vào vòng quét như thường.
+- **Z_SAFE và solution theo model** (chỉ bản WinUI, Tuấn 2026-11-07 — `ModelData::ZSafe / VisionSolutionPath`,
+  `McDataManager::SaveModelMachineValues`, `McControl::ApplyModel`): mỗi model một Z_SAFE và một file .solw, lưu trong
+  `Model\<tên>.json` (bản WPF bỏ qua hai khoá này). Nạp model ở Teaching thì máy dùng Z_SAFE của model và nạp .solw của model nếu
+  khác file đang nạp; tên model trên thanh tiêu đề cũng đổi theo (trước đây chỉ đổi khi mở lại app — lỗi có từ bản WPF).
+  `system.json` vẫn giữ hai giá trị này làm bản sao: model lưu trước ngày đó, lần nạp đầu nhận giá trị trong `system.json` rồi
+  ghi luôn vào file model. Setting › Save System và Reload ghi vào model đang dùng. Đổi Z_SAFE thì cao độ chụp CAM dưới đổi:
+  model nào có Z_SAFE riêng thì Bottom CAM calib, Run Test và hand-eye cũng làm riêng cho solution của model đó.
+- **Dry Run tính Cycle/Tack Time** (Tuấn 2026-11-07 — `Routine_DryCycle::Lap`): một lượt tray lắp ráp của chạy rà là một tray,
+  mỗi lần đặt là một sản phẩm; hết lượt thì lượt sau chạy ngay nên số lượt vừa xong xuống hàng Last. Số giữ riêng, không ghi vào
+  `running.json`: tắt chạy rà thì bảng hiện lại số của Auto. Clear ở trang Main hỏi xác nhận trước khi xoá.
 - **Phân quyền** (chỉ bản WinUI, Tuấn chốt 2026-10-21, thêm Master 2026-10-29 — `Core\SysConfig\UserAccess.*`,
   `App\Ui\LoginDialog.*`):
   - Ba cấp: Operator (mở app luôn ở cấp này), Engineer, Master. Chỉ trang Vision Edit đòi đăng nhập; tab có biểu tượng khoá, bấm
-    vào thì hỏi mật khẩu. Nút Login / Logout nằm cạnh RESET. Một ô mật khẩu cho cả hai cấp — mật khẩu gõ vào quyết định cấp.
+    vào thì hỏi mật khẩu. Nút Login / Logout nằm cạnh RESET.
   - **Engineer** (mặc định `1234`, đổi được): Vision Edit chỉ hiện ba khung CAM như trang Main (`ui::CamViews`, tách từ
-    MainPage) cùng thanh Jog và cột hiệu chuẩn — không sửa được job VisionMaster. Nút **Edit Job** hỏi mật khẩu Master.
-  - **Master** (cố định, Tuấn giữ; CoreTests `TestUserAccess` kiểm đúng chữ đó — Tuấn: "master password luôn dùng"): Vision Edit
-    hiện trình soạn job (VmGlobalToolControl +
-    VmMainViewConfigControl) như trước. Không nằm trong `users.json`, xoá file vẫn dùng được; exe chỉ chứa bản băm
-    (`UserAccess.cpp`, `MasterSecret`, có cách tính lại khi muốn đổi). Không đặt được làm mật khẩu Engineer.
+    MainPage) cùng thanh Jog và cột hiệu chuẩn — không sửa được job VisionMaster, không có nút sang soạn job (bỏ nút Edit Job,
+    Tuấn 2026-11-02).
+  - **Master** do Tuấn giữ riêng (2026-11-02: giao diện, tài liệu, bài kiểm tra không nhắc hay gợi ý mật khẩu này): Vision Edit
+    hiện trình soạn job (VmGlobalToolControl + VmMainViewConfigControl) như trước. Setting → Vision cũng chỉ ở cấp này mới hiện
+    hai card `VISION — LIMITS & TOLERANCES` và `VISION — FLOW & VAR NAMES` (Tuấn 2026-11-02). Cấp khác chỉ thấy card Solution setup;
+    giá trị trong hai card vẫn áp dụng và vẫn lưu bình thường.
   - Mật khẩu theo cấp, không có tài khoản từng người. Đổi mật khẩu Engineer ở **Setting → Users** (mục riêng từ 2026-10-29,
     trước nằm cuối Setting → System, phải cuộn mới thấy), từ Engineer trở lên. File `Config\users.json` chỉ giữ bản băm
     PBKDF2-HMAC-SHA256 kèm muối, không giữ chữ thật.
   - Tự đăng xuất sau 10 phút không thao tác (đổi được 1..120 phút ở cùng card), cả Engineer lẫn Master. Đo bằng `GetLastInputInfo`
     nên thao tác bên trong control VisionMaster cũng được tính. Không tính lúc có hộp thoại mở hay Vision Edit đang chạy một chuỗi
     hiệu chuẩn.
-  - **Quên mật khẩu Engineer:** đóng app, xoá `Config\users.json`, mở lại — mật khẩu về `1234` (hoặc đăng nhập Master rồi đổi).
+  - **Quên mật khẩu Engineer:** đóng app, xoá `Config\users.json`, mở lại — mật khẩu về `1234`.
     File hỏng thì app tự đổi tên thành `users.json.bad` và cũng về mặc định.
   - Ba khung CAM ở Vision Edit là bộ VmRenderControl riêng, gắn cùng các module với trang Main. Bộ nào hiện ra mà bộ kia đã gắn
     sau nó thì gắn lại (đếm lần gắn chung) — không phụ thuộc việc SDK có cho hai control cùng vẽ một module. CHƯA thử trên máy

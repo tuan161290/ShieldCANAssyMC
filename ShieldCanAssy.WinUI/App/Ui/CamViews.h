@@ -17,6 +17,14 @@ namespace sca { struct ReadoutCard; class VisionMasterDevice; }
 
 namespace ui
 {
+    /// <summary>Ba khung CAM ra sao, cho dashboard khởi động.</summary>
+    struct CamStartupState
+    {
+        bool Settled{ false };   // xong việc: gắn đủ, hoặc không còn gì để chờ
+        bool Ok{ false };
+        std::string Detail;
+    };
+
     class CamViews
     {
     public:
@@ -43,6 +51,9 @@ namespace ui
         /// <summary>--shot (luôn mô phỏng, dữ liệu tạm): một ảnh và một bảng số mẫu ở khung Tool 1 để ảnh chụp kiểm được bố
         /// cục. Chỉ ở phía UI — không ghi gì vào Core.</summary>
         void InjectShotSample();
+        /// <summary><paramref name="solutionFailed"/>: McControl không nạp được solution, khung không bao giờ gắn được.
+        /// Chưa gắn đủ thì việc thử lại mỗi giây vẫn chạy tiếp sau khi dashboard đóng.</summary>
+        CamStartupState StartupState(bool solutionFailed) const;
 
         void OnWindowMoved();
         void OnModalChanged(bool modalOpen);
@@ -84,6 +95,10 @@ namespace ui
         bool m_vmBusy{ false };
         /// <summary>Số thứ tự lần gắn cuối của bộ này (đếm chung mọi bộ khung); 0 = chưa gắn lần nào.</summary>
         unsigned m_bindSerial{ 0 };
+        /// <summary>Lý do không tạo được control, nếu có.</summary>
+        std::string m_vmError;
+        /// <summary>Số lần liên tiếp đã nạp solution mà vẫn gắn không đủ — sai tên Flow thì không bao giờ gắn được.</summary>
+        int m_bindFailStreak{ 0 };
         std::chrono::steady_clock::time_point m_lastBindTry{};
         std::string m_loggedVisionDiagnostic;
         std::string m_loggedRenderLookError;

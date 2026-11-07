@@ -217,15 +217,16 @@
                         </Border>
 
                         <!-- SYSTEM PARAMS — Z_SAFE là giá trị riêng của trang, chỉ áp khi bấm Save System (như ViewModel cũ);
-                             các ô còn lại ghi thẳng vào SystemData sống khi rời ô. -->
+                             các ô còn lại ghi thẳng vào SystemData sống khi rời ô. Z_SAFE lưu theo model (Tuấn 2026-11-07). -->
                         <Border Style="{StaticResource CardBorderStyle}" Padding="0">
                             <StackPanel>
                                 <Border Style="{StaticResource CardHeaderStyle}">
                                     <TextBlock Text="SYSTEM PARAMS" Style="{StaticResource SectionHeaderStyle}"/>
                                 </Border>
                                 <Border Style="{StaticResource DividerStyle}"/>
-                                <Grid Style="{StaticResource SettingRowStyle}">
-                                    <TextBlock Text="Z_SAFE" Style="{StaticResource RowTitleStyle}"/>
+                                <Grid Style="{StaticResource SettingRowStyle}"
+                                      ToolTipService.ToolTip="Saved in the model in use (Teaching › Model). Each model has its own Z_SAFE.">
+                                    <TextBlock Text="Z_SAFE (model)" Style="{StaticResource RowTitleStyle}"/>
                                     <StackPanel Style="{StaticResource RowValueStyle}">
                                         <NumberBox x:Name="ZSafeBox" Style="{StaticResource ValueNumberStyle}"/>
                                         <TextBlock Text="mm" Style="{StaticResource UnitTextStyle}"/>
@@ -302,7 +303,7 @@
                     <StackPanel Spacing="8" Padding="0,0,12,12">
                         <!-- USER ACCESS (Tuấn 2026-10-21, Master 2026-10-29): mật khẩu theo cấp. Đăng nhập / đăng xuất ở nút góc
                              phải thanh điều hướng. Card này chỉ Engineer / Master sửa được và ghi thẳng Config\users.json —
-                             không qua Save System. Mật khẩu Master cố định, không có ở đây. -->
+                             không qua Save System. -->
                         <Border Style="{StaticResource CardBorderStyle}" Padding="0">
                             <StackPanel>
                                 <Border Style="{StaticResource CardHeaderStyle}">
@@ -327,13 +328,14 @@
                                 </Grid>
                                 <Border Style="{StaticResource RowDividerStyle}"/>
                                 <TextBlock Style="{StaticResource GroupNoteStyle}" Margin="16,8,16,12" TextWrapping="Wrap"
-                                           Text="Login at top right, one box for both levels. Engineer: Vision Edit shows 3 CAM views + calib. Master (fixed password, not changeable): also edits the VisionMaster job. Log in first to edit this card; changes save at once to Config\users.json. Forgot Engineer password: close app, delete users.json, reopen (back to 1234)."/>
+                                           Text="Login at top right. Vision Edit shows 3 CAM views + calib. Log in first to edit this card; changes save at once to Config\users.json. Forgot Engineer password: close app, delete users.json, reopen (back to 1234)."/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- ══════════ VISION (§5.3) — 3 card như bản WPF ══════════ -->
+                <!-- ══════════ VISION (§5.3) — 3 card như bản WPF ══════════ Card ngưỡng và card tên Flow chỉ hiện ở cấp Master
+                     (Tuấn 2026-11-02, SettingPage::UpdateUserAccess); cấp khác không có chữ nào báo là còn card ẩn. -->
                 <ScrollViewer x:Name="VisionSection" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                     <StackPanel Spacing="8" Padding="0,0,12,12">
 
@@ -345,9 +347,9 @@
                                 <Border Style="{StaticResource DividerStyle}"/>
 
                                 <TextBlock Text="Solution path (.solw)" Style="{StaticResource GroupTitleStyle}"/>
-                                <TextBlock Text="One .solw per machine. After change: Reload solution, no restart."
+                                <TextBlock Text="One .solw per model, saved in the model in use. After change: Reload, no restart."
                                            Style="{StaticResource GroupNoteStyle}"
-                                           ToolTipService.ToolTip="All 3 Flows (LocateTop / AlignBottom_Tool1 / AlignBottom_Tool2) must be in one .solw (SDK singleton)."/>
+                                           ToolTipService.ToolTip="All 3 Flows (LocateTop / AlignBottom_Tool1 / AlignBottom_Tool2) must be in one .solw (SDK singleton). Loading another model in Teaching loads its .solw."/>
                                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0,16,12">
                                     <TextBox x:Name="SolutionPathBox" Width="360" Style="{StaticResource ValueTextStyle}"
                                              TextChanged="OnSolutionPathChanged"/>
@@ -389,7 +391,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                        <Border x:Name="VisionLimitsCard" Style="{StaticResource CardBorderStyle}" Padding="0" Visibility="Collapsed">
                             <StackPanel>
                                 <Border Style="{StaticResource CardHeaderStyle}">
                                     <TextBlock Text="VISION — LIMITS &amp; TOLERANCES" Style="{StaticResource SectionHeaderStyle}"/>
@@ -491,7 +493,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                        <Border x:Name="VisionNamesCard" Style="{StaticResource CardBorderStyle}" Padding="0" Visibility="Collapsed">
                             <StackPanel>
                                 <Border Style="{StaticResource CardHeaderStyle}">
                                     <TextBlock Text="VISION — FLOW &amp; VAR NAMES" Style="{StaticResource SectionHeaderStyle}"/>

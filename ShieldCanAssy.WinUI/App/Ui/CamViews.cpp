@@ -194,6 +194,7 @@ namespace ui
                 continue;
             }
             // Thường là chưa đăng ký ActiveX của VisionMaster — ba khung cùng lý do, không thử tiếp.
+            m_vmError = error;
             for (MainCamFrame& g : m_cams)
                 if (!g.Pane.Created()) g.ShowVmError("Cannot create VisionMaster view: " + error);
             sca::LogWorker::Instance().RecordLog(m_logTag + ": cannot create CAM view - " + error, sca::LogLevel::Warning, "Vision");
@@ -244,12 +245,15 @@ namespace ui
         std::string diag = ready ? "" : ", waiting for solution load";
         if (ready)
         {
+            bool allOk = true;
             for (int i = 0; i < (int)m_cams.size(); ++i)
             {
                 if (!m_cams[i].Pane.Created()) continue;
                 const bool ok = BindOne(i, *device, paths[i], load);
+                allOk = allOk && ok;
                 diag += std::format(", '{}'={}", paths[i], ok ? "bound" : "NOT found");
             }
+            m_bindFailStreak = allOk ? 0 : m_bindFailStreak + 1;
         }
 
         // Log một lần cho mỗi bộ tên — đủ biết kẹt ở đâu (chưa nạp solution, hay sai tên module), không rác log mỗi giây.
@@ -330,6 +334,47 @@ namespace ui
             if (life.expired() || m_closing || m_vmBusy) return;
             ApplyRenderLook(index);
         });
+    }
+
+    // ══════════ Dashboard khởi động ══════════
+
+    CamStartupState CamViews::StartupState(bool solutionFailed) const
+    {
+        // Thử gắn 5 lần (mỗi giây một lần) rồi báo: SDK bận thì vài giây là xong, sai tên Flow thì chờ nữa cũng vô ích.
+        constexpr int MaxBindFails = 5;
+
+        CamStartupState state;
+        if (!m_vmAttempted || m_vmBusy) return state;
+
+        const int load = sca::McControl::VisionLoadCount();
+        const auto paths = RenderPaths();
+        int created = 0, bound = 0;
+        for (int i = 0; i < (int)m_cams.size(); ++i)
+        {
+            if (!m_cams[i].Pane.Created()) continue;
+            ++created;
+            if (m_cams[i].BoundKey == BindKey(load, paths[i])) ++bound;
+        }
+
+        if (created == 0)
+        {
+            state.Settled = true;
+            state.Ok = m_vmError.empty();
+            state.Detail = state.Ok ? "Not used" : m_vmError;
+            return state;
+        }
+
+        state.Detail = std::format("{} of {} bound", bound, created);
+        if (bound == created)
+        {
+            state.Settled = true;
+            state.Ok = m_vmError.empty();
+        }
+        else if (solutionFailed || m_bindFailStreak >= MaxBindFails)
+        {
+            state.Settled = true;
+        }
+        return state;
     }
 
     // ══════════ Vòng đời ══════════

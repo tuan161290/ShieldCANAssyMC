@@ -151,6 +151,14 @@ namespace sca
         /// <returns>Lý do từ chối, RỖNG nếu đã yêu cầu nạp (C#: null).</returns>
         static std::string ReloadVisionSolution();
 
+        /// <summary>
+        /// Vừa đổi model (trang Teaching: Load, New) — gọi sau McDataManager::LoadModel / UseModel. Tên model trên thanh tiêu
+        /// đề (trước đây chỉ đặt lúc Init — bản WPF cũng vậy, Tuấn báo 2026-11-07), Z_SAFE của MotionConnect, và solution
+        /// riêng của model: khác file đang nạp thì nạp lại như nút Reload ở Setting (Tuấn 2026-11-07).
+        /// </summary>
+        /// <returns>Lý do không nạp được solution (đang có routine chạy), rỗng nếu xong hoặc không cần nạp.</returns>
+        static std::string ApplyModel();
+
         /// <summary>Kiểm tra (<paramref name="apply"/> = false) hoặc tạo các biến toàn cục mà các Flow cần trong solution
         /// đang nạp (Tuấn 2026-09-13). Tạo biến chỉ cho phép khi không có chu trình nào đang chạy. CHẶN — gọi từ luồng nền
         /// (C# SyncVisionGlobalVariablesAsync).</summary>

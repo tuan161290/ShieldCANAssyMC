@@ -199,6 +199,16 @@ namespace sca
 
         VisionCalib Calib;
 
+        /// <summary>
+        /// Cao độ an toàn Z (mm) và file .solw RIÊNG của model (Tuấn 2026-11-07) — trước đó chung cho cả máy ở system.json.
+        /// Giá trị máy đang chạy vẫn đọc ở SystemData::ZSafe / VisionSolutionPath, chép từ đây mỗi lần nạp/dùng model
+        /// (McDataManager::LoadModel / UseModel; McControl::ApplyModel đưa xuống MotionConnect và nạp solution). Model lưu
+        /// trước ngày đó không có hai khoá này (nullopt / rỗng): lần nạp đầu nhận giá trị system.json đang dùng rồi ghi
+        /// luôn vào file model.
+        /// </summary>
+        std::optional<double> ZSafe;
+        std::string VisionSolutionPath;
+
         /// <summary>Vị trí X để đưa từng tay hút vào giữa khung hình CAM bottom-up.</summary>
         double AlignPosX_Nozzle1 = 0;
         double AlignPosX_Nozzle2 = 0;

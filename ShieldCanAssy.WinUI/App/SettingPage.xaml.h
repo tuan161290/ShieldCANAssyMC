@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "SettingPage.g.h"
 
+#include "Data/Model/ModelData.h"
+
 #include "Ui/Page.h"
 #include "Ui/SettingPageFields.h"
 #include "Ui/SettingPageUi.h"
@@ -77,6 +79,8 @@ namespace winrt::ShieldCanAssy::implementation
 
         bool m_loaded{ false };
         bool m_coreReady{ false };
+        /// <summary>Model của lần nạp ô Z_SAFE gần nhất — đổi model ở Teaching thì mở lại trang là thấy Z_SAFE của model mới.</summary>
+        std::shared_ptr<sca::ModelData> m_zSafeModel;
         int m_section{ SectionSystem };
         /// <summary>Đang chạy Check Vars / Create Vars / Check Outputs — không cho chạy chồng.</summary>
         bool m_visionBusy{ false };

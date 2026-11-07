@@ -698,12 +698,12 @@
                                                    Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <!-- TE-47..TE-51 -->
+                                        <!-- TE-47..TE-50. Bỏ Set Offset / Clear ofs từng ô (Tuấn 2026-11-07): tray đầu vào không cần,
+                                             tray lắp ráp chỉnh bằng bù đặt bên dưới. -->
                                         <Button x:Name="MoveCellButton" Content="Move" Style="{StaticResource CellActionButtonStyle}"/>
                                         <Button x:Name="ZCellButton" Content="Z1 Pick" Style="{StaticResource CellActionButtonStyle}"/>
+                                        <Button x:Name="ZSafeCellButton" Content="Z1 Safe" Style="{StaticResource CellActionButtonStyle}"/>
                                         <Button x:Name="MoveCamButton" Content="Move CAM" Style="{StaticResource CellActionButtonStyle}"/>
-                                        <Button x:Name="SetOffsetButton" Content="Set Offset" Style="{StaticResource CellActionButtonStyle}"/>
-                                        <Button x:Name="ClearOffsetButton" Content="Clear" Style="{StaticResource CellActionButtonStyle}"/>
                                     </StackPanel>
                                 </Grid>
 

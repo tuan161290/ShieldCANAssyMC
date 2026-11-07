@@ -32,6 +32,7 @@
 #include "Infor/AlarmManager.h"
 #include "Infor/AxisId.h"
 #include "Infor/IoMap.h"
+#include "Infor/StartupProgress.h"
 #include "SysConfig/AppPaths.h"
 #include "Utility/Log/LogWorker.h"
 
@@ -382,10 +383,52 @@ namespace
         auto oc = McControl::CheckVisionFlowOutputs();
         CHECK_MSG(oc.Clean(), oc.ToText());
 
+        // Dashboard khởi động: Init báo xong mọi dòng của Core, chỉ còn CAM views do UI báo.
+        CHECK(WaitUntil([] {
+            for (const StartupStep& step : StartupProgress::Snapshot())
+                if (step.Key != StartupProgress::CamViews && step.State != EStartupState::Ok) return false;
+            return true;
+        }, 3000));
+        auto startup = StartupProgress::Snapshot();
+        CHECK(startup.size() == AxisId::All.size() + 5);
+        CHECK(!startup.empty() && startup.back().Key == StartupProgress::CamViews && startup.back().State == EStartupState::Pending);
+        CHECK(StartupProgress::Summarize(startup).Failed == 0 && StartupProgress::Summarize(startup).Percent == 51);
+
         // Nạp lại solution: không bận → nhận, số lần nạp tăng.
         int loads = McControl::VisionLoadCount();
         CHECK(McControl::ReloadVisionSolution().empty());
         CHECK(WaitUntil([&] { return McControl::VisionLoadCount() > loads; }, 3000));
+
+        // Đổi model (Teaching: Load / New): tên trên thanh tiêu đề, Z_SAFE và solution riêng của model (Tuấn 2026-11-07).
+        {
+            auto before = Model();
+            const double zBefore = Sys()->ZSafe;
+            const std::string pathBefore = Sys()->VisionSolutionPath;
+            auto other = std::make_shared<ModelData>(*before);
+            other->Name = "__APPLY__";
+            other->ZSafe = zBefore + 1.5;
+            other->VisionSolutionPath = "Other.solw";
+            McDataManager::UseModel(other, true);
+            CHECK(Near(Sys()->ZSafe, zBefore + 1.5) && Sys()->VisionSolutionPath == "Other.solw");
+
+            int loadsBefore = McControl::VisionLoadCount();
+            CHECK(McControl::ApplyModel().empty());
+            CHECK_MSG(St().ModelName() == "__APPLY__", St().ModelName());
+            CHECK(Near(McControl::Motion().ZSafe(), zBefore + 1.5));
+            CHECK(WaitUntil([&] { return McControl::VisionLoadCount() > loadsBefore; }, 3000));
+
+            // Cùng file với lần nạp trước: không nạp lại.
+            int loadsSame = McControl::VisionLoadCount();
+            CHECK(McControl::ApplyModel().empty());
+            Sleep(300);
+            CHECK(McControl::VisionLoadCount() == loadsSame);
+
+            McDataManager::UseModel(before, true);
+            McControl::ApplyModel();
+            CHECK(St().ModelName() == before->Name && Near(McControl::Motion().ZSafe(), zBefore) &&
+                  Sys()->VisionSolutionPath == pathBefore);
+            CHECK(WaitUntil([&] { return McControl::VisionLoadCount() > loadsSame; }, 3000));
+        }
 
         // Init lần hai lúc đang chạy: không làm gì (phải Shutdown trước).
         auto ioBefore = McControl::Io();
@@ -954,6 +997,13 @@ namespace
         bool stopped = PauseToStop();
         io->AfterSetDo = nullptr;
         CHECK_MSG(stopped, St().StateText());
+        // Đồng hồ lượt tray (Cycle/Tack Time trang Main khi chạy rà, Tuấn 2026-11-07): lượt đang chạy có mốc và số lần đặt;
+        // số của chu trình thật không bị đụng.
+        auto lap = dry->Lap();
+        CHECK_MSG(lap.StartedAt.has_value() && lap.Places + dry->Laps() * run->AssyTray->CellCount() == dry->Strokes(),
+                  std::format("{} places, {} laps × {} cells, {} strokes", lap.Places, dry->Laps(), run->AssyTray->CellCount(),
+                              dry->Strokes()));
+        CHECK(!run->AssyTrayStartedAt.has_value() && !run->AssyTrayDone);
         // Routine_DryCycle::Paused đặt trạng thái TRƯỚC rồi mới đặt câu báo — chờ câu báo (test chập chờn 2026-10-18).
         CHECK_MSG(WaitUntil([] { return Has(Msg(), "Dry run stopped"); }, 2000), Msg());
         CHECK(McControl::Motion().ZSafeOk());
@@ -984,13 +1034,21 @@ namespace
         // 3 s thay vì 1 s: vòng quét có lúc chậm khi ghi running.json (Defender quét file) — chập chờn 2026-10-18.
         CHECK_MSG(WaitUntil([] { return State() == EMcState::Running && Has(Msg(), "Dry run"); }, 3000), VmState());
         CHECK(WaitUntil([&] { return dry->Strokes() > strokesBefore; }, 60000));
+        // Hết một lượt tray: lượt vừa xong xuống Last (đủ số ô, có thời gian), lượt sau bắt đầu ngay — như tray của Auto.
+        auto lapStart = dry->Lap().StartedAt;
+        CHECK_MSG(WaitUntil([&] { return dry->Laps() >= 1; }, 120000), std::format("{} strokes", dry->Strokes()));
+        lap = dry->Lap();
+        CHECK_MSG(lap.LastPlaces == run->AssyTray->CellCount() && lap.LastSec > 0 && lap.StartedAt && lap.StartedAt != lapStart,
+                  std::format("last lap {} places in {:.1f} s", lap.LastPlaces, lap.LastSec));
         PauseToStop();
+        dry->ClearLastLap();   // nút Clear trang Main: lượt trước về 0, lượt đang chạy giữ
+        CHECK(dry->Lap().LastPlaces == 0 && dry->Lap().LastSec == 0 && dry->Lap().StartedAt == lap.StartedAt);
 
         McControl::SetDryRun(false);
         CHECK(!St().DryRun());
         // Bật lại thì đếm về vạch xuất phát.
         McControl::SetDryRun(true);
-        CHECK(dry->Strokes() == 0 && dry->Sweeps() == 0);
+        CHECK(dry->Strokes() == 0 && dry->Sweeps() == 0 && !dry->Lap().StartedAt && dry->Lap().Places == 0);
         McControl::SetDryRun(false);
     }
 

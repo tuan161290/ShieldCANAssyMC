@@ -9,6 +9,7 @@
 #include "Infor/AlarmManager.h"
 #include "Infor/AxisId.h"
 #include "Infor/Enums.h"
+#include "Infor/StartupProgress.h"
 #include "Utility/Log/LogWorker.h"
 
 namespace sca
@@ -60,6 +61,7 @@ namespace sca
         for (const auto& axis : m_axisList)
         {
             bool ok = false;
+            StartupProgress::Begin(axis->Name());
             try { ok = axis->Connect(); }
             catch (const std::exception& ex)
             {
@@ -71,6 +73,7 @@ namespace sca
                 LogWorker::Instance().RecordLog(std::format("Axis {} connect error: unknown exception", axis->Name()),
                     LogLevel::Error, axis->Name());
             }
+            StartupProgress::End(axis->Name(), ok);
 
             if (!ok)
             {

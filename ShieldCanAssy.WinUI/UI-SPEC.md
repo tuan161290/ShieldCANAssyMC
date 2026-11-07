@@ -65,6 +65,7 @@ Tints: Green `#198754`, Red `#DC3545`, Caution `#D35400`, Blue `#0078D4`, Accent
 | Backdrop | `AppBackdrop UseAcrylic=True` (DesktopAcrylic Thin, `IsInputActive` always true) | Assembly PC is Windows 10 22H2: Mica unavailable; WPF uses blur + 60 % `#F3F3F3` tint. Fallback: solid `#F3F3F3` (transparency off / RDP). |
 | Title bar | `ExtendsContentIntoTitleBar(true)`, `TitleBarHeightOption::Tall`, `SetTitleBar(TitleBarArea)`; system caption buttons | Replaces WPF frameless chrome + FontAwesome min/max/close + WM_GETMINMAXINFO hack; native drag, double-click maximize, snap and minimize animation. Start maximized (`OverlappedPresenter.Maximize()`). Window title "Shield CAN Assy MC — SO1C86-SCAM". |
 | Theme | Light only (`Application.RequestedTheme=Light`) | WPF forces light (`DWMWA_USE_IMMERSIVE_DARK_MODE=0`); no dark palette exists. |
+| Startup | **Full-window dashboard** (`StartupBoard` in `MainWindow.xaml`, `ui::StartupBoard`, `sca::StartupProgress`) instead of a spinner over the page. Window stays cloaked (`DWMWA_CLOAK`) until maximized and drawn. Shell and pages lay out underneath with `ShellHost.IsEnabled=false`; VM popups are held off-screen (`VmPane::HoldOffscreen`), sized and bound as usual | Tuấn 2026-11-02: half-built controls showed during connect, and VM views took ~15 s more after the old panel hid. Popups are separate HWNDs above XAML, so an overlay alone cannot cover them. Off-screen, not hidden: the control is bound in the same visible, full-size state as a normal run. |
 
 ### 1.2 Layout
 
@@ -114,6 +115,9 @@ Tints: Green `#198754`, Red `#DC3545`, Caution `#D35400`, Blue `#0078D4`, Accent
 | SH-21 | Panel RESET | `Button` (Primary) | RESET | `McControl.RequestReset` | 120×40. |
 | SH-22 | Panel Close | `Button` | Close | — | 100×40; closes overlay. |
 | SH-23 | Auto refused (`McControl.AutoModeRefused`) | `ui::Dialogs::Warn(why, "Cannot enter AUTO")` | `Shell.AutoRefusedTitle` | `McControl.AutoModeRefused` event | Posted to UI thread, not blocking the control loop. |
+| SH-24 | Startup header | `TextBlock` · `StartupTitle`, `StartupPercent`, `StartupElapsed`; `ProgressBar` · `StartupBar`; `TextBlock` · `StartupCurrent` | `Startup.*` | `StartupProgress::Summarize` | Percent by step weight (VM steps carry most of it). Bar green when ready, red on failure, orange when slow. |
+| SH-25 | Startup devices + log | `StackPanel` · `StartupSteps` (rows built in code), `ui::LogListView` in `StartupLogHost` | DEVICES, LOG | `StartupProgress::Snapshot`, `LogWorker` | Row: state icon, name, address or failure reason, seconds. Config, X…A2, Ezi-IO, VisionMaster, Solution, CAM views. |
+| SH-26 | Startup Continue | `Button` (Primary) · `StartupContinue` | Continue | closes the dashboard | Hidden on a clean start (closes by itself after 500 ms at 100 %). Shown when an item failed (waits for the operator) or after 60 s once `McControl::Init` has returned. Alarm banner waits until the dashboard closes. |
 
 ### 1.4 Dialogs (replaces `DialogHost`)
 
@@ -178,11 +182,11 @@ CAM row (fills). Right: log card W 290 collapsible.
 
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
-| MA-12 | Header Clear `ResetCountersCommand` | `Button` · `ClearCountersButton` | Clear | `McDataManager.RunData.ResetCounters()` | In header row, H 36. No confirm (as WPF). |
+| MA-12 | Header Clear `ResetCountersCommand` | `Button` · `ClearCountersButton` | Clear | `Dialogs::ConfirmAsync(Main.ClearCountersConfirm)` → `McDataManager.RunData.ResetCounters()` + `DryRoutine.ClearLastLap()` | In header row, H 36. Asks first (Tuấn 2026-11-07; WPF did not). |
 | MA-13 | OK / NG / Total | `TextBlock` · `CountOkText`, `CountNgText`, `CountTotalText` | captions OK · NG · Total | `RunData.CountOk / CountNg / CountTotal` | 26 Bold; OK `Success`, NG `Critical`. |
 | MA-14 | NG rate | `NgRateText` | caption "NG rate" | `RunData.NgRatePercent` → "0.00 %" | 16 SemiBold. |
 | MA-15 | NG streak | `NgStreakText` | caption "NG streak" | `RunData.ConsecutiveNg` | >0 Critical else Primary. Tip `Main.NgStreakTip`. |
-| MA-16 | CT table (4 rows, cell borders) | `Grid` · `CycleTimeText`, `LastCycleTimeText`, `TackTimeText`, `LastTackTimeText` | Cycle Time · Last Cycle Time · Tack Time · Last Tack Time | `RunData.AssyTrayStartedAt`, `AssyTrayDone`, `AssyTrayDoneSec/Products/PerProductSec`, `LastAssyTrayTimeSec/Products/PerProductSec`, `AssyTray.Cells` | Every tick (100 ms). Running tray: elapsed = now − start; Tack = elapsed ÷ OK cells (— if 0). Tray done: hold `AssyTrayDone*`. Clock `mm:ss.f` (`h:mm:ss.f` ≥ 1 h, floor 0.1 s); seconds "0.00 s"; "—" when none. Value 15 SemiBold, label 11 Secondary. Tips `Main.CtTrayCurrentTip`, `CtTrayPreviousTip`, `CtAvgCurrentTip`, `CtAvgPreviousTip` on value cells. |
+| MA-16 | CT table (4 rows, cell borders) | `Grid` · `CycleTimeText`, `LastCycleTimeText`, `TackTimeText`, `LastTackTimeText` | Cycle Time · Last Cycle Time · Tack Time · Last Tack Time | `RunData.AssyTrayStartedAt`, `AssyTrayDone`, `AssyTrayDoneSec/Products/PerProductSec`, `LastAssyTrayTimeSec/Products/PerProductSec`, `AssyTray.Cells` | Every tick (100 ms). Running tray: elapsed = now − start; Tack = elapsed ÷ OK cells (— if 0). Tray done: hold `AssyTrayDone*`. Dry run (`Status.DryRun`): same rows from `DryRoutine.Lap()` — one lap of the assy tray = one tray, each place = 1 pc, next lap starts at once so the finished lap goes straight to Last; Auto values untouched (Tuấn 2026-11-07). Clock `mm:ss.f` (`h:mm:ss.f` ≥ 1 h, floor 0.1 s); seconds "0.00 s"; "—" when none. Value 15 SemiBold, label 11 Secondary. Tips `Main.CtTrayCurrentTip`, `CtTrayPreviousTip`, `CtAvgCurrentTip`, `CtAvgPreviousTip` on value cells. |
 | MA-17 | UPH | `UphText` | `Main.Uph` / `Main.UphNone` | avg = done-tray per-product → last tray → current | 12. Tip `Main.UphTip`. |
 | MA-18 | Step | `AutoStepText` | "Step: " + text | `Status.AutoStepText` | 12 Secondary. |
 | MA-19 | Last compensation | `LastCompText` | `Loc::F("Main.LastCompensation", …)` | `Status.LastDeltaTheta`, `Status.LastPlaceError` | 11 Secondary. Tip `Main.LastCompensationTip`. |
@@ -443,8 +447,7 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 | TE-47 | Move `MoveToCellCommand` | `Button` · `MoveCellButton` | Move | `Func.MoveToCellForPickAsync(nozzle, Model.PickAngle(nozzle), Layout.AxisRow, y, x, Safety.AbortToken)` (Z to Z_SAFE, A to pick angle) | **[2×]** [Busy-off]; fail → Warn `Teach.MoveFailed`. Tip `Teach.MoveCellTip`. |
 | TE-48 | Z Pick/Place `MoveZAtCellCommand`, label `ZCellMoveLabel` | `Button` · `ZCellButton` | "Z1 Pick" / "Z2 Place" (by tool × tray) | `MoveZAsync(z, Layout.ZPickFor(z), Layout.ZSlowFor(z))` → `Func.MoveZDownAsync/MoveZUpAsync` (slow pt > 0) else `Func.MoveAsync` | **[2×]** [Busy-off]; fail → Warn `Teach.AxisMoveFailed`. Tip `Teach.ZCellMoveTip`. |
 | TE-49 | Move CAM `MoveCamToCellCommand` | `Button` · `MoveCamButton` | Move CAM | anchor not taught → Warn `Teach.CamAnchorNotTaughtWarn`; `Func.MoveToCellAsync(Layout.AxisRow, p.Y, p.X)` with `p = Layout.CamPosFor` | Visible Assy × Tool 2. **[2×]**. Tip `Teach.MoveCamTip`. |
-| TE-50 | Set Offset `SetOffsetCommand` | `Button` · `SetOffsetButton` | Set Offset | offset = (X, rowAxis) − `Layout.CellPosRaw(z,r,c)`; [Confirm] `Teach.WhatCellPos` with `Teach.OffsetText`; `Layout.SetOffset(z,r,c,dx,dy)`; InvalidateVisionCache | Tip `Teach.SetOffsetTip`. |
-| TE-51 | Clear `ClearOffsetCommand` | `Button` · `ClearOffsetButton` | Clear | `Layout.SetOffset(z,r,c,0,0)`; InvalidateVisionCache | Enabled only when selected cell has offset. Tip `Teach.ClearOffsetTip`. |
+| TE-50 | Z Safe | `Button` · `ZSafeCellButton` | "Z1 Safe" / "Z2 Safe" (by tool) | `MoveZ(z, Motion.ZSafe, Layout.ZSlowFor(z))` → `Func.MoveZUp` | **[2×]** [Busy-off]; fail → Warn `Teach.AxisMoveFailed`. Tip `Teach.ZSafeCellTip`. Replaces Set Offset / Clear ofs per cell (removed 2026-11-07: input tray needs none, assy uses place trim TE-52..56). |
 | TE-52 | Common trim X/Y/Angle | `NumberBox` ×3 · `TrimAllXBox`, `TrimAllYBox`, `TrimAllABox` + unit "mm / mm / °" | caption "Common ofs:" | `CurrentGeometry.PlaceDxAll/DyAll/DaAll` (loaded on every recompute) | Assy only (`IsAssyTray`). **No Min/Max on the NumberBox** (would clamp silently) — limits checked on Apply. |
 | TE-53 | Apply / Clear common | `Button` · `ApplyTrimAllButton`, `ClearTrimAllButton` | Apply · Clear | Apply: input tray → Warn `Teach.TrimAssyOnly`; |v| > 1 mm / 5° → Warn `Teach.TrimTooLarge`; `Layout.SetPlaceTrimAll(z,dx,dy,da)`; InvalidateVisionCache. Clear: `SetPlaceTrimAll(z,0,0,0)` | Clear enabled when any common trim ≠ 0. Tip `Teach.ApplyTrimAllTip`. |
 | TE-54 | Cell trim X/Y/Angle | `TrimXBox`, `TrimYBox`, `TrimABox` | caption "Cell ofs:" | selected cell `PlaceDx/Dy/Da` (reloaded on selection change — avoids copying values to another cell) | Assy only. |
@@ -503,7 +506,7 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
-| SE-1 | Save system.json `SaveCommand` | `Button` (Primary) · `SaveSystemButton` | Save System | `CommitAll()` (errors → Warn list, abort); `SysData.ZSafe = Motion.ZSafe = ZSafe box`; `McDataManager.SaveSystemData()` | Result → SE-3. |
+| SE-1 | Save system.json `SaveCommand` | `Button` (Primary) · `SaveSystemButton` | Save System | `CommitAll()` (errors → Warn list, abort); `McDataManager.SaveModelMachineValues(ZSafe box, SysData.VisionSolutionPath)` (model in memory + SysData + only those two keys in the model file); `Motion.ZSafe = ZSafe box`; `McDataManager.SaveSystemData()` | Result → SE-3 (`Setting.SavedWithModel`). |
 | SE-2 | Open data folder | `Button` · `OpenFolderButton` | Open Folder | `explorer.exe AppPaths.Root` | Errors ignored (as WPF). |
 | SE-3 | `SaveResult` | `InfoBar` · `SaveResultBar` | `Setting.Saved` (Success) / `Setting.SaveFailed` (Error) | — | Hidden until first save. |
 | SE-4 | Data folder | `TextBlock` · `DataRootText` | "Data folder: " + path | `AppPaths.Root` | 11 Secondary, wrap/trim + tooltip. |
@@ -518,7 +521,7 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 | SE-8 | Dry run button (`ToggleDryRunCommand`, content OFF/ON) | `Button` · `DryRunButton` (160×40) + `TextBlock` · `DryRunStateText` | Dry Run · state "ON — no product" / "OFF" | `McControl.SetDryRun(!Status.DryRun)` | `Status.DryRun` → Caution `#9D5D00` solid, no glow. Tip `Setting.DryRunTip`. Not a ToggleSwitch (refusal must not flicker). |
 | SE-9 | Note | `TextBlock` | `Setting.AutoModeNote` | — | 11 Secondary. |
 | SE-10 | Message banner | `InfoBar` (Warning) · `AutoMessageBar` | `Status.Message` | — | Visible when non-blank (refusal reason). |
-| SE-11 | Z_SAFE (mm) `ZSafe` (VM copy, applied on Save) | `NumberBox` · `ZSafeBox` + "mm" | Z_SAFE | `SysData.ZSafe`, `Motion.ZSafe` | Loaded on page create; written only by SE-1. |
+| SE-11 | Z_SAFE (mm) `ZSafe` (VM copy, applied on Save) | `NumberBox` · `ZSafeBox` + "mm" | Z_SAFE (model) | `Model.ZSafe` → `SysData.ZSafe`, `Motion.ZSafe` | Per model since 2026-11-07. Loaded on page create and when the model changed; written only by SE-1. |
 | SE-12 | Pick retries | `NumberBox` (int) · `PickRetryBox` | Pick retries | `SysData.PickRetryCount` | — |
 | SE-13 | Max NG in a row | `MaxNgBox` | Max NG in a row | `SysData.MaxConsecutiveNg` | — |
 | SE-14 | Ctrl loop (ms) | `ControlTickBox` + "ms" | Ctrl loop | `SysData.ControlTickMs` | — |
@@ -531,9 +534,11 @@ Field model (Slit `ui::settingpage::FieldGroup`): fields write into **live** `Sy
 
 ### 5.3 Vision section (3 cards as WPF)
 
+Cards `VISION — LIMITS & TOLERANCES` (SE-30, SE-31) and `VISION — FLOW & VAR NAMES` (SE-32, SE-33) show at Master level only (2026-11-02): `SettingPage::UpdateUserAccess` collapses `VisionLimitsCard` and `VisionNamesCard`, with no text saying they exist. The values keep applying and saving while hidden.
+
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
-| SE-21 | Solution path `VisionSolutionPath` | `TextBox` · `SolutionPathBox` W 360 | title `Setting.SolutionPath`; note `SolutionPathNote` (tooltip `SolutionPathTip`) | `SysData.VisionSolutionPath` | Card `VISION — SOLUTION SETUP`. |
+| SE-21 | Solution path `VisionSolutionPath` | `TextBox` · `SolutionPathBox` W 360 | title `Setting.SolutionPath`; note `SolutionPathNote` (tooltip `SolutionPathTip`) | `Model.VisionSolutionPath` → `SysData.VisionSolutionPath` | Card `VISION — SOLUTION SETUP`. Per model since 2026-11-07: Reload saves it into the model; loading another model in Teaching loads its .solw (`McControl::ApplyModel`). |
 | SE-22 | Browse... | `Button` · `BrowseSolutionButton` | Browse | `PickSolutionFileAsync` (FileOpenPicker, Win32 fallback; filter `*.solw`) | Sets the box + SysData. |
 | SE-23 | Reload solution | `Button` (Primary) · `ReloadSolutionButton` | Reload | `CommitAll`; `McDataManager.SaveSystemData()`; `McControl.ReloadVisionSolution()` → refusal text or `Setting.ReloadRequested` | Result → `ReloadResultText` (11 Secondary). Immediate, no Save needed. |
 | SE-24 | Tools note | `TextBlock` | `Setting.SolutionTools` / `SolutionToolsNote` | — | — |
@@ -574,10 +579,10 @@ Card `USER ACCESS` — moved out of the System section on 2026-10-29 (it sat bel
 
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
-| SE-40 | — | `Button` · `ChangePasswordButton` (160×40) + `TextBlock` · `PasswordStateText` | Engineer password · Change | `LoginDialog::ShowChangePassword` → `UserAccess::ChangePassword(Engineer, …)` | Enabled from Engineer up. Default password text in Caution. Refuses the master password. |
+| SE-40 | — | `Button` · `ChangePasswordButton` (160×40) + `TextBlock` · `PasswordStateText` | Engineer password · Change | `LoginDialog::ShowChangePassword` → `UserAccess::ChangePassword(Engineer, …)` | Enabled from Engineer up. Default password text in Caution. Refuses reserved passwords with the neutral `User.PasswordRejected` (no reason given). |
 | SE-41 | — | `NumberBox` · `IdleLogoutBox` + "min" | Auto logout | `UserAccess::SetIdleLogoutMin` (1..120) | Enabled from Engineer up; writes `Config\users.json` at once, no Save. |
 
-The master password is fixed (not in `users.json`, not on this card).
+No UI text, tooltip or doc may mention or hint at the Master password (Tuấn 2026-11-02); `User.*` strings stay level-neutral.
 
 ---
 
@@ -628,14 +633,14 @@ The login level picks the content (WinUI only, Tuấn 2026-10-29 — `VisionEdit
 Master   │ [VmGlobalToolControl ………………………………] [Hide Calib] │   job editor (VE-7, VE-8), as before
          │ ───────────────────────────────────────────────── │
          │ VmMainViewConfigControl                           │
-Engineer   CAM VIEW  Engineer: view only…   [Edit Job] [Hide Calib]     outer card transparent
+Engineer   CAM VIEW  Engineer: view only.              [Hide Calib]     outer card transparent
            ┌ BOTTOM CAM — #1 ┐ ┌ BOTTOM CAM — #2 ┐ ┌ TOP CAM ┐          3× ui::CamViews, same as Main §2.4
 ```
 
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | VE-63 | — (WinUI only) | `Grid` · `CamViewGrid` (3 equal columns: `Tool1CamHost`, `Tool2CamHost`, `TopCamHost`) + `StackPanel` · `CamViewTitle` | CAM VIEW · `Vision.CamViewHint` | `ui::CamViews("Vision Edit")` — same frames, readouts and VmRenderControl bindings as Main | Below Master. Own render controls; a set that is shown again after the other set bound re-binds (shared bind serial). |
-| VE-64 | — (WinUI only) | `Button` · `EditJobButton` MinW 110 × H 36 | Edit Job | `LoginDialog::ShowLogin(Master)` | Only in CAM VIEW. Engineer password there → "Master password required". Tip `Vision.EditJobTip`. |
+| VE-64 | — (WinUI only) | removed 2026-11-02 | — | — | Edit Job button removed: Engineer has no way to the job editor from CAM VIEW. |
 | VE-7 | `VmGlobalToolControl` | `Border` · `GlobalToolHost` H 40 + `ui::VmPane(GlobalTool)` | — | VisionMaster SDK | Master only. Created via queued VM work the first time the job editor shows. |
 | VE-62 | — (WinUI only, 2026-10-28) | `Button` · `CalibToggleButton` MinW 110 × H 36, right end of the VE-7 row (jog bar has no room at 1280) | Hide Calib · Show Calib | layout only | Hides the calibration column (`CalibColumn` W 0, `CalibColumnHost` Collapsed, `VmCard` right margin 0) so the VisionMaster pane gets full width for job editing; VM popups follow via `ui::VmPane` layout tracking. Never disabled; a running calib keeps running. State lives for the session (shown on start). Tips `Vision.CalibHideTip` / `Vision.CalibShowTip`. `--shot` variant 6 = hidden. |
 | VE-8 | `VmMainViewConfigControl ConfigControl` + `BindMultiProcedure()` | `Border` · `ConfigHost` + `ui::VmPane(MainView)` | — | `ProcBindMultiProcedure` (DISPID `0x3`) when solution loaded | Bind on each `OnShown(true)`; failure → log Warning "Vision Edit: solution not bound — …", page stays usable. Placeholder `TextBlock` · `VmPlaceholderText` shows the reason when ActiveX is unavailable. Hide on `OnShown(false)`, disable on `OnModalChanged(true)`. |

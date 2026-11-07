@@ -97,6 +97,20 @@ namespace sca
         {
             if (tray.Rows != rows || tray.Cols != cols || (int)tray.Cells.size() != rows * cols) tray.Resize(rows, cols);
         }
+
+        /// <summary>Z_SAFE và solution theo model (Tuấn 2026-11-07): model có thì máy dùng giá trị của model, chép vào
+        /// SystemData — mọi chỗ đọc vẫn đọc ở đó. Model chưa có (lưu trước ngày đó, model mới tạo, model mô phỏng) thì nhận
+        /// giá trị máy đang dùng. True = model vừa nhận.</summary>
+        bool ApplyModelMachineValues(ModelData& model)
+        {
+            auto sys = McDataManager::SysData();
+            bool adopted = false;
+            if (model.ZSafe) sys->ZSafe = *model.ZSafe;
+            else { model.ZSafe = sys->ZSafe; adopted = true; }
+            if (!base::IsBlank(model.VisionSolutionPath)) sys->VisionSolutionPath = model.VisionSolutionPath;
+            else { model.VisionSolutionPath = sys->VisionSolutionPath; adopted = true; }
+            return adopted;
+        }
     }
 
     std::shared_ptr<SystemData> McDataManager::SysData()  { auto& s = S(); std::lock_guard<std::mutex> l(s.mutex); return s.sys; }
@@ -270,13 +284,18 @@ namespace sca
 
             SetModel(loaded, true);
             RunData()->RecentModelName = name;
+            const bool adopted = ApplyModelMachineValues(*loaded);
 
             SyncRunTrays();
 
-            Log(std::format("Model '{}' loaded: input tray {}×{} (tray 2 {}), assy tray {}×{}", name,
+            Log(std::format("Model '{}' loaded: input tray {}×{} (tray 2 {}), assy tray {}×{}, Z_SAFE {:.3f} mm, solution {}", name,
                             loaded->InputTray->Rows(), loaded->InputTray->Cols(),
                             loaded->InputTray2->IsTaught() ? "taught" : "not taught",
-                            loaded->AssyTray->Rows(), loaded->AssyTray->Cols()));
+                            loaded->AssyTray->Rows(), loaded->AssyTray->Cols(), *loaded->ZSafe, loaded->VisionSolutionPath));
+            // Model lưu trước khi có hai khoá này: ghi ngay giá trị vừa nhận, kẻo model khác đổi system.json rồi lần nạp sau
+            // model này nhận nhầm giá trị của model kia.
+            if (adopted && SaveModel(name))
+                Log(std::format("Model '{}': Z_SAFE and solution path taken from system.json, now saved in the model", name));
             return true;
         }
         catch (const std::exception& ex)
@@ -290,8 +309,36 @@ namespace sca
     {
         if (!model) return;
 
+        ApplyModelMachineValues(*model);
         SetModel(std::move(model), countsAsLoaded);
         SyncRunTrays();
+    }
+
+    bool McDataManager::SaveModelMachineValues(double zSafe, const std::string& solutionPath)
+    {
+        auto model = Model();
+        auto sys = SysData();
+        model->ZSafe = zSafe;
+        model->VisionSolutionPath = solutionPath;
+        sys->ZSafe = zSafe;
+        sys->VisionSolutionPath = solutionPath;
+        try
+        {
+            fs::path path = ModelPath(model->Name);
+            if (!fs::exists(path)) return SaveModel();
+            auto disk = ModelData::FromJsonText(ReadFile(path));
+            if (!disk) return SaveModel();
+            disk->ZSafe = zSafe;
+            disk->VisionSolutionPath = solutionPath;
+            WriteAtomic(path, disk->ToJsonText());
+            Log(std::format("Model '{}': Z_SAFE {:.3f} mm, solution {} saved", model->Name, zSafe, solutionPath));
+            return true;
+        }
+        catch (const std::exception& ex)
+        {
+            AlarmManager::RaiseEvent(AlarmCode::ModelSaveFailed, "Data", ex.what());
+            return false;
+        }
     }
 
     void McDataManager::SyncRunTrays()

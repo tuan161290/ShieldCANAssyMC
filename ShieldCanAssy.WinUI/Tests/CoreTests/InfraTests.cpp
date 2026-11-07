@@ -22,6 +22,7 @@
 #include "Infor/AlarmCatalog.h"
 #include "Infor/AlarmManager.h"
 #include "Infor/IoMap.h"
+#include "Infor/StartupProgress.h"
 #include "Lang/Loc.h"
 #include "SysConfig/AppPaths.h"
 #include "SysConfig/UserAccess.h"
@@ -116,6 +117,12 @@ namespace
         "Name", "ModifiedAt", "InputTray", "AssyTray", "InputTray2", "InputTraysInUse", "UsableInputTrays", "Calib",
         "AlignPosX_Nozzle1", "AlignPosX_Nozzle2", "PickAngleA1", "PickAngleA2", "HandEyePick_Nozzle1", "HandEyePick_Nozzle2",
         "HandEyeCamPos" };
+
+    /// <summary>Model đã có Z_SAFE và solution riêng (Tuấn 2026-11-07) — chỉ bản C++ ghi hai khoá này, bản WPF bỏ qua.</summary>
+    const std::vector<std::string> kModelKeysWithMachine = {
+        "Name", "ModifiedAt", "InputTray", "AssyTray", "InputTray2", "InputTraysInUse", "UsableInputTrays", "Calib", "ZSafe",
+        "VisionSolutionPath", "AlignPosX_Nozzle1", "AlignPosX_Nozzle2", "PickAngleA1", "PickAngleA2", "HandEyePick_Nozzle1",
+        "HandEyePick_Nozzle2", "HandEyeCamPos" };
 
     const std::vector<std::string> kTrayLayoutKeys = {
         "Name", "Rows", "Cols", "AxisRow", "AxisCol", "GeoZ1", "GeoZ2", "VerifyThreshold", "Z_PickZ1", "Z_PickZ2", "Z_SlowZ1",
@@ -1274,6 +1281,18 @@ namespace
         CHECK(again && again->ToJsonText() == text);
         m->Description = "mô tả";
         CHECK(ParseText(m->ToJsonText())["Description"] == "mô tả");
+
+        // Z_SAFE và solution riêng của model: model C# chưa có → nullopt / rỗng, không ghi khoá; có thì ghi sau Calib.
+        CHECK(!m->ZSafe && m->VisionSolutionPath.empty());
+        m->Description.clear();
+        m->ZSafe = 32.5;
+        m->VisionSolutionPath = "D:\\Job\\Model A.solw";
+        json mj = ParseText(m->ToJsonText());
+        CheckKeys(mj, kModelKeysWithMachine, "model keys with Z_SAFE / solution");
+        auto back2 = ModelData::FromJsonText(m->ToJsonText());
+        CHECK(back2 && back2->ZSafe && *back2->ZSafe == 32.5 && back2->VisionSolutionPath == "D:\\Job\\Model A.solw");
+        mj["ZSafe"] = nullptr;
+        CHECK(!ModelData::FromJsonText(mj.dump())->ZSafe);
     }
 
     void TestModelManagement()
@@ -1287,8 +1306,14 @@ namespace
         CHECK(run->InputTray->Rows == 4 && run->InputTray->Cols == 5 && run->InputTray->Trays == 1 && run->AssyTray->Rows == 5
               && run->AssyTray->Cols == 6);
         json dj = ParseText(RawFile(AppPaths::ModelDir() / "DEFAULT.json"));
-        CheckKeys(dj, kModelKeysNoDescription, "DEFAULT.json keys");
+        CheckKeys(dj, kModelKeysWithMachine, "DEFAULT.json keys");
         CHECK(!dj["InputTray"]["GeoZ1"].contains("Offsets"));   // chưa có offset nào → khoá bị bỏ (null)
+        // Model mới nhận Z_SAFE và solution máy đang dùng (system.json) và ghi luôn vào file.
+        auto sys = McDataManager::SysData();
+        const double sysZ = sys->ZSafe;
+        const std::string sysPath = sys->VisionSolutionPath;
+        CHECK(def->ZSafe && *def->ZSafe == sysZ && def->VisionSolutionPath == sysPath && dj["ZSafe"] == sysZ
+              && dj["VisionSolutionPath"] == sysPath);
 
         // ── Tạo / sao chép / nạp / xoá (TestModelManagement) ──
         auto savedModel = McDataManager::Model();
@@ -1317,6 +1342,36 @@ namespace
         CHECK(!Near(re->HandEyePick_Nozzle1.X, re->HandEyePick_Nozzle2.X));
         auto reOff = re->AssyTray->GetOffset(AxisId::Z2, 1, 2);
         CHECK(reOff && reOff->Dx == 0.5 && reOff->Dy == -0.5 && !re->AssyTray->GetOffset(AxisId::Z2, 0, 0));
+
+        // ── Z_SAFE và solution theo model (Tuấn 2026-11-07) ──
+        // Nạp model có giá trị riêng: máy (SystemData) theo model.
+        re->ZSafe = 33.25;
+        re->VisionSolutionPath = "B.solw";
+        CHECK(McDataManager::SaveModel());
+        McDataManager::UseModel(savedModel, savedLoaded);
+        CHECK(sys->ZSafe == sysZ && sys->VisionSolutionPath == sysPath);
+        CHECK(McDataManager::LoadModel(nameB));
+        CHECK(sys->ZSafe == 33.25 && sys->VisionSolutionPath == "B.solw");
+        // Trang Setting lưu: model, máy và CHỈ hai khoá đó trên đĩa — chỗ sửa dở chưa lưu của Teaching không lọt vào file.
+        McDataManager::Model()->Description = "unsaved teach edit";
+        CHECK(McDataManager::SaveModelMachineValues(41.5, "B2.solw"));
+        CHECK(*McDataManager::Model()->ZSafe == 41.5 && sys->ZSafe == 41.5 && sys->VisionSolutionPath == "B2.solw");
+        json bj = ParseText(RawFile(AppPaths::ModelDir() / (nameB + ".json")));
+        CHECK(bj["ZSafe"] == 41.5 && bj["VisionSolutionPath"] == "B2.solw" && bj["Description"] == model->Description);
+        // Model lưu trước khi có hai khoá: lần nạp đầu nhận giá trị máy đang dùng rồi ghi vào file.
+        json oldJson = bj;
+        oldJson.erase("ZSafe");
+        oldJson.erase("VisionSolutionPath");
+        oldJson["Name"] = nameA;
+        base::WriteAllText(AppPaths::ModelDir() / (nameA + "_OLD.json"), oldJson.dump(2));
+        sys->ZSafe = 27.0;
+        sys->VisionSolutionPath = "Machine.solw";
+        CHECK(McDataManager::LoadModel(nameA + "_OLD"));
+        json oj = ParseText(RawFile(AppPaths::ModelDir() / (nameA + "_OLD.json")));
+        CHECK(*McDataManager::Model()->ZSafe == 27.0 && McDataManager::Model()->VisionSolutionPath == "Machine.solw"
+              && oj["ZSafe"] == 27.0 && oj["VisionSolutionPath"] == "Machine.solw");
+        CHECK(McDataManager::DeleteModel(nameA + "_OLD"));
+        McDataManager::LoadModel(nameB);
         CHECK(McDataManager::DeleteModel(nameA));
         listed = McDataManager::ListModels();
         CHECK(std::find(listed.begin(), listed.end(), nameA) == listed.end() && std::find(listed.begin(), listed.end(), nameB) != listed.end());
@@ -1335,6 +1390,53 @@ namespace
     }
 
     // ───────────────────────── RunningData ─────────────────────────
+
+    /// <summary>Danh sách dòng của dashboard khởi động: tính phần trăm theo trọng số, lỗi, khoá lạ.</summary>
+    void TestStartupProgress()
+    {
+        auto find = [](std::string_view key) {
+            for (const StartupStep& step : StartupProgress::Snapshot())
+                if (step.Key == key) return step;
+            return StartupStep{};
+        };
+
+        StartupProgress::Reset({ { "G", "A", "addr", 10 }, { "G", "B", "", 30 }, { "G", StartupProgress::CamViews, "", 60 } });
+        auto summary = StartupProgress::Summarize(StartupProgress::Snapshot());
+        CHECK(summary.Percent == 0 && summary.Failed == 0 && !summary.AllEnded);
+
+        // Khoá lạ bỏ qua: đường kết nối còn gọi vào đây sau khởi động và trong kiểm thử.
+        StartupProgress::Begin("Unknown");
+        StartupProgress::End("Unknown", false, "x");
+        CHECK(StartupProgress::Summarize(StartupProgress::Snapshot()).Failed == 0);
+
+        StartupProgress::Begin("A");
+        CHECK(find("A").State == EStartupState::Running);
+        CHECK(StartupProgress::Summarize(StartupProgress::Snapshot()).Percent == 0);
+        StartupProgress::End("A", true);
+        CHECK(find("A").State == EStartupState::Ok && find("A").Detail == "addr");   // detail rỗng thì giữ chữ cũ
+        CHECK(StartupProgress::Summarize(StartupProgress::Snapshot()).Percent == 10);
+
+        StartupProgress::End("B", false, "port busy");
+        summary = StartupProgress::Summarize(StartupProgress::Snapshot());
+        CHECK(find("B").State == EStartupState::Failed && find("B").Detail == "port busy");
+        CHECK(summary.Percent == 40 && summary.Failed == 1 && !summary.AllEnded);
+
+        StartupProgress::End(StartupProgress::CamViews, true, "3 of 3 bound");
+        summary = StartupProgress::Summarize(StartupProgress::Snapshot());
+        CHECK(summary.Percent == 100 && summary.AllEnded && summary.Failed == 1);
+
+        // Init ném exception: dòng của Core thành lỗi để dashboard khỏi chờ; dòng CAM views giữ nguyên, UI vẫn tự báo.
+        StartupProgress::Reset({ { "G", "A" }, { "G", "B" }, { "G", StartupProgress::CamViews } });
+        StartupProgress::End("A", true);
+        StartupProgress::Begin("B");
+        StartupProgress::FailUnfinished("boom");
+        CHECK(find("A").State == EStartupState::Ok);
+        CHECK(find("B").State == EStartupState::Failed && find("B").Detail == "boom");
+        CHECK(find(StartupProgress::CamViews).State == EStartupState::Pending);
+
+        CHECK(!StartupProgress::Summarize({}).AllEnded);
+        StartupProgress::Reset({});
+    }
 
     void TestRunningData()
     {
@@ -1677,14 +1779,21 @@ namespace
         CHECK(UserAccess::LogoutIfIdle(10min) && UserAccess::Level() == EUserLevel::Operator);
         CHECK(!UserAccess::LogoutIfIdle(60min));   // đã là Operator
 
-        // Mật khẩu Master cố định (Tuấn 2026-10-29): cùng ô đăng nhập, lên Master; sai thì giữ cấp; không có trong
-        // users.json; không đặt làm mật khẩu Engineer được; cũng tự đăng xuất.
-        CHECK(UserAccess::Login("22446688") && UserAccess::Level() == EUserLevel::Master);
+        // Cấp Master: cùng ô đăng nhập, lên Master; sai thì giữ cấp; không có trong users.json; không đặt làm mật khẩu
+        // Engineer được; cũng tự đăng xuất. Chữ thật không nằm trong bài kiểm (Tuấn 2026-11-02): chỉ kiểm bản băm thật đọc
+        // được, phần còn lại dùng mật khẩu giả. Chữ giao diện không nhắc gì tới cấp này, kể cả câu từ chối.
+        CHECK(UserAccess::MasterSecretValidForTests());
+        const std::string fakeMaster = "not-the-real-one";
+        UserAccess::SetMasterPasswordForTests(fakeMaster);
+        CHECK(UserAccess::Login(fakeMaster) && UserAccess::Level() == EUserLevel::Master);
         CHECK(UserAccess::IsAtLeast(EUserLevel::Engineer) && std::string(ToString(EUserLevel::Master)) == "Master");
-        CHECK(!UserAccess::Login("2244668") && UserAccess::Level() == EUserLevel::Master);
-        CHECK(!UserAccess::ChangePassword(EUserLevel::Engineer, "22446688").empty() && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
-        CHECK(RawFile(file).find("22446688") == std::string::npos);
+        CHECK(!UserAccess::Login(fakeMaster.substr(1)) && UserAccess::Level() == EUserLevel::Master);
+        std::string refused = UserAccess::ChangePassword(EUserLevel::Engineer, fakeMaster);
+        CHECK(!refused.empty() && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
+        CHECK(RawFile(file).find(fakeMaster) == std::string::npos);
         CHECK(UserAccess::LogoutIfIdle(10min) && UserAccess::Level() == EUserLevel::Operator);
+        for (const std::string& text : { refused, Loc::F("User.LoginHint", 10), Loc::T("User.LoginTip"), Loc::T("User.VisionEditLockedTip") })
+            CHECK_MSG(!base::Contains(base::ToLower(text), "master"), text);
 
         // Thời gian tự đăng xuất: chỉ Engineer, trong khoảng cho phép.
         CHECK(!UserAccess::SetIdleLogoutMin(5).empty() && UserAccess::IdleLogoutMin() == 10);
@@ -1723,8 +1832,10 @@ namespace
         CHECK(fs::exists(bad) && fs::exists(file));
         CHECK(UserAccess::IdleLogoutMin() == 10 && UserAccess::IsDefaultPassword(EUserLevel::Engineer));
         CHECK(UserAccess::Login("1234") && UserAccess::Level() == EUserLevel::Engineer);
-        CHECK(UserAccess::Login("22446688") && UserAccess::Level() == EUserLevel::Master);   // không phụ thuộc users.json
+        CHECK(UserAccess::Login(fakeMaster) && UserAccess::Level() == EUserLevel::Master);   // không phụ thuộc users.json
         UserAccess::Logout({});
+        UserAccess::SetMasterPasswordForTests({});
+        CHECK(!UserAccess::Login(fakeMaster));
     }
 }
 
@@ -1753,6 +1864,7 @@ int RunInfraTests()
     TestModelJson();
     TestModelManagement();
     TestRunningData();
+    TestStartupProgress();
     TestAlarmCatalog(root);
     TestAlarmManager();
     TestLogAndThreads();

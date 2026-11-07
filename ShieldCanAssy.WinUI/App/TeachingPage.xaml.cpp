@@ -186,9 +186,8 @@ namespace winrt::ShieldCanAssy::implementation
         tip(GoJigCamButton(), "Teach.GoJigCamTip");
         tip(MoveCellButton(), "Teach.MoveCellTip");
         tip(ZCellButton(), "Teach.ZCellMoveTip");
+        tip(ZSafeCellButton(), "Teach.ZSafeCellTip");
         tip(MoveCamButton(), "Teach.MoveCamTip");
-        tip(SetOffsetButton(), "Teach.SetOffsetTip");
-        tip(ClearOffsetButton(), "Teach.ClearOffsetTip");
         tip(ApplyTrimAllButton(), "Teach.ApplyTrimAllTip");
         tip(ApplyTrimButton(), "Teach.ApplyTrimCellTip");
         tip(CamBtmLightButton(), "Teach.Cam1LightTip");
@@ -365,9 +364,8 @@ namespace winrt::ShieldCanAssy::implementation
         // ── ô đang chọn ──
         dbl(MoveCellButton(), [](TeachingPage& p) { p.MoveToCell(); });
         dbl(ZCellButton(), [](TeachingPage& p) { p.MoveZAtCell(); });
+        dbl(ZSafeCellButton(), [](TeachingPage& p) { p.MoveZSafeAtCell(); });
         dbl(MoveCamButton(), [](TeachingPage& p) { p.MoveCamToCell(); });
-        click(SetOffsetButton(), [](TeachingPage& p) { p.SetOffset(); });
-        click(ClearOffsetButton(), [](TeachingPage& p) { p.ClearOffset(); });
         click(ApplyTrimAllButton(), [](TeachingPage& p) { p.ApplyPlaceTrimAll(); });
         click(ClearTrimAllButton(), [](TeachingPage& p) { p.ClearPlaceTrimAll(); });
         click(ApplyTrimButton(), [](TeachingPage& p) { p.ApplyPlaceTrim(); });
@@ -816,10 +814,10 @@ namespace winrt::ShieldCanAssy::implementation
             ui::SetText(CamPosText(), text);
         }
 
-        // Nhãn nút hạ Z — trục theo Tool đang chọn, Pick/Place theo tray đang teach.
+        // Nhãn nút hạ / nâng Z — trục theo Tool đang chọn, Pick/Place theo tray đang teach.
         ui::SetContent(ZCellButton(), ui::H(CurrentZAxis() + (UseInputTray() ? " Pick" : " Place")));
+        ui::SetContent(ZSafeCellButton(), ui::H(CurrentZAxis() + " Safe"));
 
-        ui::SetEnabled(ClearOffsetButton(), cell && cell->HasOffset());
         ui::SetEnabled(ClearTrimButton(), cell && cell->HasPlaceTrim());
         ui::SetEnabled(ClearTrimAllButton(), HasPlaceTrimAll());
         // Chỉ Tray lắp ráp mới có bù đặt — hút ở tray đầu vào không qua camera.
@@ -1272,52 +1270,6 @@ namespace winrt::ShieldCanAssy::implementation
         catch (...) { LogUiError("Teach top CAM ref", "unknown error"); }
     }
 
-    /// <summary>
-    /// Ghi độ lệch giữa vị trí VỪA JOG TỚI TAY và giá trị nội suy thuần (không offset). Trừ <c>CellPosRaw</c> chứ không
-    /// phải <c>CellPos</c> — trừ nhầm sẽ trừ mất offset cũ hai lần.
-    /// </summary>
-    winrt::fire_and_forget TeachingPage::SetOffset()
-    {
-        auto self = get_strong();
-        try
-        {
-            auto cell = SelectedCell();
-            if (!cell) co_return;
-            int r = cell->Row, c = cell->Col;
-            auto layout = Layout();
-            std::string rowAxis = layout->AxisRow;
-            auto axisX = AxisOf(AxisId::X), axisRow = AxisOf(rowAxis);
-            if (!axisX || !axisRow) co_return;
-            double x = axisX->CurrentPos();
-            double y = axisRow->CurrentPos();
-            std::string zAxis = CurrentZAxis();
-            auto raw = layout->CellPosRaw(zAxis, r, c);
-            const sca::CellOffset* oldOff = layout->GetOffset(zAxis, r, c);
-            double oldDx = oldOff ? oldOff->Dx : 0, oldDy = oldOff ? oldOff->Dy : 0;
-            auto offText = [&](double dx, double dy) { return Loc::Format(Loc::T("Teach.OffsetText"), { dx, rowAxis, dy }); };
-            if (!co_await ConfirmTeach(Loc::F("Teach.WhatCellPos", r + 1, c + 1, TrayText(), m_useNozzle1 ? 1 : 2),
-                                       offText(oldDx, oldDy), offText(x - raw.X, y - raw.Y)))
-                co_return;
-            McControl::InvalidateVisionCache();
-            NoteTeachWithoutOrigin("cell ofs (" + std::to_string(r + 1) + "," + std::to_string(c + 1) + ")");
-            layout->SetOffset(zAxis, r, c, x - raw.X, y - raw.Y);
-            Compute();
-        }
-        catch (const std::exception& ex) { LogUiError("Set offset", ex.what()); ui::Dialogs::Error(ex.what()); }
-        catch (...) { LogUiError("Set offset", "unknown error"); }
-    }
-
-    void TeachingPage::ClearOffset()
-    {
-        Guarded("Clear offset", [&] {
-            McControl::InvalidateVisionCache();
-            auto cell = SelectedCell();
-            if (!cell) return;
-            Layout()->SetOffset(CurrentZAxis(), cell->Row, cell->Col, 0, 0);
-            Compute();
-        });
-    }
-
     bool TeachingPage::TryParseTrim(NumberBox const& box, double limit, std::string const& what, double& value)
     {
         value = box.Value();
@@ -1520,6 +1472,14 @@ namespace winrt::ShieldCanAssy::implementation
         MoveZ(z, layout->ZPickFor(z), layout->ZSlowFor(z));
     }
 
+    /// <summary>Z của Tool đang chọn nâng về Z_SAFE của model (Tuấn 2026-11-07) — chậm tới điểm giảm tốc rồi mới nhanh, như
+    /// chu trình nâng khỏi ô.</summary>
+    void TeachingPage::MoveZSafeAtCell()
+    {
+        std::string z = CurrentZAxis();
+        MoveZ(z, McControl::Motion().ZSafe(), Layout()->ZSlowFor(z));
+    }
+
     /// <summary>Gantry tới chỗ đứng để CAM top-down soi đúng tâm ô đang chọn (cùng toạ độ Routine_Auto.S05_ScanAssy). Chặn
     /// khi chưa teach mốc CAM: CamPosFor tính từ (0, 0) sẽ lôi gantry về đầu hành trình.</summary>
     void TeachingPage::MoveCamToCell()
@@ -1651,10 +1611,11 @@ namespace winrt::ShieldCanAssy::implementation
 
             if (McDataManager::LoadModel(m_selectedModelName))
             {
-                // TODO(port): bản WPF không cập nhật Status.ModelName sau khi nạp model ở trang này (tên model trên thanh
-                // tiêu đề còn tên cũ tới lần Init sau) — giữ nguyên hành vi.
                 m_model = McDataManager::Model();
                 OnTraySwitched();
+                // Tên trên thanh tiêu đề, Z_SAFE và solution riêng của model (Tuấn 2026-11-07).
+                std::string refused = McControl::ApplyModel();
+                if (!refused.empty()) ui::Dialogs::Warn(Loc::F("Teach.ModelSolutionNotLoaded", refused));
             }
             else
             {
@@ -1678,8 +1639,9 @@ namespace winrt::ShieldCanAssy::implementation
 
             auto model = std::make_shared<sca::ModelData>();
             model->Name = name;
-            McDataManager::UseModel(model, true);
+            McDataManager::UseModel(model, true);   // model mới nhận Z_SAFE và solution máy đang dùng
             McDataManager::SaveModel(name);
+            McControl::ApplyModel();
 
             NewModelNameBox().Text(L"");
             RefreshModelList();

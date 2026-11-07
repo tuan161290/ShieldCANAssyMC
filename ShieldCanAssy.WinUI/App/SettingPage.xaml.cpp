@@ -287,10 +287,11 @@ namespace winrt::ShieldCanAssy::implementation
         if (SolutionPathBox().Text() != path) SolutionPathBox().Text(path);
     }
 
-    /// <summary>Z_SAFE là giá trị riêng của trang (ZSafe của ViewModel cũ): nạp lúc dựng trang và sau Lưu, chỉ áp vào
-    /// SystemData + MotionConnect khi bấm Save System.</summary>
+    /// <summary>Z_SAFE là giá trị riêng của trang (ZSafe của ViewModel cũ): nạp lúc dựng trang, sau Lưu và khi model đã đổi,
+    /// chỉ áp vào model + SystemData + MotionConnect khi bấm Save System.</summary>
     void SettingPage::LoadZSafe()
     {
+        m_zSafeModel = sca::McDataManager::Model();
         if (auto sys = Sys()) ZSafeBox().Value(sys->ZSafe);
     }
 
@@ -339,10 +340,11 @@ namespace winrt::ShieldCanAssy::implementation
         {
             double z = ZSafeBox().Value();
             auto sys = Sys();
-            sys->ZSafe = z;
+            // Z_SAFE và solution là của model đang dùng (Tuấn 2026-11-07); system.json giữ bản sao cho model chưa có.
+            bool modelOk = sca::McDataManager::SaveModelMachineValues(z, sys->VisionSolutionPath);
             sca::McControl::Motion().SetZSafe(z);
-            ok = sca::McDataManager::SaveSystemData();
-            text = ok ? sca::Loc::T("Setting.Saved") : sca::Loc::T("Setting.SaveFailed");
+            ok = sca::McDataManager::SaveSystemData() && modelOk;
+            text = ok ? sca::Loc::F("Setting.SavedWithModel", sca::McDataManager::Model()->Name) : sca::Loc::T("Setting.SaveFailed");
         }
         catch (const std::exception& e)
         {
@@ -487,6 +489,11 @@ namespace winrt::ShieldCanAssy::implementation
         ui::SetEnabled(ChangePasswordButton(), engineer);
         ui::SetEnabled(IdleLogoutBox(), engineer);
 
+        // Ẩn thì giá trị trong hai card vẫn dùng và vẫn lưu như cũ, chỉ không xem / sửa được (Tuấn 2026-11-02).
+        bool master = sca::UserAccess::IsAtLeast(sca::EUserLevel::Master);
+        ui::Show(VisionLimitsCard(), master);
+        ui::Show(VisionNamesCard(), master);
+
         bool isDefault = sca::UserAccess::IsDefaultPassword(sca::EUserLevel::Engineer);
         std::string changed = sca::UserAccess::PasswordChangedAt(sca::EUserLevel::Engineer);
         ui::SetText(PasswordStateText(), isDefault ? sca::Loc::T("User.DefaultPassword")
@@ -553,7 +560,8 @@ namespace winrt::ShieldCanAssy::implementation
         std::string text;
         try
         {
-            Sys()->VisionSolutionPath = ui::U8(SolutionPathBox().Text());
+            // Solution riêng của model đang dùng (Tuấn 2026-11-07): ghi vào file model; Z_SAFE giữ giá trị đang áp dụng.
+            sca::McDataManager::SaveModelMachineValues(Sys()->ZSafe, ui::U8(SolutionPathBox().Text()));
             sca::McDataManager::SaveSystemData();
             std::string refused = sca::McControl::ReloadVisionSolution();   // không chặn (nạp trên luồng nền)
             text = refused.empty() ? sca::Loc::T("Setting.ReloadRequested") : refused;
@@ -689,8 +697,10 @@ namespace winrt::ShieldCanAssy::implementation
     void SettingPage::OnShown(bool visible)
     {
         if (!visible || !m_loaded) return;
-        // Ô người vận hành đang sửa dở (chữ sai chưa ghi được) giữ nguyên; Z_SAFE là giá trị riêng của trang, không nạp lại.
+        // Ô người vận hành đang sửa dở (chữ sai chưa ghi được) giữ nguyên; Z_SAFE là giá trị riêng của trang, chỉ nạp lại
+        // khi đã đổi model (Z_SAFE theo model, Tuấn 2026-11-07).
         LoadAll(false);
+        if (sca::McDataManager::Model() != m_zSafeModel) LoadZSafe();
         UpdateStaticInfo();
     }
 }

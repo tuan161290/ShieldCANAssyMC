@@ -1,5 +1,6 @@
 #include "Controller/Routine_DryCycle.h"
 
+#include <algorithm>
 #include <cmath>
 #include <format>
 #include <vector>
@@ -37,6 +38,21 @@ namespace sca
         m_sweeps = 0;
         m_scannedRow = -1;
         m_clock.Reset();
+        std::lock_guard<std::mutex> lock(m_lapMutex);
+        m_lap = {};
+    }
+
+    Routine_DryCycle::LapClock Routine_DryCycle::Lap() const
+    {
+        std::lock_guard<std::mutex> lock(m_lapMutex);
+        return m_lap;
+    }
+
+    void Routine_DryCycle::ClearLastLap()
+    {
+        std::lock_guard<std::mutex> lock(m_lapMutex);
+        m_lap.LastSec = 0;
+        m_lap.LastPlaces = 0;
     }
 
     bool Routine_DryCycle::Run(std::stop_token ct)
@@ -55,6 +71,11 @@ namespace sca
                 return Stopped(Loc::T("Dry.NozzleHasProduct"));
 
             m_clock.Start();
+            {
+                // Chạy tiếp sau STOP: lượt đang chạy giữ mốc cũ, đồng hồ tính cả lúc dừng như tray của chu trình thật.
+                std::lock_guard<std::mutex> lock(m_lapMutex);
+                if (!m_lap.StartedAt) m_lap.StartedAt = std::chrono::system_clock::now();
+            }
             LogWorker::Instance().RecordLog("Dry run started (no product, axes only)", LogLevel::Info, "DryRun");
 
             const std::vector<std::function<bool(std::stop_token)>> legs =
@@ -324,13 +345,36 @@ namespace sca
         m_inIdx += 2;
         m_assyIdx += 2;
 
+        LapClock lap;
+        {
+            std::lock_guard<std::mutex> lock(m_lapMutex);
+            m_lap.Places += 2;
+            lap = m_lap;
+        }
+
         if (assyCount > 0 && m_assyIdx >= assyCount)
         {
             m_assyIdx %= assyCount;
             m_laps++;
-            LogWorker::Instance().RecordLog(std::format("Dry run: tray lap {} done — {} strokes, {:.0f} min",
-                                                        m_laps.load(), m_strokes.load(), m_clock.ElapsedSeconds() / 60.0),
-                                            LogLevel::Info, "DryRun");
+
+            // Hết lượt tray: chốt giờ thực của lượt, lượt sau bắt đầu ngay. Số tray lẻ ô thì lần đặt thứ hai của nhịp cuối
+            // đã sang ô đầu của lượt sau (m_assyIdx sau khi quay vòng) — tính cho lượt sau.
+            auto now = std::chrono::system_clock::now();
+            double lapSec = lap.StartedAt ? std::max(0.0, std::chrono::duration<double>(now - *lap.StartedAt).count()) : 0;
+            int lapPlaces = std::max(0, lap.Places - m_assyIdx);
+            {
+                std::lock_guard<std::mutex> lock(m_lapMutex);
+                m_lap.LastSec = lapSec;
+                m_lap.LastPlaces = lapPlaces;
+                m_lap.Places = m_assyIdx;
+                m_lap.StartedAt = now;
+            }
+            LogWorker::Instance().RecordLog(
+                std::format("Dry run: tray lap {} done — {} places in {:.1f} s (wall clock, incl. stops), avg {:.2f} s/place; "
+                            "{} strokes, {:.0f} min",
+                            m_laps.load(), lapPlaces, lapSec, lapPlaces > 0 ? lapSec / lapPlaces : 0.0, m_strokes.load(),
+                            m_clock.ElapsedSeconds() / 60.0),
+                LogLevel::Info, "DryRun");
         }
 
         int inCount = run->InputTray->CellCount();

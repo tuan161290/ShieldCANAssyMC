@@ -4,6 +4,8 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <stop_token>
 #include <string>
 
@@ -59,6 +61,26 @@ namespace sca
 
         /// <summary>Về vạch xuất phát — gọi khi BẬT chế độ chạy rà, không gọi khi chạy tiếp sau STOP.</summary>
         void ResetCounters();
+
+        /// <summary>
+        /// Đồng hồ một lượt tray lắp ráp của chạy rà — hàng Cycle Time / Tack Time trang Main đọc khi đang chạy rà (Tuấn
+        /// 2026-11-07: "Dry Run cũng tính CycleTime y như chạy Auto thực tế"). Cùng nghĩa với đồng hồ tray của chu trình thật
+        /// (RunningData::AssyTrayStartedAt…): giờ thực từ lúc bắt đầu lượt tới lần đặt vào ô cuối, tính cả lúc STOP; mỗi lần
+        /// đặt là một "sản phẩm". Không có tray để thay nên hết lượt là lượt sau bắt đầu ngay, số của lượt vừa xong xuống
+        /// hàng Last. Giữ riêng, không ghi vào RunningData: số của chu trình thật không bị lẫn.
+        /// </summary>
+        struct LapClock
+        {
+            std::optional<TimePoint> StartedAt;   // lượt đang chạy; nullopt = chưa chạy từ lúc bật chạy rà
+            int Places = 0;                        // số lần đặt của lượt đang chạy
+            double LastSec = 0;                    // lượt vừa xong
+            int LastPlaces = 0;
+        };
+        LapClock Lap() const;
+
+        /// <summary>Clear sản lượng ở trang Main: xoá số lượt vừa xong, lượt đang chạy giữ nguyên (như
+        /// RunningData::ResetCounters không đụng mốc tray đang làm).</summary>
+        void ClearLastLap();
 
         /// <summary>Chạy rà (C# RunAsync). Mọi đường ra đều là dừng: true = dừng ở checkpoint (đã đặt State = Paused),
         /// false = dừng vì lỗi/huỷ.</summary>
@@ -134,5 +156,8 @@ namespace sca
         /// <summary>Hàng đã quét gần nhất — chỉ dùng khi bật quét từng hàng. −1 = chưa quét hàng nào.</summary>
         int m_scannedRow{ -1 };
         RunClock m_clock;
+
+        mutable std::mutex m_lapMutex;   // m_lap: luồng routine ghi, luồng UI đọc
+        LapClock m_lap;
     };
 }

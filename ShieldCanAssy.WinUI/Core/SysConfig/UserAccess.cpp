@@ -14,6 +14,7 @@
 #include <atomic>
 #include <filesystem>
 #include <mutex>
+#include <optional>
 #include <vector>
 
 #pragma comment(lib, "bcrypt.lib")
@@ -150,10 +151,10 @@ namespace sca
         /// Master = tính lại muối + băm rồi build lại, vd. PowerShell:
         /// <c>$s = New-Object byte[] 16; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($s);
         /// (New-Object Security.Cryptography.Rfc2898DeriveBytes("&lt;mật khẩu&gt;", $s, 50000,
-        /// [Security.Cryptography.HashAlgorithmName]::SHA256)).GetBytes(32)</c> (in hai mảng dạng hex). Sửa cả câu kiểm
-        /// trong InfraTests (TestUserAccess).
+        /// [Security.Cryptography.HashAlgorithmName]::SHA256)).GetBytes(32)</c> (in hai mảng dạng hex). Chữ thật không ghi vào
+        /// bất kỳ file nào, kể cả bài kiểm (Tuấn 2026-11-02).
         /// </summary>
-        const Secret& MasterSecret()
+        const Secret& RealMasterSecret()
         {
             static const Secret s = [] {
                 Secret m;
@@ -165,6 +166,11 @@ namespace sca
             }();
             return s;
         }
+
+        /// <summary>Mật khẩu giả của bài kiểm (SetMasterPasswordForTests) — App không bao giờ đặt.</summary>
+        std::optional<Secret> g_masterForTests;
+
+        const Secret& MasterSecret() { return g_masterForTests ? *g_masterForTests : RealMasterSecret(); }
 
         json ToJson(const Secret& s)
         {
@@ -270,6 +276,16 @@ namespace sca
         st.version++;
     }
 
+    void UserAccess::SetMasterPasswordForTests(std::string_view password)
+    {
+        g_masterForTests.reset();
+        if (password.empty()) return;
+        Secret secret;
+        if (MakeSecret(password, false, secret)) g_masterForTests = std::move(secret);
+    }
+
+    bool UserAccess::MasterSecretValidForTests() { return RealMasterSecret().Valid(); }
+
     EUserLevel UserAccess::Level() { return (EUserLevel)S().level.load(); }
 
     bool UserAccess::IsAtLeast(EUserLevel level) { return S().level.load() >= (int)level; }
@@ -347,7 +363,8 @@ namespace sca
         if (level != EUserLevel::Engineer) return Loc::F("User.NoPassword", ToString(level));
         if (!IsAtLeast(EUserLevel::Engineer)) return Loc::T("User.EngineerRequired");
         if ((int)newPassword.size() < MinPasswordLength) return Loc::F("User.PasswordTooShort", MinPasswordLength);
-        if (Verify(MasterSecret(), newPassword)) return Loc::T("User.PasswordIsMaster");
+        // Câu từ chối không nói lý do — không được xác nhận chuỗi vừa gõ là gì (Tuấn 2026-11-02).
+        if (Verify(MasterSecret(), newPassword)) return Loc::T("User.PasswordRejected");
 
         Secret secret;
         if (!MakeSecret(newPassword, newPassword == DefaultEngineerPassword, secret)) return Loc::T("User.HashFailed");
