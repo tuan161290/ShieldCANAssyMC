@@ -181,6 +181,8 @@ namespace winrt::ShieldCanAssy::implementation
         tip(T2P2Button(), "Teach.P2Tip");
         tip(T2P3Button(), "Teach.P3Tip");
         tip(ApplySizeButton(), "Teach.ApplySizeTip");
+        tip(GoAlign1Button(), "Teach.GoT1TriggerTip");
+        tip(GoAlign2Button(), "Teach.GoT2TriggerTip");
         tip(GoJigPick1Button(), "Teach.GoJigPick1Tip");
         tip(GoJigPick2Button(), "Teach.GoJigPick2Tip");
         tip(GoJigCamButton(), "Teach.GoJigCamTip");
@@ -354,6 +356,8 @@ namespace winrt::ShieldCanAssy::implementation
         click(T2TeachZSlowZ2Button(), [](TeachingPage& p) { p.TeachZSlow(AxisId::Z2, 1); });
         click(TeachAlign1Button(), [](TeachingPage& p) { p.TeachAlignPos(1); });
         click(TeachAlign2Button(), [](TeachingPage& p) { p.TeachAlignPos(2); });
+        dbl(GoAlign1Button(), [](TeachingPage& p) { p.MoveToTrigger(1); });
+        dbl(GoAlign2Button(), [](TeachingPage& p) { p.MoveToTrigger(2); });
         click(TeachJigPick1Button(), [](TeachingPage& p) { p.TeachHandEyePick(1); });
         click(TeachJigPick2Button(), [](TeachingPage& p) { p.TeachHandEyePick(2); });
         click(TeachJigCamButton(), [](TeachingPage& p) { p.TeachHandEyeCamPos(); });
@@ -516,6 +520,8 @@ namespace winrt::ShieldCanAssy::implementation
         ui::SetEnabled(CellScroll(), enabled);
         ui::SetEnabled(CellActionsHost(), enabled);
         ui::SetEnabled(GoCamAnchorButton(), enabled);
+        ui::SetEnabled(GoAlign1Button(), enabled);
+        ui::SetEnabled(GoAlign2Button(), enabled);
         ui::SetEnabled(GoJigPick1Button(), enabled);
         ui::SetEnabled(GoJigPick2Button(), enabled);
         ui::SetEnabled(GoJigCamButton(), enabled);
@@ -1436,6 +1442,12 @@ namespace winrt::ShieldCanAssy::implementation
         std::string zName = nozzle == 1 ? AxisId::Z1 : AxisId::Z2;
         double zCapture = McControl::Motion().ZSafe();
         double x = McDataManager::Model()->AlignPosX(nozzle);
+        // 0 = chưa teach (cùng quy ước với Vision Edit): không để X chạy về 0 trong im lặng.
+        if (std::abs(x) < 1e-9)
+        {
+            ui::Dialogs::Warn(Loc::F("Vision.NoAlignPosX", nozzle));
+            return;
+        }
         auto zAxis = AxisOf(zName), xAxis = AxisOf(AxisId::X);
         if (!zAxis || !xAxis) return;
 

@@ -342,7 +342,7 @@ Jog/Stop/Brake are not.
 │ Verify (optional) X Y [Teach]       ││ Z1 …       [−][+] [Origin][Go Pick][Go Place]  Y2 … [−][+]      │
 │ PICK ANGLE (Input only) A1 [Teach A1]│ Z2 …       [−][+] [Origin][Go Pick][Go Place]  Jog speed ‹Slow|Fast›│
 │ PICK/PLACE HEIGHT Z1 [Teach Z1] …   ││ [Vac #1][Vac #2][Blow #1][Blow #2]  [Btm Light][Top Light]      │
-│ BOTTOM CAM POS. [Teach #1][Teach #2]││                                                                 │
+│ BOTTOM CAM POS. [Teach #n][Go] ×2   ││                                                                 │
 │ JIG (HAND-EYE) [Teach][Go] ×3       │└────────────────────────────────────────────────────────────────┘
 └─────────────────────────────────────┘
 ```
@@ -425,6 +425,7 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 |---|---|---|---|---|---|
 | TE-36 | Hint | `TextBlock` | `Teach.AlignPosHint` | — | — |
 | TE-37 | Nozzle #1/#2 X + Teach | `AlignX1Text`, `AlignX2Text`, `TeachAlign1Button`, `TeachAlign2Button` | "Nozzle #1: 123.456 mm" · Teach #1 / Teach #2 | X pos; [Confirm] `Teach.WhatAlignPos`; `Model.AlignPosX_Nozzle1/2`; InvalidateVisionCache | — |
+| TE-37a | Go (WinUI only) | `Button` · `GoAlign1Button`, `GoAlign2Button` | Go | Same as TE-58 (incl. the not-taught Warn) | **[2×]** [Busy-off]. Tips `Teach.GoT1TriggerTip`, `GoT2TriggerTip`. |
 
 ### 4.8 JIG (HAND-EYE) card (always visible — not tray-bound)
 
@@ -459,7 +460,7 @@ Origin — operator-verified") when `!Status.OrgOk`. Grid/anchor/align/offset/tr
 | ID | WPF | WinUI · x:Name | Label | Core | Rules |
 |---|---|---|---|---|---|
 | TE-57 | Jog rows X, Z1, Z2 (col 1), Y1, Y2 (col 2) | `ui::JogRow` ×5 (§9.3) | name, pos (Consolas 14 + unit), − + | `Func.Jog(name, ±1/0)` | **[Hold]**, buttons 36 high (compact by request 2026-09-28: cell grid has priority). No Stop/Origin/SVO/RST/Move here (Manual only). |
-| TE-58 | Go T1 / Go T2 (X row) `MoveXTrigger1/2Command` | `Button` · `GoT1Button`, `GoT2Button` | Go T1 · Go T2 | Z(n) → `Motion.ZSafe` via `Func.MoveAsync`, then X → `Model.AlignPosX(n)`; fail → Warn `Teach.ZCaptureFailed` / `AxisMoveFailed` | **[2×]** [Busy-off]. Tips `Teach.GoT1TriggerTip`, `GoT2TriggerTip`. |
+| TE-58 | Go T1 / Go T2 (X row) `MoveXTrigger1/2Command` | `Button` · `GoT1Button`, `GoT2Button` | Go T1 · Go T2 | `AlignPosX(n)` = 0 → Warn `Vision.NoAlignPosX`, no motion. Else Z(n) → `Motion.ZSafe` via `Func.MoveAsync`, then X → `Model.AlignPosX(n)`; fail → Warn `Teach.ZCaptureFailed` / `AxisMoveFailed` | **[2×]** [Busy-off]. Tips `Teach.GoT1TriggerTip`, `GoT2TriggerTip`. |
 | TE-59 | Origin (Z rows) `MoveZHomeCommand` | `Button` · `ZOriginButton` (per row) | Origin | `MoveZAsync(z, Config.HomeOffset, Layout.ZSlowFor(z))` (up through slow pt) | **[2×]** [Busy-off]. Tip `Teach.ZHomeTip`. |
 | TE-60 | Go Pick `MoveZPickCommand` | `Button` · `ZGoPickButton` | Go Pick | input tray selected → its `ZPickFor/ZSlowFor`; Assy selected → `Model.InputTray` | **[2×]**. Tip `Teach.GoPickTip`. |
 | TE-61 | Go Place `MoveZPlaceCommand` | `Button` · `ZGoPlaceButton` | Go Place | `Model.AssyTray.ZPickFor/ZSlowFor` | **[2×]**. Tip `Teach.GoPlaceTip`. |

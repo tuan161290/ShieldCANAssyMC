@@ -528,23 +528,27 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Nozzle #1:" Style="{StaticResource ValueLabelStyle}"/>
                                     <TextBlock x:Name="AlignX1Text" Style="{StaticResource ValueTextStyle}"/>
                                 </StackPanel>
-                                <Button x:Name="TeachAlign1Button" Grid.Column="1" Content="Teach #1" Width="110"/>
+                                <Button x:Name="TeachAlign1Button" Grid.Column="1" Content="Teach #1" Width="110" Margin="0,0,4,0"/>
+                                <Button x:Name="GoAlign1Button" Grid.Column="2" Content="Go" Width="64"/>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Nozzle #2:" Style="{StaticResource ValueLabelStyle}"/>
                                     <TextBlock x:Name="AlignX2Text" Style="{StaticResource ValueTextStyle}"/>
                                 </StackPanel>
-                                <Button x:Name="TeachAlign2Button" Grid.Column="1" Content="Teach #2" Width="110"/>
+                                <Button x:Name="TeachAlign2Button" Grid.Column="1" Content="Teach #2" Width="110" Margin="0,0,4,0"/>
+                                <Button x:Name="GoAlign2Button" Grid.Column="2" Content="Go" Width="64"/>
                             </Grid>
                         </StackPanel>
                     </Grid>
